@@ -1,0 +1,13 @@
+Cohort,Selected,MeanComposite,RegimeLabel
+1993-1995,"CSCO, HD, JPM, UNH, ORCL, INTC, DIS",0.821,Defensive (low)
+1996-1998,"INTU, CSCO, JNJ, MCD, KO, LLY, INTC",0.758,Defensive (low)
+1999-2001,"AMZN, CSCO, MSFT, WMT, HD, IBM, LOW",0.843,"Defensive (CAPE frothy, 32.9)"
+2002-2004,"NVDA, LOW, LIN, JNJ, TGT, BAC, IBM",0.822,Defensive (low)
+2005-2007,"UNH, AAPL, COP, NKE, QCOM, ISRG, XOM",0.847,Default (mid)
+2008-2010,"ISRG, MA, LIN, AAPL, NEE, GOOGL, MCD",0.870,Momentum (high)
+2011-2013,"NFLX, AVGO, INTU, CRM, AAPL, MCD, NKE",0.896,Momentum (high)
+2014-2016,"MA, NOW, TSLA, NKE, MMM, AXP, AMZN",0.820,Defensive (low)
+2017-2019,"UNH, NVDA, TXN, JPM, AVGO, AMD, MMM",0.847,Default (mid)
+2020-2022,"MA, MSFT, NEE, AAPL, V, COST, AMD",0.857,"Defensive (CAPE frothy, 31.0)"
+2023-2025,"LLY, MRK, XOM, PEP, COP, UNH, CVX",0.863,Momentum (high)
+2026-present (Live),"GE, GS, GOOGL, AVGO, IBM, JPM, JNJ",0.863,"Defensive (CAPE frothy, 38.0)"
