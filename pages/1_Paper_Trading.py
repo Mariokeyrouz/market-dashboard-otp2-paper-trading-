@@ -35,7 +35,14 @@ LIVE_TICKERS = ["GE", "GS", "GOOGL", "AVGO", "IBM", "JPM", "JNJ"]
 st.title("📊 OTP2.0 v4 - Live Paper Trading")
 st.caption("Simulated forward test of the v4 strategy (2026-present 'Live' cohort). "
            "No real capital or broker is involved — this tracks what v4 *would* do "
-           "starting from go-live, using the same OT2.0 timing engine as the backtest.")
+           "starting from go-live, using the same OT2.0 timing engine as the backtest. "
+           "The ledger updates once per weekday after US market close.")
+
+col_refresh, _ = st.columns([1, 6])
+with col_refresh:
+    if st.button("🔄 Refresh data"):
+        st.cache_data.clear()
+        st.rerun()
 
 if not os.path.exists(LEDGER_PATH):
     st.warning("No paper-trading ledger found yet. Run `paper_trading_engine.py` to seed it.")
@@ -44,6 +51,8 @@ if not os.path.exists(LEDGER_PATH):
 ledger = pd.read_csv(LEDGER_PATH, parse_dates=["date"])
 with open(STATE_PATH) as f:
     state = json.load(f)
+
+st.caption(f"📅 Ledger last updated for trading day: **{state['last_date']}**")
 
 # ── Headline metrics ────────────────────────────────────────────────────────
 first_nav = ledger["nav"].iloc[0]
