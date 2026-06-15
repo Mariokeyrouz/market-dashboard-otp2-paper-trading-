@@ -33,6 +33,9 @@ CFG = DEFENSIVE_OT2_CONFIG
 LEDGER_PATH = "paper_ledger.csv"
 STATE_PATH = "paper_state.json"
 START_NAV = 10000.0
+# Round-trip slippage + commission cost, applied to dollar amount traded
+# whenever the invested/cash split rebalances (e.g. 0.1% = 10 bps).
+SLIPPAGE_FEE_RATE = 0.001
 
 
 def _step(row, prev, state, cfg, lr, cash_ret):
@@ -117,6 +120,12 @@ def _step(row, prev, state, cfg, lr, cash_ret):
     invested_dollars = state["invested_dollars"] * np.exp(lr)
     cash_dollars = state["cash_dollars"] * (1.0 + cash_ret)
     total = invested_dollars + cash_dollars
+    target_invested_dollars = inv * total
+
+    traded_dollars = abs(target_invested_dollars - invested_dollars)
+    cost = traded_dollars * SLIPPAGE_FEE_RATE
+    total -= cost
+
     invested_dollars = inv * total
     cash_dollars = (1.0 - inv) * total
 
@@ -127,6 +136,7 @@ def _step(row, prev, state, cfg, lr, cash_ret):
     state["invested_dollars"] = invested_dollars
     state["cash_dollars"] = cash_dollars
     state["nav"] = total
+    state["trading_cost"] = state.get("trading_cost", 0.0) + cost
     return state
 
 
@@ -171,9 +181,12 @@ def main():
         seed_pos = len(common_index) - 1
         seed_date = common_index[seed_pos]
         inv0 = min(0.95, CFG["vol_target"] / market_df["rvol20"].iloc[seed_pos])
-        invested_dollars0 = START_NAV * inv0
+        seed_cost = START_NAV * inv0 * SLIPPAGE_FEE_RATE
+        nav0 = START_NAV - seed_cost
+        invested_dollars0 = nav0 * inv0
         per_ticker_dollars = invested_dollars0 / len(LIVE_TICKERS)
-        entry_prices = {t: float(prices[t].iloc[seed_pos]) for t in LIVE_TICKERS}
+        # Entry prices reflect slippage: buys execute at close * (1 + fee rate)
+        entry_prices = {t: float(prices[t].iloc[seed_pos]) * (1 + SLIPPAGE_FEE_RATE) for t in LIVE_TICKERS}
         shares = {t: per_ticker_dollars / entry_prices[t] for t in LIVE_TICKERS}
         state = dict(
             invested=inv0,
@@ -181,8 +194,9 @@ def main():
             consec_vix_fall=0,
             consec_rvol_fall=0,
             invested_dollars=invested_dollars0,
-            cash_dollars=START_NAV * (1 - inv0),
-            nav=START_NAV,
+            cash_dollars=nav0 * (1 - inv0),
+            nav=nav0,
+            trading_cost=seed_cost,
             last_date=str(seed_date.date()),
             entry_prices=entry_prices,
             shares=shares,
@@ -190,7 +204,7 @@ def main():
         )
         rows = [{
             "date": seed_date.date().isoformat(),
-            "nav": START_NAV,
+            "nav": nav0,
             "invested_pct": inv0 * 100,
             "daily_log_ret": 0.0,
             "regime": "Defensive (CAPE frothy, 38.0)",
@@ -199,7 +213,8 @@ def main():
         pd.DataFrame(rows).to_csv(LEDGER_PATH, index=False)
         with open(STATE_PATH, "w") as f:
             json.dump(state, f, indent=2)
-        print(f"Seeded paper ledger at {seed_date.date()} (NAV={START_NAV:.2f}, invested={inv0*100:.1f}%)")
+        print(f"Seeded paper ledger at {seed_date.date()} (NAV={nav0:.2f}, invested={inv0*100:.1f}%, "
+              f"trading cost so far={seed_cost:.2f})")
         print(f"\nRuntime: {time.time() - t0:.1f} seconds")
         return
 

@@ -145,7 +145,8 @@ if "entry_prices" in state and "shares" in state and "last_prices" in state:
     pos_df = pd.DataFrame(pos_rows)
     st.dataframe(pos_df, use_container_width=True, hide_index=True)
     st.caption(f"Cash position: **${state['cash_dollars']:,.2f}**  |  "
-               f"Total invested market value: **${pos_df['Market Value ($)'].sum():,.2f}**")
+               f"Total invested market value: **${pos_df['Market Value ($)'].sum():,.2f}**  |  "
+               f"Cumulative slippage/fees: **${state.get('trading_cost', 0.0):,.2f}**")
 else:
     st.info("Position-level data not available for this ledger (older seed format).")
 
