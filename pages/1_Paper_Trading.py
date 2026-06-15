@@ -217,7 +217,7 @@ fig.update_layout(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
     margin=dict(l=0, r=0, t=20, b=0),
-    yaxis=dict(title="NAV ($, start = 10,000)", gridcolor="#2a2a3e"),
+    yaxis=dict(title="NAV ($, start = 10,000)", gridcolor="#2a2a3e", tickformat=","),
     xaxis=dict(title="Date"),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
 )
@@ -267,8 +267,16 @@ display_log["daily_log_ret"] = (display_log["daily_log_ret"] * 100).round(3)
 display_log = display_log.rename(columns={
     "nav": "NAV ($)", "invested_pct": "invested %", "daily_log_ret": "daily return %",
 })
-st.dataframe(display_log[["date", "NAV ($)", "invested %", "daily return %", "regime"]]
-             .sort_values("date", ascending=False), use_container_width=True, hide_index=True)
+st.dataframe(
+    display_log[["date", "NAV ($)", "invested %", "daily return %", "regime"]]
+        .sort_values("date", ascending=False),
+    use_container_width=True, hide_index=True,
+    column_config={
+        "NAV ($)": st.column_config.NumberColumn("NAV ($)", format="$%,.2f"),
+        "invested %": st.column_config.NumberColumn("invested %", format="%.1f%%"),
+        "daily return %": st.column_config.NumberColumn("daily return %", format="%.3f%%"),
+    },
+)
 
 st.caption("Strategy: OTP2.0 v4 (54-stock universe, 3yr cohorts, top-7 selection, "
            "5-factor composite + regime tertile + CAPE froth override, layered on "
