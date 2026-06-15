@@ -32,6 +32,7 @@ LIVE_TICKERS = ["GE", "GS", "GOOGL", "AVGO", "IBM", "JPM", "JNJ"]
 CFG = DEFENSIVE_OT2_CONFIG
 LEDGER_PATH = "paper_ledger.csv"
 STATE_PATH = "paper_state.json"
+START_NAV = 10000.0
 
 
 def _step(row, prev, state, cfg, lr, cash_ret):
@@ -170,19 +171,26 @@ def main():
         seed_pos = len(common_index) - 1
         seed_date = common_index[seed_pos]
         inv0 = min(0.95, CFG["vol_target"] / market_df["rvol20"].iloc[seed_pos])
+        invested_dollars0 = START_NAV * inv0
+        per_ticker_dollars = invested_dollars0 / len(LIVE_TICKERS)
+        entry_prices = {t: float(prices[t].iloc[seed_pos]) for t in LIVE_TICKERS}
+        shares = {t: per_ticker_dollars / entry_prices[t] for t in LIVE_TICKERS}
         state = dict(
             invested=inv0,
             cooldown=0,
             consec_vix_fall=0,
             consec_rvol_fall=0,
-            invested_dollars=100.0 * inv0,
-            cash_dollars=100.0 * (1 - inv0),
-            nav=100.0,
+            invested_dollars=invested_dollars0,
+            cash_dollars=START_NAV * (1 - inv0),
+            nav=START_NAV,
             last_date=str(seed_date.date()),
+            entry_prices=entry_prices,
+            shares=shares,
+            last_prices=entry_prices.copy(),
         )
         rows = [{
             "date": seed_date.date().isoformat(),
-            "nav": 100.0,
+            "nav": START_NAV,
             "invested_pct": inv0 * 100,
             "daily_log_ret": 0.0,
             "regime": "Defensive (CAPE frothy, 38.0)",
@@ -191,7 +199,7 @@ def main():
         pd.DataFrame(rows).to_csv(LEDGER_PATH, index=False)
         with open(STATE_PATH, "w") as f:
             json.dump(state, f, indent=2)
-        print(f"Seeded paper ledger at {seed_date.date()} (NAV=100, invested={inv0*100:.1f}%)")
+        print(f"Seeded paper ledger at {seed_date.date()} (NAV={START_NAV:.2f}, invested={inv0*100:.1f}%)")
         print(f"\nRuntime: {time.time() - t0:.1f} seconds")
         return
 
@@ -217,6 +225,8 @@ def main():
             "holdings": ", ".join(LIVE_TICKERS),
         })
         state["last_date"] = str(date.date())
+
+    state["last_prices"] = {t: float(prices[t].iloc[-1]) for t in LIVE_TICKERS}
 
     existing = pd.read_csv(LEDGER_PATH)
     updated = pd.concat([existing, pd.DataFrame(new_rows)], ignore_index=True)

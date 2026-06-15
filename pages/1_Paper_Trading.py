@@ -122,6 +122,35 @@ st.plotly_chart(fig_dd, use_container_width=True)
 
 st.divider()
 
+# ── Positions ────────────────────────────────────────────────────────────────
+st.subheader("Positions")
+if "entry_prices" in state and "shares" in state and "last_prices" in state:
+    pos_rows = []
+    for t in LIVE_TICKERS:
+        shares = state["shares"][t]
+        entry = state["entry_prices"][t]
+        last = state["last_prices"][t]
+        cost_basis = shares * entry
+        market_value = shares * last
+        unrealized_pct = (last / entry - 1) * 100
+        pos_rows.append({
+            "Ticker": t,
+            "Shares": round(shares, 4),
+            "Entry Price": round(entry, 2),
+            "Last Price": round(last, 2),
+            "Cost Basis ($)": round(cost_basis, 2),
+            "Market Value ($)": round(market_value, 2),
+            "Unrealized G/L (%)": round(unrealized_pct, 2),
+        })
+    pos_df = pd.DataFrame(pos_rows)
+    st.dataframe(pos_df, use_container_width=True, hide_index=True)
+    st.caption(f"Cash position: **${state['cash_dollars']:,.2f}**  |  "
+               f"Total invested market value: **${pos_df['Market Value ($)'].sum():,.2f}**")
+else:
+    st.info("Position-level data not available for this ledger (older seed format).")
+
+st.divider()
+
 # ── Current allocation & regime ─────────────────────────────────────────────
 col_alloc, col_regime = st.columns(2)
 with col_alloc:
