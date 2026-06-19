@@ -584,6 +584,63 @@ button:hover{{filter:brightness(0.94);}}
 const SERIES = {series_json};
 const COLORS = {colors_json};
 
+// NYSE market holidays (fixed + computed)
+function isNYSEHoliday(d) {{
+  const y = d.getFullYear(), m = d.getMonth()+1, day = d.getDate(), dow = d.getDay();
+  // Helper: nth weekday of month (dow: 0=Sun,1=Mon,...; n: 1-based)
+  function nthDow(yr, mo, weekday, n) {{
+    let count=0;
+    for (let i=1;i<=31;i++) {{
+      const dt = new Date(yr,mo-1,i);
+      if (dt.getMonth()!==mo-1) break;
+      if (dt.getDay()===weekday && ++count===n) return i;
+    }}
+  }}
+  // Last Monday of month
+  function lastMon(yr, mo) {{
+    for (let i=31;i>=1;i--) {{
+      const dt = new Date(yr,mo-1,i);
+      if (dt.getMonth()!==mo-1) continue;
+      if (dt.getDay()===1) return i;
+    }}
+  }}
+  // Good Friday (2 days before Easter)
+  function goodFriday(yr) {{
+    const a=yr%19,b=Math.floor(yr/100),c=yr%100,d2=Math.floor(b/4),e=b%4;
+    const f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d2-g+15)%30;
+    const i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
+    const m2=Math.floor((a+11*h+22*l)/451);
+    const mo2=Math.floor((h+l-7*m2+114)/31),dy=(h+l-7*m2+114)%31+1;
+    const easter=new Date(yr,mo2-1,dy);
+    easter.setDate(easter.getDate()-2);
+    return {{m:easter.getMonth()+1,d:easter.getDate()}};
+  }}
+  // Saturday/Sunday always closed
+  if (dow===0||dow===6) return true;
+  // Observed holiday: if Jul 4/Dec 25/Jan 1 falls on Sat → Fri; Sun → Mon
+  function observed(mo2,dy2) {{
+    const dt=new Date(y,mo2-1,dy2);
+    const w=dt.getDay();
+    if (w===6) return {{m:mo2,d:dy2-1}};
+    if (w===0) return {{m:mo2,d:dy2+1}};
+    return {{m:mo2,d:dy2}};
+  }}
+  const gf = goodFriday(y);
+  const holidays = [
+    observed(1,1),          // New Year's Day
+    {{m:1,d:nthDow(y,1,1,3)}},  // MLK Day (3rd Mon Jan)
+    {{m:2,d:nthDow(y,2,1,3)}},  // Presidents' Day (3rd Mon Feb)
+    gf,                     // Good Friday
+    {{m:5,d:lastMon(y,5)}},     // Memorial Day (last Mon May)
+    observed(6,19),         // Juneteenth
+    observed(7,4),          // Independence Day
+    {{m:9,d:nthDow(y,9,1,1)}},  // Labor Day (1st Mon Sep)
+    {{m:11,d:nthDow(y,11,4,4)}},// Thanksgiving (4th Thu Nov)
+    observed(12,25),        // Christmas
+  ];
+  return holidays.some(h2 => h2 && h2.m===m && h2.d===day);
+}}
+
 // Live clocks
 function tick() {{
   const now = new Date();
@@ -591,8 +648,8 @@ function tick() {{
   const etOpts = {{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}};
   document.getElementById('et-time').textContent = now.toLocaleTimeString('en-US', etOpts);
   const etDate = new Date(now.toLocaleString('en-US', {{timeZone:'America/New_York'}}));
-  const day = etDate.getDay(), h = etDate.getHours();
-  const open = day >= 1 && day <= 5 && h >= 9 && h < 16;
+  const dow = etDate.getDay(), h = etDate.getHours();
+  const open = dow >= 1 && dow <= 5 && h >= 9 && h < 16 && !isNYSEHoliday(etDate);
   const dot = document.getElementById('nyse-dot');
   const lbl = document.getElementById('nyse-status');
   dot.style.background = open ? '#2f8f5b' : '#c14a32';
