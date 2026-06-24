@@ -1,0 +1,16 @@
+{
+  "in_position": false,
+  "stop_active": false,
+  "hwm": null,
+  "gld_shares": 0.0,
+  "entry_price": null,
+  "entry_date": null,
+  "cash_dollars": 10000.0,
+  "nav": 10000.0,
+  "trading_cost": 0.0,
+  "last_date": "2026-06-24",
+  "last_gld_price": 368.5799865722656,
+  "signal_tips_falling": false,
+  "signal_dxy_weak": false,
+  "signal_regime_on": false
+}
