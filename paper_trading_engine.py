@@ -38,8 +38,18 @@ START_NAV = 10000.0
 SLIPPAGE_FEE_RATE = 0.001
 
 
-def _step(row, prev, state, cfg, lr, cash_ret):
-    """One-day OT2.0 state advance. Mutates and returns `state` dict."""
+def _step(row, prev, state, cfg, lr, cash_ret, px_today, cash_ret_simple):
+    """One-day OT2.0 state advance. Mutates and returns `state` dict.
+
+    `px_today`        : dict {ticker: close price today} — used for real
+                        per-stock mark-to-market and share-level rebalancing.
+    `cash_ret_simple` : simple (non-log) daily cash return for the cash bucket.
+
+    The invested sleeve is held as actual shares per ticker. On any change in
+    target invested %, every holding is scaled proportionally (preserving
+    relative weights) and `shares` / `entry_prices` / cash are updated so that
+    NAV == sum(shares*price) + cash exactly. The page reconciles by construction.
+    """
     c = cfg
     inv = state["invested"]
     cooldown = state["cooldown"]
@@ -117,23 +127,47 @@ def _step(row, prev, state, cfg, lr, cash_ret):
     if cooldown > 0:
         cooldown -= 1
 
-    invested_dollars = state["invested_dollars"] * np.exp(lr)
-    cash_dollars = state["cash_dollars"] * (1.0 + cash_ret)
-    total = invested_dollars + cash_dollars
-    target_invested_dollars = inv * total
+    # ── Real per-stock bookkeeping ──────────────────────────────────────────
+    shares = state["shares"]
+    entry_prices = state["entry_prices"]
 
-    traded_dollars = abs(target_invested_dollars - invested_dollars)
+    # 1. Mark holdings + cash to today's close (positions move by own prices).
+    stock_value_pre = sum(shares[t] * px_today[t] for t in shares)
+    cash_dollars = state["cash_dollars"] * (1.0 + cash_ret_simple)
+    total_pre = stock_value_pre + cash_dollars
+
+    # 2. Determine target invested dollars and the trade needed to get there.
+    target_stock = inv * total_pre
+    traded_dollars = abs(target_stock - stock_value_pre)
     cost = traded_dollars * SLIPPAGE_FEE_RATE
-    total -= cost
+    total = total_pre - cost
+    target_stock = inv * total           # re-apply target after netting cost
 
-    invested_dollars = inv * total
-    cash_dollars = (1.0 - inv) * total
+    # 3. Scale every holding by the same factor (preserve relative weights).
+    if stock_value_pre > 1e-9:
+        factor = target_stock / stock_value_pre
+    else:
+        factor = 0.0
+
+    for t in shares:
+        old_sh = shares[t]
+        new_sh = old_sh * factor
+        if new_sh > old_sh:
+            # Buying more — update weighted-average cost basis.
+            bought = new_sh - old_sh
+            entry_prices[t] = (old_sh * entry_prices[t] + bought * px_today[t]) / new_sh
+        # Selling (factor < 1) leaves entry/cost basis per share unchanged.
+        shares[t] = new_sh
+
+    cash_dollars = total - target_stock
 
     state["invested"] = inv
     state["cooldown"] = cooldown
     state["consec_vix_fall"] = consec_vix_fall
     state["consec_rvol_fall"] = consec_rvol_fall
-    state["invested_dollars"] = invested_dollars
+    state["shares"] = shares
+    state["entry_prices"] = entry_prices
+    state["invested_dollars"] = target_stock
     state["cash_dollars"] = cash_dollars
     state["nav"] = total
     state["trading_cost"] = state.get("trading_cost", 0.0) + cost
@@ -165,6 +199,7 @@ def main():
         common_index = common_index.intersection(logret[tkr].dropna().index)
     market_df = market_df.loc[common_index]
     logret = logret.loc[common_index]
+    prices = prices.loc[common_index]      # align for positional per-stock lookup
 
     blended = logret.mean(axis=1)
     cash_daily = (tbill_raw.reindex(common_index).ffill().bfill() / 252)
@@ -176,6 +211,31 @@ def main():
         with open(STATE_PATH) as f:
             state = json.load(f)
         last_date = pd.Timestamp(state["last_date"])
+
+        # ── One-time re-base migration to per-stock-v2 bookkeeping ──────────
+        # Legacy state advanced the invested sleeve as a single blended dollar
+        # bucket and never updated `shares` when the engine trimmed/reloaded,
+        # so sum(shares*price) drifted above the true invested_dollars (the
+        # trim proceeds were double-counted in cash). Scale shares once so they
+        # match the engine's authoritative invested_dollars; carry NAV forward.
+        if not state.get("per_stock_v2"):
+            lp = state.get("last_prices", {})
+            sh = state.get("shares", {})
+            stock_val = sum(sh[t] * lp[t] for t in sh) if (sh and lp) else 0.0
+            target = state.get("invested_dollars", stock_val)
+            if stock_val > 1e-9:
+                f_rebase = target / stock_val
+                for t in sh:
+                    sh[t] = sh[t] * f_rebase
+                state["shares"] = sh
+            state["per_stock_v2"] = True
+            # Persist immediately — if there are no new trading days the engine
+            # returns early below, and the re-base must survive that path.
+            with open(STATE_PATH, "w") as f:
+                json.dump(state, f, indent=2)
+            print(f"  [migration] Re-based shares to match invested_dollars "
+                  f"(scaled stock sleeve {stock_val:.2f} -> {target:.2f}); "
+                  f"NAV carried forward at {state['nav']:.2f}")
     else:
         # Seed: start "live" as of the most recent trading day.
         seed_pos = len(common_index) - 1
@@ -201,6 +261,7 @@ def main():
             entry_prices=entry_prices,
             shares=shares,
             last_prices=entry_prices.copy(),
+            per_stock_v2=True,
         )
         rows = [{
             "date": seed_date.date().isoformat(),
@@ -228,7 +289,9 @@ def main():
     for i in range(last_pos + 1, len(common_index)):
         row, prev = market_df.iloc[i], market_df.iloc[i - 1]
         prev_nav = state["nav"]
-        state = _step(row, prev, state, CFG, blended.iloc[i], cash_daily.iloc[i])
+        px_today = {t: float(prices[t].iloc[i]) for t in LIVE_TICKERS}
+        state = _step(row, prev, state, CFG, blended.iloc[i], cash_daily.iloc[i],
+                      px_today, float(cash_daily.iloc[i]))
         daily_log_ret = np.log(state["nav"] / prev_nav)
         date = common_index[i]
         new_rows.append({
