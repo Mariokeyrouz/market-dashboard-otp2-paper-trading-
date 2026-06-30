@@ -74,12 +74,13 @@ disclaimer = (
 
 
 # ── Decomposition chart (the hero visual) ─────────────────────────────────────
-def decomp_chart(series_list, W=620, H=260, pad_t=18, pad_b=24, pad_l=8, pad_r=54):
+def decomp_chart(series_list, x_labels=None, W=620, H=270, pad_t=18, pad_b=34, pad_l=8, pad_r=54):
     all_vals = [v for s in series_list for v in s["data"]]
     mn, mx = min(all_vals), max(all_vals)
     rng = (mx - mn) or 1.0
     mn -= rng * 0.14; mx += rng * 0.14; rng = mx - mn
     plot_w = W - pad_l - pad_r; plot_h = H - pad_t - pad_b
+    base_y = pad_t + plot_h            # x-axis baseline
 
     def xy(i, n, v):
         x = pad_l + (i / (n - 1) * plot_w if n > 1 else 0)
@@ -94,6 +95,19 @@ def decomp_chart(series_list, W=620, H=260, pad_t=18, pad_b=24, pad_l=8, pad_r=5
                  f'stroke="#f1ece1" stroke-width="1"/>'
                  f'<text x="{pad_l + plot_w + 7}" y="{gy + 3:.1f}" font-size="9.5" '
                  f'fill="#b3a890" font-family="{MONO}">{gval:.2f}</text>')
+
+    # x-axis date ticks (first · ~middle · last), muted, matching the y-axis style
+    xaxis = ""
+    if x_labels:
+        n = len(x_labels)
+        idxs = sorted(set([0, n // 2, n - 1])) if n > 2 else list(range(n))
+        for i in idxs:
+            tx = pad_l + (i / (n - 1) * plot_w if n > 1 else 0)
+            anchor = "start" if i == 0 else ("end" if i == n - 1 else "middle")
+            xaxis += (f'<line x1="{tx:.1f}" y1="{base_y:.1f}" x2="{tx:.1f}" y2="{base_y + 4:.1f}" '
+                      f'stroke="#d8cdb6" stroke-width="1"/>'
+                      f'<text x="{tx:.1f}" y="{base_y + 16:.1f}" font-size="9.5" fill="#b3a890" '
+                      f'text-anchor="{anchor}" font-family="{MONO}">{x_labels[i]}</text>')
     paths = ""
     for s in series_list:
         data, color = s["data"], s["color"]
@@ -107,7 +121,23 @@ def decomp_chart(series_list, W=620, H=260, pad_t=18, pad_b=24, pad_l=8, pad_r=5
                   f'<text x="{lx - 7:.1f}" y="{ly - 8:.1f}" font-size="10.5" font-weight="600" '
                   f'fill="{color}" text-anchor="end" font-family="{MONO}">{data[-1]:.2f}</text>')
     return (f'<svg viewBox="0 0 {W} {H}" width="100%" height="{H}" preserveAspectRatio="none" '
-            f'style="overflow:visible;">{grid}{paths}</svg>')
+            f'style="overflow:visible;">{grid}{xaxis}{paths}</svg>')
+
+
+def mini_spark(series, color, W=120, H=26, pad=3):
+    """Tiny inline sparkline (no axes) for the oil-impulse strip."""
+    if not series or len(series) < 2:
+        return ""
+    mn, mx = min(series), max(series)
+    rng = (mx - mn) or 1.0
+    n = len(series)
+    pts = [(pad + i / (n - 1) * (W - 2 * pad), pad + (1 - (v - mn) / rng) * (H - 2 * pad))
+           for i, v in enumerate(series)]
+    d = "M " + " L ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+    lx, ly = pts[-1]
+    return (f'<svg viewBox="0 0 {W} {H}" width="{W}" height="{H}" preserveAspectRatio="none" style="overflow:visible;">'
+            f'<path d="{d}" fill="none" stroke="{color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>'
+            f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="2.3" fill="{color}"/></svg>')
 
 
 # ── Header ────────────────────────────────────────────────────────────────────
@@ -165,7 +195,7 @@ chart_svg = decomp_chart([
     {"data": hinge["nominal_series"],   "color": "#2b2620"},
     {"data": hinge["real_series"],      "color": "#3a6ea5"},
     {"data": hinge["breakeven_series"], "color": "#c08a2d"},
-])
+], x_labels=hinge["dates"])
 
 def legend_item(color, label, level, chg):
     return (f'<div style="display:flex;align-items:center;gap:6px;">'
@@ -184,6 +214,22 @@ tag_chips = "".join(
     for t in hinge_cls["tags"])
 dom = hinge_cls.get("dominant")
 dom_label = {"breakeven": "Breakeven leg", "real": "Real-yield leg", None: "No dominant leg"}[dom]
+
+# Oil as the inflation impulse — a quiet strip tying oil to the breakeven leg.
+# Accent in breakeven gold (#c08a2d) to visually link it to the chart line above.
+commod = mdata.commodities_impulse()
+wti = commod["wti"]
+oil_impulse = f'''
+  <div style="border-top:1px solid #ece3d2;margin-top:14px;padding-top:11px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <span style="{LABEL}">Inflation impulse</span>
+    <div style="display:flex;align-items:baseline;gap:8px;">
+      <span style="font-size:11.5px;color:#4a443b;">Oil · WTI</span>
+      <span style="font-family:{MONO};font-size:16px;font-weight:600;color:#1d1a15;">{wti['level']:.2f}</span>
+      <span style="font-family:{MONO};font-size:11px;color:#c08a2d;">{arrow(wti['chg'])}{abs(wti['chg']):.2f}%</span>
+    </div>
+    <div style="width:120px;">{mini_spark(wti['series'], '#c08a2d', W=120, H=24)}</div>
+    <span style="font-size:10.5px;color:#8a7f6a;font-style:italic;">feeds the breakeven leg</span>
+  </div>'''
 
 hinge_hero = f'''
 <div style="{CARD}padding:18px 20px;margin-bottom:16px;">
@@ -215,6 +261,7 @@ hinge_hero = f'''
       </div>
     </div>
   </div>
+  {oil_impulse}
 </div>'''
 
 # ── Tripwire row: four uniform tiles ──────────────────────────────────────────
@@ -335,4 +382,4 @@ html,body{{margin:0;padding:0;}}
 </body>
 </html>'''
 
-components.html(html, height=820, scrolling=True)
+components.html(html, height=870, scrolling=True)

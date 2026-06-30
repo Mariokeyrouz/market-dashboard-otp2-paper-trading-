@@ -26,12 +26,27 @@ Series mapping for the eventual real-data swap
   VIX term structure ...... VIX (^VIX) front vs. VIX3M / futures curve
 """
 
+from datetime import date, timedelta
+
 # Flip-and-replace marker for the real-data swap. While True, the view shows a
 # clear "mock data" banner so fake numbers are never mistaken for live quotes.
 MOCK = True
 
 # Default lookback window (trading days) used to measure how much each leg moved.
 DEFAULT_LOOKBACK_DAYS = 5
+
+
+def _business_day_labels(n: int, end: date | None = None) -> list:
+    """Last ``n`` business days ending today (most recent last), as 'Mon D' labels.
+    With real data these labels come from the series' DatetimeIndex instead."""
+    end = end or date.today()
+    days, d = [], end
+    while len(days) < n:
+        if d.weekday() < 5:           # Mon–Fri
+            days.append(d)
+        d -= timedelta(days=1)
+    days.reverse()
+    return [f"{dt:%b} {dt.day}" for dt in days]
 
 
 # ── Layer 2 — The Hinge (centerpiece) ─────────────────────────────────────────
@@ -58,6 +73,8 @@ def layer2_hinge(lookback_days: int = DEFAULT_LOOKBACK_DAYS) -> dict:
         "nominal_series":   [4.05, 4.06, 4.04, 4.09, 4.12, 4.16, 4.20],
         "real_series":      [1.92, 1.93, 1.92, 1.93, 1.94, 1.95, 1.95],
         "breakeven_series": [2.13, 2.13, 2.12, 2.16, 2.18, 2.21, 2.25],
+        # Date labels aligned 1:1 with the 7 series points (real index later).
+        "dates":            _business_day_labels(7),
     }
 
 
