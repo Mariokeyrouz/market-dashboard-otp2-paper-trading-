@@ -76,18 +76,34 @@ def financial_conditions() -> dict:
 
 
 # ── Layer 1 — Regime (slow, backward-looking) ─────────────────────────────────
-def layer1_regime() -> dict:
-    """Hard-macro inputs for the regime badge (monthly clock).
+def layer1_regime(region: str = "intl") -> dict:
+    """Hard-macro inputs for the regime badge (monthly clock), per region lens.
 
-    CPI prints are YoY %. ``cpi_trend`` / ``growth`` are coarse stubbed reads that
-    feed the rule-based regime classifier in macro_logic.classify_regime().
+    ``region`` ∈ {"intl","us","eu"}. CPI/HICP prints are YoY %. ``cpi_trend`` /
+    ``growth`` are coarse stubbed reads feeding macro_logic.classify_regime().
+    The real-yield hinge stays US regardless — this only re-frames the *context*.
     """
+    table = {
+        # International = G3 / world composite
+        "intl": {"region_label": "Global (G3)", "price_label": "CPI (G3)",
+                 "headline": 3.4, "core": 3.2, "cpi_trend": "sticky", "growth": "slowing",
+                 "as_of": "MOCK · world composite"},   # blended OECD/G3 (mock)
+        "us":   {"region_label": "United States", "price_label": "CPI",
+                 "headline": 3.1, "core": 3.3, "cpi_trend": "sticky", "growth": "slowing",
+                 "as_of": "MOCK · last US print"},      # FRED CPIAUCSL / CPILFESL
+        "eu":   {"region_label": "Euro Area", "price_label": "HICP",
+                 "headline": 2.4, "core": 2.7, "cpi_trend": "cooling", "growth": "slowing",
+                 "as_of": "MOCK · last euro print"},    # Eurostat HICP / core
+    }
+    d = table.get(region, table["intl"])
     return {
-        "cpi_headline": 3.1,           # FRED CPIAUCSL YoY (mock)
-        "cpi_core":     3.3,           # FRED CPILFESL YoY (mock)
-        "cpi_trend":    "sticky",      # one of: cooling | sticky | rising
-        "growth":       "slowing",     # one of: expanding | slowing | contracting
-        "as_of":        "MOCK · last print TBD",
+        "region_label": d["region_label"],
+        "price_label":  d["price_label"],
+        "cpi_headline": d["headline"],
+        "cpi_core":     d["core"],
+        "cpi_trend":    d["cpi_trend"],   # cooling | sticky | rising
+        "growth":       d["growth"],      # expanding | slowing | contracting
+        "as_of":        d["as_of"],
     }
 
 
@@ -112,46 +128,77 @@ def layer3_tripwires() -> dict:
 # thesis. FRED / yfinance ids for the eventual real-data swap are noted inline.
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ── Layer 1 support — Growth Nowcast ──────────────────────────────────────────
-def growth_nowcast() -> dict:
-    """Forward-ish growth reads that flesh out the regime layer.
+# ── Layer 1 support — Growth Nowcast (region lens) ────────────────────────────
+def growth_nowcast(region: str = "intl") -> dict:
+    """Forward-ish growth reads that flesh out the regime layer, per region.
 
-    - citi_surprise: Citi Economic Surprise Index — data vs. expectations
-      (positive = beating). No clean free FRED series; proxy/vendor later.
-    - ism_mfg / ism_services: ISM PMIs; <50 = contraction.
-    - jobless_claims: initial claims (thousands) + trend (FRED ICSA).
-    - copper_gold_ratio: growth-vs-fear gauge (yfinance HG=F / GC=F); series for trend.
+    Region-neutral keys (mfg / services / claims) carry display labels so the view
+    can render uniformly. ``copper_gold_ratio`` stays global. All MOCK.
+      US/intl PMIs ≈ ISM; EU ≈ HCOB/S&P euro PMI. Claims: US ICSA; EU shows the
+      unemployment rate instead.
     """
-    return {
-        "citi_surprise": -12.0,                              # vendor (mock); -ve = data missing
-        "ism_mfg":      {"level": 48.7, "chg": -0.4},        # ISM mfg (mock)
-        "ism_services": {"level": 51.3, "chg": -0.6},        # ISM services (mock)
-        "jobless_claims": {"level": 233, "trend": "rising"},  # FRED ICSA, thousands (mock)
-        "copper_gold_ratio": {
-            "level": 0.00152,                                # HG=F / GC=F (mock)
-            "series": [0.00161, 0.00159, 0.00157, 0.00156, 0.00154, 0.00153, 0.00152],
-        },
+    cg = {  # copper/gold ratio is global — same across regions
+        "level": 0.00152,                                    # HG=F / GC=F (mock)
+        "series": [0.00161, 0.00159, 0.00157, 0.00156, 0.00154, 0.00153, 0.00152],
     }
+    table = {
+        "intl": {"surprise_label": "Citi Surprise (G10)", "surprise": -9.0, "pmi_name": "PMI",
+                 "mfg": {"level": 49.4, "chg": -0.3}, "services": {"level": 51.8, "chg": -0.4},
+                 "claims_label": "Global trade", "claims": {"level": "soft", "trend": "rising", "is_text": True}},
+        "us":   {"surprise_label": "Citi Surprise (US)", "surprise": -12.0, "pmi_name": "ISM",
+                 "mfg": {"level": 48.7, "chg": -0.4}, "services": {"level": 51.3, "chg": -0.6},
+                 "claims_label": "Jobless Claims", "claims": {"level": 233, "unit": "k", "trend": "rising"}},
+        "eu":   {"surprise_label": "Citi Surprise (EU)", "surprise": +4.0, "pmi_name": "PMI",
+                 "mfg": {"level": 46.1, "chg": +0.5}, "services": {"level": 50.4, "chg": -0.2},
+                 "claims_label": "Unemployment", "claims": {"level": 6.4, "unit": "%", "trend": "steady"}},
+    }
+    d = table.get(region, table["intl"])
+    return {**d, "copper_gold_ratio": cg}
 
 
-# ── Layer 2 support — Rates, Curve & Policy ───────────────────────────────────
+# ── Layer 2 support — US Rates & Curve (always US; policy split out) ───────────
 def rates_curve_policy() -> dict:
-    """The policy/rates dimension behind the real-yield leg.
+    """US Treasury curve structure behind the real-yield leg. Stays US regardless
+    of region (US reals = the global discount rate).
 
-    - slope_2s10s / slope_3m10y: curve slopes in pp; negative = inverted (FRED
-      T10Y2Y / T10Y3M).
-    - fed_funds: current target range (low/high) in %.
-    - implied_cuts: market-implied easing — count and bps over a horizon
-      (Fed funds futures later; mock now).
+    - slope_2s10s / slope_3m10y: curve slopes in pp; negative = inverted
+      (FRED T10Y2Y / T10Y3M).
     - move_index: MOVE — the bond-market's VIX (rate vol). yfinance ^MOVE.
     """
     return {
         "slope_2s10s": {"level": +0.34, "chg": +0.05},       # FRED T10Y2Y (mock)
         "slope_3m10y": {"level": -0.18, "chg": +0.03},       # FRED T10Y3M (mock)
-        "fed_funds":   {"low": 4.25, "high": 4.50},          # current target range
-        "implied_cuts": {"count": 2, "bps": 50, "horizon": "by Dec 2026"},  # futures (mock)
         "move_index":  {"level": 98.0, "chg": +3.5},         # yfinance ^MOVE (mock)
     }
+
+
+# ── Central-bank policy (region lens) ─────────────────────────────────────────
+def central_bank_policy(region: str = "intl") -> dict:
+    """The relevant central bank's stance for the selected region. Fed for US &
+    International (Fed sets the global anchor); ECB for Europe. All MOCK.
+    """
+    table = {
+        "intl": {"bank": "Fed", "rate_label": "Fed Funds", "low": 4.25, "high": 4.50,
+                 "implied_count": 2, "implied_bps": 50, "horizon": "by Dec 2026"},
+        "us":   {"bank": "Fed", "rate_label": "Fed Funds", "low": 4.25, "high": 4.50,
+                 "implied_count": 2, "implied_bps": 50, "horizon": "by Dec 2026"},
+        "eu":   {"bank": "ECB", "rate_label": "Deposit Rate", "low": 2.50, "high": 2.50,
+                 "implied_count": 1, "implied_bps": 25, "horizon": "by Dec 2026"},
+    }
+    return table.get(region, table["intl"])
+
+
+# ── Credit spreads (region lens) ──────────────────────────────────────────────
+def credit_spreads(region: str = "intl") -> dict:
+    """High-yield & investment-grade OAS for the region (pp). US: BAMLH0A0HYM2 /
+    BAMLC0A0CM; EU: BAMLHE00EHYIOAS / euro IG. All MOCK.
+    """
+    table = {
+        "intl": {"label": "US / global", "hy": {"level": 3.20, "chg": +0.10}, "ig": {"level": 0.92, "chg": +0.03}},
+        "us":   {"label": "US",          "hy": {"level": 3.20, "chg": +0.10}, "ig": {"level": 0.92, "chg": +0.03}},
+        "eu":   {"label": "Euro",        "hy": {"level": 3.05, "chg": +0.08}, "ig": {"level": 1.05, "chg": +0.04}},
+    }
+    return table.get(region, table["intl"])
 
 
 # ── Layer 3 support — Commodities & Inflation Impulse ─────────────────────────
@@ -172,19 +219,16 @@ def commodities_impulse() -> dict:
     }
 
 
-# ── Layer 3 support — Liquidity & Credit ──────────────────────────────────────
+# ── Layer 3 support — Liquidity (US/global plumbing) ──────────────────────────
 def liquidity_credit() -> dict:
-    """The plumbing behind financial conditions.
+    """US/global liquidity plumbing behind financial conditions (credit spreads now
+    live in credit_spreads(region)).
 
-    - hy_oas / ig_oas: high-yield & investment-grade OAS in pp (FRED BAMLH0A0HYM2 /
-      BAMLC0A0CM).
-    - net_liquidity: Fed balance sheet − RRP − TGA, in $T, with trend + series
-      (FRED WALCL − RRPONTSYD − WTREGEN).
+    - net_liquidity: Fed balance sheet − RRP − TGA, in $T (FRED WALCL − RRPONTSYD −
+      WTREGEN).
     - bank_reserves: reserve balances in $T (FRED WRESBAL).
     """
     return {
-        "hy_oas":  {"level": 3.20, "chg": +0.10},            # FRED BAMLH0A0HYM2 (mock)
-        "ig_oas":  {"level": 0.92, "chg": +0.03},            # FRED BAMLC0A0CM (mock)
         "net_liquidity": {
             "level": 5.92, "trend": "draining",              # $T (mock)
             "series": [6.18, 6.12, 6.07, 6.02, 5.99, 5.95, 5.92],
@@ -193,38 +237,66 @@ def liquidity_credit() -> dict:
     }
 
 
-# ── Cross-asset / FX views ────────────────────────────────────────────────────
-def fx_panel() -> dict:
-    """Global liquidity / carry lens for a macro book. All MOCK.
-    yfinance: DX-Y.NYB, JPY=X, EURUSD=X, CNH=X; EM FX via vendor / ETF proxy.
+# ── Cross-asset / FX views (region lens) ──────────────────────────────────────
+def fx_panel(region: str = "intl") -> dict:
+    """FX framing per region. Each row: name / level / chg / fmt / good_up (whether
+    an up-move is supportive for that region's risk). All MOCK (yfinance crosses).
     """
-    return {
-        "dxy":     {"level": 104.8,  "chg": +0.30},
-        "usdjpy":  {"level": 157.20, "chg": +0.45},
-        "eurusd":  {"level": 1.0720, "chg": -0.25},
-        "usdcnh":  {"level": 7.265,  "chg": +0.12},
-        "em_fx":   {"level": 41.8,   "chg": -0.40},          # MSCI EM FX proxy (mock)
+    def r(name, level, chg, fmt, good_up):
+        return {"name": name, "level": level, "chg": chg, "fmt": fmt, "good_up": good_up}
+    table = {
+        "intl": [r("DXY", 104.80, +0.30, "{:.2f}", False), r("EUR/USD", 1.0720, -0.25, "{:.4f}", True),
+                 r("USD/JPY", 157.20, +0.45, "{:.2f}", False), r("GBP/USD", 1.272, -0.18, "{:.3f}", True),
+                 r("EM FX", 41.8, -0.40, "{:.1f}", True)],
+        "us":   [r("DXY", 104.80, +0.30, "{:.2f}", False), r("EUR/USD", 1.0720, -0.25, "{:.4f}", False),
+                 r("USD/JPY", 157.20, +0.45, "{:.2f}", False), r("USD/CNH", 7.265, +0.12, "{:.3f}", False),
+                 r("USD/CAD", 1.372, +0.10, "{:.3f}", False)],
+        "eu":   [r("EUR/USD", 1.0720, -0.25, "{:.4f}", True), r("EUR/GBP", 0.843, +0.15, "{:.3f}", True),
+                 r("EUR/JPY", 168.6, +0.20, "{:.1f}", True), r("EUR/CHF", 0.958, +0.08, "{:.3f}", True),
+                 r("DXY", 104.80, +0.30, "{:.2f}", False)],
     }
+    return {"rows": table.get(region, table["intl"])}
 
 
-def cross_asset() -> list:
-    """One-glance cross-asset positioning band. Each row carries multi-timeframe
-    % changes (1D/1W/1M/YTD) and a short spark series. All MOCK.
-    yfinance: ^GSPC, ^IXIC, ^RUT, GC=F, CL=F, DX-Y.NYB, ^TNX, BTC-USD.
+def cross_asset(region: str = "intl") -> list:
+    """One-glance cross-asset positioning band, region-filtered. Each row carries
+    multi-timeframe % changes (1D/1W/1M/YTD) and a short spark series. All MOCK.
+    (10Y rows are yield changes in pp, not %.)
     """
     def row(name, level, d1, d1w, d1m, ytd, spark):
         return {"name": name, "level": level, "d1": d1, "d1w": d1w,
                 "d1m": d1m, "ytd": ytd, "spark": spark}
-    return [
+    us_rows = [
         row("S&P 500",  7433.55, +1.08, +1.9, +3.4, +12.6, [7180, 7240, 7300, 7350, 7390, 7410, 7433]),
         row("Nasdaq",  24210.0,  +1.32, +2.4, +4.1, +16.2, [23200, 23450, 23700, 23900, 24050, 24150, 24210]),
         row("Russell", 3002.39,  -0.26, +0.4, +1.1,  +3.8, [2960, 2975, 2988, 2995, 3008, 3006, 3002]),
-        row("Gold",    4038.20,  -0.99, -1.4, +2.6,  +18.0, [4080, 4072, 4060, 4055, 4048, 4044, 4038]),
+        row("Gold",    4038.20,  -0.99, -1.4, +2.6, +18.0, [4080, 4072, 4060, 4055, 4048, 4044, 4038]),
         row("Oil WTI",   70.94,  +2.47, +3.1, -2.2,  -4.5, [66.1, 67.0, 68.4, 69.1, 69.8, 70.2, 70.94]),
         row("DXY",      104.80,  +0.30, +0.6, -0.8,  +1.2, [103.9, 104.1, 104.3, 104.5, 104.6, 104.7, 104.8]),
         row("10Y UST",    4.376, +0.09, +0.12, +0.18, +0.35, [4.05, 4.10, 4.18, 4.26, 4.31, 4.35, 4.376]),
         row("Bitcoin", 92850.0,  +0.85, +4.2, +6.8, +22.4, [86000, 87500, 89000, 90500, 91800, 92400, 92850]),
     ]
+    eu_rows = [
+        row("Euro Stoxx 50", 5180.0, +0.74, +1.2, +2.1,  +9.4, [4980, 5020, 5060, 5100, 5140, 5165, 5180]),
+        row("DAX",        21640.0,  +0.62, +1.0, +2.4, +11.0, [20800, 20950, 21100, 21300, 21500, 21600, 21640]),
+        row("CAC 40",      8120.0,  +0.41, +0.7, +1.3,  +5.2, [7900, 7950, 7990, 8040, 8090, 8110, 8120]),
+        row("FTSE 100",    8460.0,  +0.33, +0.5, +1.0,  +6.1, [8260, 8300, 8340, 8390, 8430, 8450, 8460]),
+        row("Gold (EUR)",  3765.0,  -0.70, -1.1, +2.9, +20.2, [3800, 3792, 3782, 3776, 3772, 3768, 3765]),
+        row("Brent",        74.60,  +2.10, +2.8, -1.8,  -3.9, [70.2, 71.0, 72.1, 72.9, 73.5, 74.0, 74.60]),
+        row("EUR/USD",      1.0720, -0.25, -0.4, +0.6,  -1.1, [1.082, 1.079, 1.077, 1.075, 1.074, 1.073, 1.072]),
+        row("Bund 10Y",     2.380, +0.06, +0.10, +0.14, +0.28, [2.10, 2.16, 2.22, 2.28, 2.33, 2.36, 2.38]),
+    ]
+    intl_rows = [
+        row("MSCI ACWI",    862.0,  +0.71, +1.4, +2.9, +11.8, [820, 828, 836, 844, 852, 858, 862]),
+        row("S&P 500",     7433.55, +1.08, +1.9, +3.4, +12.6, [7180, 7240, 7300, 7350, 7390, 7410, 7433]),
+        row("Euro Stoxx",  5180.0,  +0.74, +1.2, +2.1,  +9.4, [4980, 5020, 5060, 5100, 5140, 5165, 5180]),
+        row("Nikkei",     41850.0,  +0.55, +1.6, +3.0, +10.4, [40200, 40600, 41000, 41400, 41650, 41780, 41850]),
+        row("EM (MSCI)",   1142.0,  +0.40, +0.9, +2.2,  +8.7, [1090, 1100, 1112, 1124, 1132, 1138, 1142]),
+        row("Gold",       4038.20,  -0.99, -1.4, +2.6, +18.0, [4080, 4072, 4060, 4055, 4048, 4044, 4038]),
+        row("Oil (Brent)",  74.60,  +2.10, +2.8, -1.8,  -3.9, [70.2, 71.0, 72.1, 72.9, 73.5, 74.0, 74.60]),
+        row("10Y UST",      4.376, +0.09, +0.12, +0.18, +0.35, [4.05, 4.10, 4.18, 4.26, 4.31, 4.35, 4.376]),
+    ]
+    return {"us": us_rows, "eu": eu_rows, "intl": intl_rows}.get(region, intl_rows)
 
 
 def gold_real_overlay() -> dict:
