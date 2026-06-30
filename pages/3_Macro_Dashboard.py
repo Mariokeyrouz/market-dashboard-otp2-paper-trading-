@@ -42,6 +42,21 @@ hinge_cls  = mlogic.classify_hinge(hinge)
 regime_cls = mlogic.classify_regime(regime_in)
 vol_cls    = mlogic.vol_curve_state(trip["vix_term"]["front"], trip["vix_term"]["back"])
 
+# Round 2 panels
+growth     = mdata.growth_nowcast()
+rcp        = mdata.rates_curve_policy()
+commod     = mdata.commodities_impulse()
+liqc       = mdata.liquidity_credit()
+fx         = mdata.fx_panel()
+xasset     = mdata.cross_asset()
+goldreal   = mdata.gold_real_overlay()
+
+curve_2s10s_cls = mlogic.curve_state(rcp["slope_2s10s"]["level"])
+curve_3m10y_cls = mlogic.curve_state(rcp["slope_3m10y"]["level"])
+cg_cls          = mlogic.copper_gold_signal(growth["copper_gold_ratio"]["series"])
+liq_cls         = mlogic.liquidity_state(liqc["net_liquidity"]["trend"])
+cmd_cls         = mlogic.commodity_impulse(commod["commodity_index"]["chg"])
+
 # ── Small formatting helpers ──────────────────────────────────────────────────
 def pp(v):           # percentage-point change, signed
     return f"{'+' if v >= 0 else '−'}{abs(v):.2f} pp"
@@ -102,6 +117,73 @@ def decomp_chart(series_list, W=640, H=250, pad_t=16, pad_b=26, pad_l=6, pad_r=5
             f'preserveAspectRatio="none" style="overflow:visible;">{grid}{paths}</svg>')
 
 
+# ── Shared small builders for the Round-2 panels ──────────────────────────────
+def mini_spark(series, color, W=116, H=30, pad=4):
+    """Tiny inline sparkline (no axes) for compact rows/tiles."""
+    if not series or len(series) < 2:
+        return ""
+    mn, mx = min(series), max(series)
+    rng = (mx - mn) or 1.0
+    n = len(series)
+    pts = [(pad + i / (n - 1) * (W - 2 * pad), pad + (1 - (v - mn) / rng) * (H - 2 * pad))
+           for i, v in enumerate(series)]
+    d = "M " + " L ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+    lx, ly = pts[-1]
+    return (f'<svg viewBox="0 0 {W} {H}" width="{W}" height="{H}" preserveAspectRatio="none" style="overflow:visible;">'
+            f'<path d="{d}" fill="none" stroke="{color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
+            f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="2.2" fill="{color}"/></svg>')
+
+
+def chg_span(chg, suffix="", good_when_up=True, dp=2, size=10):
+    """Signed, arrow-prefixed, color-coded change span."""
+    return (f'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:{size}px;'
+            f'color:{sign_col(chg, good_when_up)};">{arrow(chg)}{abs(chg):.{dp}f}{suffix}</span>')
+
+
+def kpi_tile(label, value_html, sub_html=""):
+    """Small label / big value / sub-line tile (warm-paper inset)."""
+    return (f'<div style="background:#faf6ee;border:1px solid #efe7d7;border-radius:7px;padding:8px 10px;'
+            f'display:flex;flex-direction:column;gap:2px;min-width:0;">'
+            f'<div style="font-size:9px;color:#9a917e;text-transform:uppercase;letter-spacing:0.05em;">{label}</div>'
+            f'<div style="font-family:\'IBM Plex Mono\',monospace;font-size:16px;font-weight:600;color:#1d1a15;line-height:1.05;">{value_html}</div>'
+            f'{sub_html}</div>')
+
+
+def state_chip(cls):
+    """Colored state pill from a {label,color} classifier dict."""
+    return (f'<span style="background:{cls["color"]}1a;border:1px solid {cls["color"]}55;color:{cls["color"]};'
+            f'font-size:10px;font-weight:600;border-radius:5px;padding:2px 8px;letter-spacing:0.02em;">{cls["label"]}</span>')
+
+
+def section_label(title, subtitle=""):
+    sub = (f'<span style="font-size:10.5px;color:#8a7f6a;font-style:italic;">{subtitle}</span>'
+           if subtitle else "")
+    return (f'<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px;flex-wrap:wrap;">'
+            f'<span style="font-family:\'Spectral\',serif;font-size:15px;font-weight:600;color:#211d18;">{title}</span>{sub}</div>')
+
+
+def asset_row(name, level, chg, level_fmt="{:.2f}", chg_suffix="", good_when_up=True, spark=None, spark_color="#8a7f6a"):
+    """One compact name / level / change / spark row for the Commodities & FX panels."""
+    spark_html = (f'<div style="width:80px;flex-shrink:0;">{mini_spark(spark, spark_color, W=80, H=22)}</div>'
+                  if spark else '<div style="width:80px;flex-shrink:0;"></div>')
+    return (f'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f3eddf;">'
+            f'<span style="flex:1;font-size:11px;color:#4a443b;white-space:nowrap;">{name}</span>'
+            f'{spark_html}'
+            f'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;font-weight:600;color:#1d1a15;width:64px;text-align:right;">{level_fmt.format(level)}</span>'
+            f'<span style="width:54px;text-align:right;">{chg_span(chg, chg_suffix, good_when_up)}</span>'
+            f'</div>')
+
+
+def heatmap_cell(val, dp=2, suffix="%"):
+    """Cross-asset heatmap cell — green/red shaded by magnitude (cap ±5)."""
+    cap = 5.0
+    a = min(abs(val) / cap, 1.0) * 0.46 + 0.06
+    bg = f"rgba(47,143,91,{a:.2f})" if val >= 0 else f"rgba(193,74,50,{a:.2f})"
+    return (f'<td style="text-align:right;padding:6px 9px;font-family:\'IBM Plex Mono\',monospace;'
+            f'font-size:11px;background:{bg};color:#1d1a15;white-space:nowrap;">'
+            f'{"+" if val >= 0 else "−"}{abs(val):.{dp}f}{suffix}</td>')
+
+
 # ── Mock-data banner (only while macro_data.MOCK is True) ──────────────────────
 mock_banner = ""
 if getattr(mdata, "MOCK", False):
@@ -150,28 +232,68 @@ header = f'''
 </div>
 '''
 
-# ── Layer 1 — Regime badge ────────────────────────────────────────────────────
+# ── Layer 1 — Regime badge + Growth Nowcast (row) ─────────────────────────────
 regime_card = f'''
-<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:13px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:12px;">
-  <div style="display:flex;flex-direction:column;gap:3px;">
+<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:13px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;gap:10px;min-width:0;">
+  <div style="display:flex;flex-direction:column;gap:2px;">
     <span style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">Layer 1 · Regime</span>
     <span style="font-size:9px;color:#b3a890;">Monthly clock · backward-looking context</span>
   </div>
-  <div style="display:flex;align-items:center;gap:9px;background:{regime_cls['color']}1a;border:1px solid {regime_cls['color']}55;border-radius:7px;padding:7px 14px;">
-    <span style="width:8px;height:8px;border-radius:50%;background:{regime_cls['color']};"></span>
-    <span style="font-family:'Spectral',serif;font-size:16px;font-weight:600;color:{regime_cls['color']};">{regime_cls['label']}</span>
+  <div style="display:flex;align-items:center;gap:9px;background:{regime_cls['color']}1a;border:1px solid {regime_cls['color']}55;border-radius:7px;padding:8px 14px;">
+    <span style="width:9px;height:9px;border-radius:50%;background:{regime_cls['color']};"></span>
+    <span style="font-family:'Spectral',serif;font-size:18px;font-weight:600;color:{regime_cls['color']};">{regime_cls['label']}</span>
   </div>
-  <span style="font-size:11.5px;color:#6b6256;flex:1;min-width:160px;">{regime_cls['note']}</span>
-  <div style="display:flex;gap:8px;">
+  <span style="font-size:11px;color:#6b6256;line-height:1.4;">{regime_cls['note']}</span>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
     <div style="background:#faf6ee;border:1px solid #efe7d7;border-radius:6px;padding:6px 11px;text-align:center;">
       <div style="font-size:9px;color:#9a917e;text-transform:uppercase;letter-spacing:0.06em;">CPI Headline</div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:#1d1a15;">{regime_in['cpi_headline']:.1f}%</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:#1d1a15;">{regime_in['cpi_headline']:.1f}%</div>
     </div>
     <div style="background:#faf6ee;border:1px solid #efe7d7;border-radius:6px;padding:6px 11px;text-align:center;">
       <div style="font-size:9px;color:#9a917e;text-transform:uppercase;letter-spacing:0.06em;">CPI Core</div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:#1d1a15;">{regime_in['cpi_core']:.1f}%</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:#1d1a15;">{regime_in['cpi_core']:.1f}%</div>
     </div>
   </div>
+</div>
+'''
+
+# Growth Nowcast — flesh out the regime layer with activity reads
+_citi = growth["citi_surprise"]
+_ismm = growth["ism_mfg"]
+_isms = growth["ism_services"]
+_claims = growth["jobless_claims"]
+_cg = growth["copper_gold_ratio"]
+_ismm_col = "#c14a32" if _ismm["level"] < 50 else "#2f8f5b"
+_isms_col = "#c14a32" if _isms["level"] < 50 else "#2f8f5b"
+_claims_col = "#c14a32" if _claims["trend"] == "rising" else "#2f8f5b"
+_citi_col = "#2f8f5b" if _citi >= 0 else "#c14a32"
+
+growth_card = f'''
+<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:13px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;gap:9px;min-width:0;">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+    <span style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">Growth Nowcast</span>
+    <span style="font-size:9px;color:#b3a890;">activity &amp; inflation reads feeding the regime</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+    {kpi_tile("Citi Surprise", f'<span style="color:{_citi_col};">{_citi:+.0f}</span>', '<div style="font-size:9px;color:#a99f8c;">data vs. expectations</div>')}
+    {kpi_tile("ISM Mfg", f'<span style="color:{_ismm_col};">{_ismm["level"]:.1f}</span>', f'<div style="font-size:9px;color:#a99f8c;">{chg_span(_ismm["chg"], dp=1, size=9)} · &lt;50 contracts</div>')}
+    {kpi_tile("ISM Services", f'<span style="color:{_isms_col};">{_isms["level"]:.1f}</span>', f'<div style="font-size:9px;color:#a99f8c;">{chg_span(_isms["chg"], dp=1, size=9)}</div>')}
+    {kpi_tile("Jobless Claims", f'{_claims["level"]}k', f'<div style="font-size:9px;color:{_claims_col};">{_claims["trend"]}</div>')}
+    <div style="grid-column:span 2;background:#faf6ee;border:1px solid #efe7d7;border-radius:7px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+        <div style="font-size:9px;color:#9a917e;text-transform:uppercase;letter-spacing:0.05em;">Copper / Gold ratio</div>
+        <div style="display:flex;align-items:center;gap:7px;">{state_chip(cg_cls)}<span style="font-size:9px;color:#a99f8c;">growth-vs-fear tilt</span></div>
+      </div>
+      {mini_spark(_cg["series"], cg_cls["color"], W=90, H=26)}
+    </div>
+  </div>
+</div>
+'''
+
+layer1_row = f'''
+<div style="display:grid;grid-template-columns:1.05fr 2fr;gap:12px;align-items:stretch;margin-bottom:12px;">
+  {regime_card}
+  {growth_card}
 </div>
 '''
 
@@ -315,12 +437,181 @@ tripwire_row = f'''
 </div>
 '''
 
+# ── Layer-2 context row: Rates/Curve/Policy + Gold-vs-Real-Yield ──────────────
+_fed = rcp["fed_funds"]
+_cuts = rcp["implied_cuts"]
+_move = rcp["move_index"]
+
+rates_card = f'''
+<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;gap:10px;min-width:0;">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+    <span style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">Rates, Curve &amp; Policy</span>
+    <span style="font-size:10px;color:#8a7f6a;font-style:italic;">the policy force behind the real-yield leg</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+    <div style="background:#faf6ee;border:1px solid #efe7d7;border-radius:7px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;">
+      <div style="font-size:9px;color:#9a917e;text-transform:uppercase;letter-spacing:0.05em;">2s10s slope</div>
+      <div style="display:flex;align-items:baseline;gap:6px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:#1d1a15;">{rcp['slope_2s10s']['level']:+.2f}</span>{state_chip(curve_2s10s_cls)}</div>
+    </div>
+    <div style="background:#faf6ee;border:1px solid #efe7d7;border-radius:7px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;">
+      <div style="font-size:9px;color:#9a917e;text-transform:uppercase;letter-spacing:0.05em;">3m10y slope</div>
+      <div style="display:flex;align-items:baseline;gap:6px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:#1d1a15;">{rcp['slope_3m10y']['level']:+.2f}</span>{state_chip(curve_3m10y_cls)}</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f7f2e8;border:1px solid #ece2cf;border-radius:7px;padding:8px 11px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:10px;color:#9a917e;text-transform:uppercase;letter-spacing:0.05em;">Fed Funds</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:#2b2620;">{_fed['low']:.2f}–{_fed['high']:.2f}%</span>
+    </div>
+    <span style="font-size:11px;color:#6b6256;">Implied: <span style="font-weight:600;color:#2f8f5b;">{_cuts['count']} cuts (~{_cuts['bps']} bps)</span> {_cuts['horizon']}</span>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-size:10px;color:#9a917e;text-transform:uppercase;letter-spacing:0.05em;">MOVE index</span>
+      <span style="font-size:9px;color:#a99f8c;">the bond market's VIX (rate vol)</span>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:7px;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:#1d1a15;">{_move['level']:.0f}</span>
+      {chg_span(_move['chg'], good_when_up=False, dp=1, size=11)}
+    </div>
+  </div>
+</div>
+'''
+
+goldreal_chart = decomp_chart([
+    {"data": goldreal["gold_index"], "color": "#c08a2d", "label": "Gold"},
+    {"data": goldreal["real_index"], "color": "#3a6ea5", "label": "Real yield"},
+], H=170, pad_r=46)
+
+goldreal_card = f'''
+<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;gap:8px;min-width:0;">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+    <span style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">Gold vs Real Yield</span>
+    <span style="font-size:10px;color:#8a7f6a;font-style:italic;">gold as a real-rate play</span>
+  </div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:6px;"><span style="width:14px;height:3px;border-radius:2px;background:#c08a2d;"></span><span style="font-size:11px;color:#4a443b;">Gold</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:#1d1a15;">${goldreal['gold_level']:,.0f}</span></div>
+    <div style="display:flex;align-items:center;gap:6px;"><span style="width:14px;height:3px;border-radius:2px;background:#3a6ea5;"></span><span style="font-size:11px;color:#4a443b;">10Y Real</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:#1d1a15;">{goldreal['real_level']:.2f}%</span></div>
+  </div>
+  <div style="font-size:9px;color:#a99f8c;">indexed to 100 at window start</div>
+  {goldreal_chart}
+  <div style="font-size:10px;color:#6b6256;border-top:1px solid #ece3d2;padding-top:7px;">Typically <span style="font-weight:600;">{goldreal['relationship']}</span> — gold tends to rise when real yields fall. Directional only.</div>
+</div>
+'''
+
+layer2_context_row = f'''
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;margin-bottom:14px;">
+  {rates_card}
+  {goldreal_card}
+</div>
+'''
+
+# ── Layer-3 support row: Commodities · Liquidity & Credit · FX ─────────────────
+commod_rows = (
+    asset_row("Oil (WTI)",      commod["wti"]["level"],      commod["wti"]["chg"],      "{:.2f}", "%", spark=commod["wti"]["series"], spark_color="#c14a32")
+    + asset_row("Brent",        commod["brent"]["level"],    commod["brent"]["chg"],    "{:.2f}", "%", spark=commod["brent"]["series"], spark_color="#c14a32")
+    + asset_row("Gasoline",     commod["gasoline"]["level"], commod["gasoline"]["chg"], "{:.2f}", "%", spark=commod["gasoline"]["series"], spark_color="#c2703a")
+    + asset_row("Copper",       commod["copper"]["level"],   commod["copper"]["chg"],   "{:.3f}", "%", spark=commod["copper"]["series"], spark_color="#c2703a")
+    + asset_row("Gold",         commod["gold"]["level"],     commod["gold"]["chg"],     "{:,.0f}", "%", spark=commod["gold"]["series"], spark_color="#c08a2d")
+    + asset_row("Commodity ix", commod["commodity_index"]["level"], commod["commodity_index"]["chg"], "{:.1f}", "%", spark=commod["commodity_index"]["series"], spark_color="#8a7f6a")
+)
+commod_card = f'''
+<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;gap:7px;min-width:0;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+    <span style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">Commodities</span>
+    {state_chip(cmd_cls)}
+  </div>
+  <div style="font-size:10.5px;color:#8a7f6a;font-style:italic;line-height:1.35;">Inflation impulse — the real-economy driver of breakevens</div>
+  <div>{commod_rows}</div>
+</div>
+'''
+
+_nl = liqc["net_liquidity"]
+liq_card = f'''
+<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;gap:9px;min-width:0;">
+  <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">Liquidity &amp; Credit</div>
+  <div style="font-size:10.5px;color:#8a7f6a;font-style:italic;line-height:1.35;">the plumbing behind financial conditions</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+    {kpi_tile("HY OAS", f'{liqc["hy_oas"]["level"]:.2f}%', f'<div style="font-size:9px;color:#a99f8c;">{chg_span(liqc["hy_oas"]["chg"], " pp", good_when_up=False, size=9)}</div>')}
+    {kpi_tile("IG OAS", f'{liqc["ig_oas"]["level"]:.2f}%', f'<div style="font-size:9px;color:#a99f8c;">{chg_span(liqc["ig_oas"]["chg"], " pp", good_when_up=False, size=9)}</div>')}
+  </div>
+  <div style="background:#faf6ee;border:1px solid #efe7d7;border-radius:7px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+      <div style="font-size:9px;color:#9a917e;text-transform:uppercase;letter-spacing:0.05em;">Fed net liquidity</div>
+      <div style="display:flex;align-items:baseline;gap:6px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:#1d1a15;">${_nl['level']:.2f}T</span>{state_chip(liq_cls)}</div>
+      <div style="font-size:8.5px;color:#a99f8c;">balance sheet − RRP − TGA</div>
+    </div>
+    {mini_spark(_nl["series"], liq_cls["color"], W=84, H=30)}
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;">
+    <span style="color:#6b6256;">Bank reserves</span>
+    <span style="font-family:'IBM Plex Mono',monospace;color:#1d1a15;font-weight:600;">${liqc['bank_reserves']['level']:.2f}T <span style="color:#a99f8c;font-weight:400;font-size:9px;">{liqc['bank_reserves']['trend']}</span></span>
+  </div>
+</div>
+'''
+
+fx_rows = (
+    asset_row("DXY",     fx["dxy"]["level"],    fx["dxy"]["chg"],    "{:.2f}", "",  good_when_up=False)
+    + asset_row("USD/JPY", fx["usdjpy"]["level"], fx["usdjpy"]["chg"], "{:.2f}", "",  good_when_up=False)
+    + asset_row("EUR/USD", fx["eurusd"]["level"], fx["eurusd"]["chg"], "{:.4f}", "%", good_when_up=True)
+    + asset_row("USD/CNH", fx["usdcnh"]["level"], fx["usdcnh"]["chg"], "{:.3f}", "",  good_when_up=False)
+    + asset_row("EM FX",   fx["em_fx"]["level"],  fx["em_fx"]["chg"],  "{:.1f}", "%", good_when_up=True)
+)
+fx_card = f'''
+<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;gap:7px;min-width:0;">
+  <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">FX</div>
+  <div style="font-size:10.5px;color:#8a7f6a;font-style:italic;line-height:1.35;">global liquidity / carry lens</div>
+  <div>{fx_rows}</div>
+  <div style="font-size:9px;color:#a99f8c;">Green = supportive for risk (weaker USD / firmer EM). Directional.</div>
+</div>
+'''
+
+layer3_support_row = f'''
+<div style="display:grid;grid-template-columns:1.1fr 1fr 0.95fr;gap:12px;align-items:stretch;margin-bottom:16px;">
+  {commod_card}
+  {liq_card}
+  {fx_card}
+</div>
+'''
+
+# ── Cross-Asset Heatmap (full width) ──────────────────────────────────────────
+def xasset_row_html(r):
+    return (f'<tr>'
+            f'<td style="text-align:left;padding:6px 10px;font-size:11.5px;color:#2b2620;white-space:nowrap;">{r["name"]}</td>'
+            f'<td style="text-align:right;padding:6px 10px;font-family:\'IBM Plex Mono\',monospace;font-size:11.5px;color:#1d1a15;white-space:nowrap;">{r["level"]:,.2f}</td>'
+            f'{heatmap_cell(r["d1"])}{heatmap_cell(r["d1w"])}{heatmap_cell(r["d1m"])}{heatmap_cell(r["ytd"])}'
+            f'<td style="padding:4px 10px;width:90px;">{mini_spark(r["spark"], "#8a7f6a", W=90, H=22)}</td>'
+            f'</tr>')
+
+xasset_rows = "".join(xasset_row_html(r) for r in xasset)
+cross_asset_section = f'''
+<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);margin-bottom:16px;">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+    <span style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">Cross-Asset</span>
+    <span style="font-size:10px;color:#8a7f6a;font-style:italic;">one-glance positioning · % change by horizon</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;">
+    <thead><tr style="font-size:9px;color:#a99f8c;text-transform:uppercase;letter-spacing:0.06em;">
+      <th style="text-align:left;padding:4px 10px;font-weight:600;">Asset</th>
+      <th style="text-align:right;padding:4px 10px;font-weight:600;">Level</th>
+      <th style="text-align:right;padding:4px 9px;font-weight:600;">1D</th>
+      <th style="text-align:right;padding:4px 9px;font-weight:600;">1W</th>
+      <th style="text-align:right;padding:4px 9px;font-weight:600;">1M</th>
+      <th style="text-align:right;padding:4px 9px;font-weight:600;">YTD</th>
+      <th style="text-align:left;padding:4px 10px;font-weight:600;">Trend</th>
+    </tr></thead>
+    <tbody>{xasset_rows}</tbody>
+  </table>
+  <div style="font-size:9px;color:#a99f8c;margin-top:6px;">Equities/commodities/FX shown as % change; 10Y UST shown as yield change (pp).</div>
+</div>
+'''
+
 # ── Footer ────────────────────────────────────────────────────────────────────
 footer = (
     '<div style="font-size:10px;color:#a99f8c;text-align:center;letter-spacing:0.03em;">'
-    'First-pass layout · all values are MOCK placeholders (macro_data.py) · '
+    'All values are MOCK placeholders (macro_data.py) · '
     'classification logic is opinionated and style-dependent · '
-    'Layer-3 relationships are directional, no validated hit-rates implied'
+    'lead/lag relationships are directional, no validated hit-rates implied'
     '</div>'
 )
 
@@ -374,13 +665,16 @@ html,body{{margin:0;padding:0;}}
 <div style="max-width:1520px;margin:0 auto;">
   {header}
   {mock_banner}
-  {regime_card}
+  {layer1_row}
   {hinge_section}
+  {layer2_context_row}
   {tripwire_row}
+  {layer3_support_row}
+  {cross_asset_section}
   {footer}
 </div>
 {clock_js}
 </body>
 </html>'''
 
-components.html(html, height=900, scrolling=True)
+components.html(html, height=1640, scrolling=True)

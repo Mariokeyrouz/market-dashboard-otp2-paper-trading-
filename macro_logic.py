@@ -167,3 +167,69 @@ def vol_curve_state(front: float, back: float) -> dict:
             "spread": spread,
         }
     return {"label": "Flat", "color": COL_NEUTRAL, "note": "Curve roughly flat.", "spread": 0.0}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ROUND 2 — small, honest helpers for the expanded panels. Directional reads only,
+# NO fabricated precision (no recession probabilities, no correlation numbers).
+# Each returns the shared {label, color, note} shape so the view stays dumb.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Near-flat band (pp) for the curve before we call it inverted or normal.
+CURVE_FLAT_EPS = 0.05
+
+
+def curve_state(slope: float) -> dict:
+    """Yield-curve slope read. Negative = inverted (a classic late-cycle warning,
+    framed directionally — no recession probability is asserted)."""
+    if slope is None:
+        return {"label": "—", "color": COL_NEUTRAL, "note": "No data."}
+    if slope < -CURVE_FLAT_EPS:
+        return {"label": "Inverted", "color": COL_RISK_OFF,
+                "note": "Short rates above long — late-cycle / recession-watch signal."}
+    if slope > CURVE_FLAT_EPS:
+        return {"label": "Normal", "color": COL_RISK_ON,
+                "note": "Upward-sloping — no curve-inversion warning."}
+    return {"label": "Flat", "color": COL_NEUTRAL,
+            "note": "Curve near flat — transitional."}
+
+
+def copper_gold_signal(series: list) -> dict:
+    """Copper/gold ratio trend as a growth-vs-fear tilt. Rising = growth optimism,
+    falling = defensive tilt. Trend judged simply by last vs. first of the window."""
+    if not series or len(series) < 2:
+        return {"label": "—", "color": COL_NEUTRAL, "note": "No data."}
+    if series[-1] > series[0]:
+        return {"label": "Rising", "color": COL_RISK_ON,
+                "note": "Copper outpacing gold — growth-optimism tilt."}
+    if series[-1] < series[0]:
+        return {"label": "Falling", "color": COL_RISK_OFF,
+                "note": "Gold outpacing copper — defensive / growth-fear tilt."}
+    return {"label": "Flat", "color": COL_NEUTRAL, "note": "Ratio roughly unchanged."}
+
+
+def liquidity_state(trend: str) -> dict:
+    """Map a net-liquidity trend string to an expanding/draining flag. Expanding
+    liquidity is a risk-asset tailwind; draining is a headwind (directional)."""
+    t = (trend or "").lower()
+    if t in ("expanding", "rising", "adding"):
+        return {"label": "Expanding", "color": COL_RISK_ON,
+                "note": "Net liquidity rising — tailwind for risk assets."}
+    if t in ("draining", "falling", "contracting"):
+        return {"label": "Draining", "color": COL_RISK_OFF,
+                "note": "Net liquidity falling — headwind for risk assets."}
+    return {"label": "Stable", "color": COL_NEUTRAL, "note": "Net liquidity roughly flat."}
+
+
+def commodity_impulse(chg: float) -> dict:
+    """Direction of the commodity/inflation impulse from a representative change
+    (e.g. broad commodity index). Up = adds to breakeven pressure."""
+    if chg is None:
+        return {"label": "—", "color": COL_NEUTRAL, "note": "No data."}
+    if chg > 0:
+        return {"label": "Rising", "color": COL_INFLATION,
+                "note": "Commodity complex firming — upward pressure on breakevens."}
+    if chg < 0:
+        return {"label": "Easing", "color": COL_RISK_ON,
+                "note": "Commodity complex softening — easing breakeven pressure."}
+    return {"label": "Flat", "color": COL_NEUTRAL, "note": "Commodity complex unchanged."}
