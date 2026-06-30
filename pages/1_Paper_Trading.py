@@ -148,13 +148,18 @@ live_nav = total_market_value + state.get("cash_dollars", 0.0)
 total_return = (live_nav / first_nav - 1) * 100 if has_positions else (ledger_last_nav / first_nav - 1) * 100
 display_nav = live_nav if has_positions else ledger_last_nav
 
-c1, c2, c3, c4, c5, c6 = st.columns(6)
+total_unrealized = total_market_value - total_cost_basis
+total_pnl = display_nav - first_nav
+realized_pnl = total_pnl - total_unrealized
+
+c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
 c1.metric("Portfolio Value", f"${display_nav:,.2f}", f"{total_return:+.2f}% since inception")
 c2.metric("Today's P/L", f"${total_day_pnl:+,.2f}" if has_positions else "—")
-c3.metric("Invested / Cash", f"{state['invested']*100:.0f}% / {(1-state['invested'])*100:.0f}%")
-c4.metric("Max Drawdown", f"{max_dd:.2f}%")
-c5.metric("Sharpe-to-date", f"{sharpe:.2f}" if not np.isnan(sharpe) else "n/a")
-c6.metric("Days Live", f"{days_live}")
+c3.metric("Realized P/L", f"${realized_pnl:+,.2f}")
+c4.metric("Invested / Cash", f"{state['invested']*100:.0f}% / {(1-state['invested'])*100:.0f}%")
+c5.metric("Max Drawdown", f"{max_dd:.2f}%")
+c6.metric("Sharpe-to-date", f"{sharpe:.2f}" if not np.isnan(sharpe) else "n/a")
+c7.metric("Days Live", f"{days_live}")
 
 st.divider()
 
@@ -187,12 +192,12 @@ if pos_df is not None:
     st.dataframe(styled, use_container_width=True, hide_index=True)
 
     cash = state.get("cash_dollars", 0.0)
-    total_unrealized = total_market_value - total_cost_basis
     st.caption(
         f"💰 Cash: **${cash:,.2f}**  ·  "
         f"📈 Invested market value: **${total_market_value:,.2f}**  ·  "
-        f"📊 Total unrealized P/L: **${total_unrealized:+,.2f}** "
+        f"📊 Unrealized P/L: **${total_unrealized:+,.2f}** "
         f"({(total_unrealized/total_cost_basis*100):+.2f}%)  ·  "
+        f"🔒 Realized P/L: **${realized_pnl:+,.2f}**  ·  "
         f"💸 Cumulative slippage/fees: **${state.get('trading_cost', 0.0):,.2f}**"
     )
 else:
