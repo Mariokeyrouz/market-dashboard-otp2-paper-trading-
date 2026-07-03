@@ -53,8 +53,8 @@ HTML = """<!DOCTYPE html>
 </style>
 </head>
 <body>
-<div style="min-height:100%; background:#E8DECB; padding:10px 16px 12px; font-family:'IBM Plex Sans',sans-serif; color:#2B2721;">
-<div style="max-width:1360px; margin:0 auto;">
+<div style="min-height:100%; background:#E8DECB; padding:10px 18px 12px; font-family:'IBM Plex Sans',sans-serif; color:#2B2721;">
+<div style="max-width:1820px; margin:0 auto;">
 
   <!-- ===== HEADER (static; region-dependent bits patched by JS) ===== -->
   <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:7px;">
@@ -502,21 +502,21 @@ function hingeSection(v) {
 function tripwiresSection(v) {
   return `
   <div style="margin-bottom:7px;">
-    <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:11px;">
+    <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:8px;">
       <div style="font-family:'Newsreader',serif; font-size:20px; font-weight:600;">Risk Tripwires</div>
       <div style="font-family:'Newsreader',serif; font-style:italic; font-size:13px; color:#8A8172;">faster confirming signals — directional, not mechanically precise</div>
     </div>
-    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
       ${v.tripwires.map(t=>`
-      <div style="background:#FBF8F1; border:1px solid rgba(0,0,0,.09); border-top:3px solid ${t.tone}; border-radius:11px; padding:16px 17px;">
+      <div style="background:#FBF8F1; border:1px solid rgba(0,0,0,.09); border-top:3px solid ${t.tone}; border-radius:11px; padding:11px 14px;">
         <div style="font-size:10px; letter-spacing:.11em; text-transform:uppercase; font-weight:600; color:#8A8172;">${t.label}</div>
-        <div style="font-family:'Newsreader',serif; font-style:italic; font-size:12.5px; color:#8A8172; margin:5px 0 10px;">${t.tag}</div>
+        <div style="font-family:'Newsreader',serif; font-style:italic; font-size:12.5px; color:#8A8172; margin:4px 0 7px;">${t.tag}</div>
         <div style="display:flex; align-items:baseline; gap:8px;">
-          <span style="font-family:'IBM Plex Mono',monospace; font-size:23px; font-weight:600;">${t.val}</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600;">${t.val}</span>
           <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:${t.chgColor};">${t.chg}</span>
           <span style="font-size:11px; color:#8A8172;">${t.state}</span>
         </div>
-        <div style="font-size:11.5px; color:#8A8172; margin-top:10px; line-height:1.4;">${t.note}</div>
+        <div style="font-size:11.5px; color:#8A8172; margin-top:7px; line-height:1.4;">${t.note}</div>
       </div>`).join('')}
     </div>
   </div>`;
@@ -724,28 +724,91 @@ function tileLabor(v) {
   </div>`;
 }
 
-function secondarySection(v) {
-  // Hand-tuned 3-column assignment per the design handoff (masonry balance).
-  const col = tiles => `<div style="display:flex; flex-direction:column; gap:8px;">${tiles.join('')}</div>`;
-  return `
-  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; align-items:start; margin-bottom:7px;">
-    ${col([tileHeatmap(v), tilePositioning(v), tileCB(v)])}
-    ${col([tileCurve(v), tileSurprises(v), tileReleases(v)])}
-    ${col([tileCommods(v), tileFX(v), tileLabor(v)])}
-  </div>`;
+function secondarySection() {
+  // Placeholder grid — tiles are packed by layoutTiles() (README-recommended
+  // "assign next tile to the currently-shortest column" balancer), with an
+  // adaptive column count so wide screens get 4 columns instead of 3.
+  return `<div id="mp-tiles" style="display:grid; gap:8px; align-items:start; margin-bottom:7px;"></div>`;
+}
+
+function layoutTiles(v) {
+  const host = document.getElementById('mp-tiles');
+  host.innerHTML = '';
+  const w = host.clientWidth || 1200;
+  const ncols = w >= 1480 ? 4 : (w >= 1050 ? 3 : 2);
+  host.style.gridTemplateColumns = `repeat(${ncols},1fr)`;
+  const cols = [];
+  for (let i=0;i<ncols;i++) {
+    const c = document.createElement('div');
+    c.style.cssText = 'display:flex; flex-direction:column; gap:8px; min-width:0;';
+    host.appendChild(c); cols.push(c);
+  }
+  const tiles = [tileHeatmap(v), tileCurve(v), tileSurprises(v), tileCommods(v),
+                 tileFX(v), tileLabor(v), tilePositioning(v), tileReleases(v), tileCB(v)];
+  // Measure each tile at real column width, pack tallest-first into the
+  // currently-shortest column, then refine (moves/swaps out of the tallest
+  // column) so the columns bottom out as evenly as the tile sizes allow.
+  const nodes = tiles.map((html, idx) => {
+    const dv = document.createElement('div'); dv.innerHTML = html;
+    const n = dv.firstElementChild;
+    cols[0].appendChild(n); const h = n.offsetHeight; cols[0].removeChild(n);
+    return { n, h, idx };
+  });
+  nodes.sort((a,b)=>b.h-a.h);
+  const bins = []; for (let i=0;i<ncols;i++) bins.push([]);
+  const bh = i => bins[i].reduce((s,t)=>s+t.h+8, 0);
+  nodes.forEach(t => {
+    let mi = 0;
+    for (let i=1;i<ncols;i++) if (bh(i) < bh(mi)) mi = i;
+    bins[mi].push(t);
+  });
+  for (let iter=0; iter<30; iter++) {
+    const hs = bins.map((_,i)=>bh(i));
+    const M = hs.indexOf(Math.max.apply(null, hs));
+    const curMax = hs[M];
+    let best = null;
+    const othersMax = (a,b) => Math.max.apply(null, hs.map((h,i)=>(i===a||i===b)?-1:h));
+    bins[M].forEach((t,ti)=>{
+      for (let c=0;c<ncols;c++){ if (c===M) continue;
+        const mvMax = Math.max(hs[M]-t.h-8, hs[c]+t.h+8, othersMax(M,c));
+        if (mvMax < curMax-1 && (!best || mvMax < best.max)) best={max:mvMax,type:'move',ti,c};
+        bins[c].forEach((u,ui)=>{
+          const swMax = Math.max(hs[M]-t.h+u.h, hs[c]+t.h-u.h, othersMax(M,c));
+          if (swMax < curMax-1 && (!best || swMax < best.max)) best={max:swMax,type:'swap',ti,c,ui};
+        });
+      }
+    });
+    if (!best) break;
+    if (best.type==='move') { bins[best.c].push(bins[M].splice(best.ti,1)[0]); }
+    else { const t=bins[M][best.ti]; bins[M][best.ti]=bins[best.c][best.ui]; bins[best.c][best.ui]=t; }
+  }
+  // keep the design's importance order top-to-bottom within each column
+  bins.forEach(list => list.sort((a,b)=>a.idx-b.idx));
+  bins.forEach((list,i)=> list.forEach(t=> cols[i].appendChild(t.n)));
 }
 
 // ============================================================================
 // RENDER + INTERACTIONS
 // ============================================================================
+let currentRegion = 'US';
+
 function renderAll(region) {
+  currentRegion = region;
   const v = renderVals(region);
   document.getElementById('mp-main').innerHTML =
-    regimeStrip(v) + hingeSection(v) + tripwiresSection(v) + secondarySection(v);
+    regimeStrip(v) + hingeSection(v) + tripwiresSection(v) + secondarySection();
+  layoutTiles(v);
   document.getElementById('mp-exchange').textContent = v.exchange;
   const sel = document.getElementById('mp-region');
   if (sel.value !== region) sel.value = region;
 }
+
+// Re-pack the tile columns when the viewport width changes (debounced).
+let _rsz = null;
+window.addEventListener('resize', function(){
+  clearTimeout(_rsz);
+  _rsz = setTimeout(function(){ layoutTiles(renderVals(currentRegion)); }, 150);
+});
 
 function tick() {
   const now = new Date();
@@ -775,4 +838,4 @@ setInterval(tick, 1000);
 </body>
 </html>"""
 
-components.html(HTML, height=1380, scrolling=True)
+components.html(HTML, height=1355, scrolling=True)
