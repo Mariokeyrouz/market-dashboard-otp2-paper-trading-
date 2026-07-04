@@ -22,6 +22,22 @@ st.markdown("""
         margin: 4px;
     }
     [data-testid="stMetricDelta"] svg { display: none; }
+    .strategy-box {
+        background: #1e1e2e;
+        border-left: 4px solid #1565c0;
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        line-height: 1.7;
+        font-size: 15px;
+    }
+    .strategy-box h4 {
+        margin-top: 0;
+        color: #90caf9;
+        font-size: 15px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -50,10 +66,31 @@ def fetch_live_prices(tickers: list) -> dict:
 
 
 # ── Header ───────────────────────────────────────────────────────────────────
-st.title("📊 OTP2.0 v4 - Live Paper Trading")
-st.caption("Simulated forward test of the v4 strategy (2026-present 'Live' cohort). "
-           "No real capital or broker is involved — this tracks what v4 *would* do "
-           "starting from go-live, using the same OT2.0 timing engine as the backtest.")
+st.title("📊 OTP2.0 v4 — Live Paper Trading")
+
+st.markdown("""
+<div class="strategy-box">
+<h4>Strategy Overview — OTP2.0 (Out-Timing + Out-Pacing)</h4>
+OTP2.0 is built on two independent pillars designed to beat the S&P 500 from both sides of the return equation.
+<br><br>
+<b>Pillar 1 — Out-Timing (OT):</b> The portfolio dynamically shifts between equity exposure and cash based on
+market stress signals — primarily VIX levels, short-term realized volatility (20-day), and price momentum
+relative to the 50-day and 200-day moving averages. When conditions deteriorate, the engine trims the invested
+sleeve; when volatility subsides and momentum recovers, it reloads. The goal is to reduce drawdowns without
+attempting to predict market direction — only to react to measurable risk conditions faster than a passive index
+would recover from them.
+<br><br>
+<b>Pillar 2 — Out-Pacing (OP):</b> Rather than tracking the index, the portfolio holds a concentrated set of
+7 stocks selected every 3 years from a 54-stock universe using a 5-factor composite model: momentum, quality,
+value, earnings stability, and low volatility. Stocks are equal-weighted. The current cohort (2026–2029)
+operates under a <b>Defensive regime</b> — tighter volatility targets and smaller reload steps — due to elevated
+Shiller CAPE (~38), which acts as a valuation froth override regardless of momentum signals.
+<br><br>
+<b>What this page shows:</b> A simulated forward test starting from the strategy's go-live date in 2026,
+using real daily market data. No real capital is deployed — this tracks exactly what the strategy <i>would</i>
+do in live conditions, providing an out-of-sample reality check on the backtest results.
+</div>
+""", unsafe_allow_html=True)
 
 col_refresh, _ = st.columns([1, 6])
 with col_refresh:

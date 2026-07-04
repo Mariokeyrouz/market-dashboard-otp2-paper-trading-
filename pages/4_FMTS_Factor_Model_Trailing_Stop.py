@@ -22,6 +22,22 @@ st.set_page_config(
 st.markdown("""
 <style>
     [data-testid="stMetricDelta"] svg { display: none; }
+    .strategy-box {
+        background: #1e1e2e;
+        border-left: 4px solid #e65100;
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        line-height: 1.7;
+        font-size: 15px;
+    }
+    .strategy-box h4 {
+        margin-top: 0;
+        color: #ffb74d;
+        font-size: 15px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
     .stop-badge-stopped {
         background: #ff4b4b22; border: 1px solid #ff4b4b;
         border-radius: 6px; padding: 6px 14px;
@@ -61,10 +77,35 @@ def fetch_live_prices(tickers):
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.title("🎯 FMTS: Factor Model Trailing Stop")
-st.caption(
-    "Factor-score-weighted portfolio (Relative Momentum vs SPX, Quality, Value, Low Volatility) "
-    "with a 9% portfolio-level trailing stop. Re-entry on volatility collapse (rvol20 < rvol_sma60)."
-)
+
+st.markdown("""
+<div class="strategy-box">
+<h4>Strategy Overview — FMTS (Factor Model Trailing Stop)</h4>
+FMTS is a more aggressive, return-focused strategy that replaces market-timing signals with a
+factor-driven stock selection model and a portfolio-level trailing stop as the primary risk control.
+<br><br>
+<b>Stock Selection — Factor Model:</b> Each month, the strategy screens the S&P 500 + S&P 400 universe
+(~900 stocks) through a 7-gate quality and liquidity filter, then scores survivors on four factors:
+<ul style="margin: 8px 0 8px 0; padding-left: 20px;">
+  <li><b>Relative Momentum:</b> RRG-inspired (Relative Rotation Graph) — stocks are ranked by their
+  RS-Ratio (52-week return relative to the S&P 500) and RS-Momentum (rate of change of that relative
+  strength). Stocks in the "Leading" quadrant score highest.</li>
+  <li><b>Quality:</b> Return on equity, gross and operating margins, debt/equity ratio, interest coverage,
+  and free cash flow quality.</li>
+  <li><b>Value:</b> Trailing P/E, price-to-book, and EV/EBITDA — lower is better.</li>
+  <li><b>Low Volatility:</b> 1-year annualised realized volatility — lower is better.</li>
+</ul>
+The top 18 stocks by composite score are held, weighted proportionally to their factor scores.
+<br><br>
+<b>Risk Control — Trailing Stop:</b> The portfolio tracks a peak NAV watermark daily. If the portfolio
+draws down 9% from that peak, the engine scales invested capital to 50% and moves the rest to cash
+(earning the T-bill rate). Re-entry is triggered when short-term realized volatility (20-day) falls
+below its 60-day moving average — a signal that selling pressure has exhausted itself.
+<br><br>
+<b>What this page shows:</b> A live forward simulation seeded on 2026-07-02 tracking the strategy in
+real market conditions. The factor model runs monthly; the trailing stop is monitored daily.
+</div>
+""", unsafe_allow_html=True)
 
 col_refresh, _ = st.columns([1, 6])
 with col_refresh:
