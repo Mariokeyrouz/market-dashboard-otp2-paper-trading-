@@ -25,21 +25,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── Access gate ──────────────────────────────────────────────────────────────
-required_pw = st.secrets.get("PAPER_TRADING_PASSWORD") if hasattr(st, "secrets") else None
-if required_pw:
-    if "authed" not in st.session_state:
-        st.session_state["authed"] = False
-    if not st.session_state["authed"]:
-        st.title("📊 OTP2.0 v4 - Paper Trading")
-        pw = st.text_input("Access password", type="password")
-        if st.button("Enter"):
-            if pw == required_pw:
-                st.session_state["authed"] = True
-                st.rerun()
-            else:
-                st.error("Incorrect password.")
-        st.stop()
 
 LEDGER_PATH = "paper_ledger.csv"
 STATE_PATH = "paper_state.json"
