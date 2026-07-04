@@ -23,20 +23,29 @@ st.markdown("""
 <style>
     [data-testid="stMetricDelta"] svg { display: none; }
     .strategy-box {
-        background: #1e1e2e;
-        border-left: 4px solid #e65100;
+        background: #1a1000;
+        border-left: 5px solid #ffa726;
         border-radius: 8px;
-        padding: 20px 24px;
+        padding: 22px 28px;
         margin-bottom: 24px;
-        line-height: 1.7;
-        font-size: 15px;
+        line-height: 1.8;
+        font-size: 16px;
+        color: #fff8e1;
     }
     .strategy-box h4 {
         margin-top: 0;
-        color: #ffb74d;
-        font-size: 15px;
-        letter-spacing: 0.04em;
+        margin-bottom: 12px;
+        color: #ffffff;
+        font-size: 13px;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
+        font-weight: 700;
+    }
+    .strategy-box b {
+        color: #ffffff;
+    }
+    .strategy-box ul {
+        color: #fff8e1;
     }
     .stop-badge-stopped {
         background: #ff4b4b22; border: 1px solid #ff4b4b;
