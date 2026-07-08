@@ -355,9 +355,7 @@ for name, cfg in PORTFOLIOS.items():
         y=dd,
         mode="lines",
         name=f"{cfg['icon']} {name}",
-        line=dict(color=cfg["color"], width=1.5),
-        fill="tozeroy",
-        fillcolor=cfg["color"].replace(")", ", 0.07)").replace("rgb", "rgba") if "rgb" in cfg["color"] else cfg["color"] + "12",
+        line=dict(color=cfg["color"], width=2),
     ))
 
 fig_dd.add_hline(y=-9.0, line_dash="dot", line_color="#ff8800",
