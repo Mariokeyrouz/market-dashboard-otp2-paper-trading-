@@ -2,6 +2,9 @@ import streamlit as st
 import streamlit.components.v1 as components
 import yfinance as yf
 import json
+import os
+import numpy as np
+import pandas as pd
 from datetime import datetime, date
 
 st.set_page_config(
@@ -16,6 +19,146 @@ st.markdown("""
   .block-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
 </style>
 """, unsafe_allow_html=True)
+
+# ── Portfolio correlation ─────────────────────────────────────────────────────
+
+PORTFOLIO_LEDGERS = {
+    "OTP2.0":     "paper_ledger.csv",
+    "OTP2.0 AMA": "paper_ledger_AMA.csv",
+    "FMTS":       "factor_ledger.csv",
+    "FMTS AMA":   "factor_ledger_AMA.csv",
+}
+
+def _build_corr_card():
+    series = {}
+    stats  = {}
+    for name, path in PORTFOLIO_LEDGERS.items():
+        if not os.path.exists(path):
+            continue
+        try:
+            df = pd.read_csv(path, parse_dates=["date"]).sort_values("date")
+            r  = df["daily_log_ret"].dropna()
+            if len(r) < 2:
+                continue
+            series[name] = r.values
+            ann_ret = r.mean() * 252 * 100
+            ann_vol = r.std() * np.sqrt(252) * 100
+            sharpe  = ann_ret / ann_vol if ann_vol > 0 else float("nan")
+            stats[name] = dict(ret=ann_ret, vol=ann_vol, sharpe=sharpe,
+                               n=len(r), start=str(df["date"].iloc[0].date()),
+                               end=str(df["date"].iloc[-1].date()))
+        except Exception:
+            continue
+
+    names = list(series.keys())
+    n = len(names)
+
+    if n < 2:
+        return ""   # not enough portfolios seeded yet
+
+    # Align series on common length (take shortest; all seeded same day so same length)
+    min_len = min(len(v) for v in series.values())
+    mat = np.array([series[k][-min_len:] for k in names])  # (n_portfolios, n_days)
+    corr = np.corrcoef(mat)                                 # (n, n)
+    obs  = min_len
+
+    # Color helper: 1.0=deep red, 0.0=neutral grey, -1.0=deep blue
+    def cell_color(v, is_diag):
+        if is_diag:
+            return "#2b2620", "#f3eee2"   # bg, text
+        if np.isnan(v):
+            return "#f5f0e8", "#a99f8c"
+        # clamp to [-1, 1] just in case
+        v = max(-1.0, min(1.0, v))
+        if v >= 0:
+            # 0 → warm parchment; 1 → deep red
+            r = int(193 + (v * (193 - 193)))
+            g = int(185 - v * (185 - 74))
+            b = int(170 - v * (170 - 50))
+            # simpler: interpolate between #f3eee2 and #c14a32
+            r2 = int(0xf3 + v * (0xc1 - 0xf3))
+            g2 = int(0xee + v * (0x4a - 0xee))
+            b2 = int(0xe2 + v * (0x32 - 0xe2))
+        else:
+            # 0 → warm parchment; -1 → deep blue
+            av = abs(v)
+            r2 = int(0xf3 + av * (0x1a - 0xf3))
+            g2 = int(0xee + av * (0x4a - 0xee))
+            b2 = int(0xe2 + av * (0x8c - 0xe2))
+        bg  = f"#{r2:02x}{g2:02x}{b2:02x}"
+        lum = 0.299 * r2 + 0.587 * g2 + 0.114 * b2
+        txt = "#f3eee2" if lum < 140 else "#2b2620"
+        return bg, txt
+
+    def val_txt(v, is_diag):
+        if is_diag:
+            return "1.00"
+        return f"{v:.2f}" if not np.isnan(v) else "—"
+
+    # Header row
+    th_cells = '<th style="padding:0;"></th>' + "".join(
+        f'<th style="font-size:10px;font-weight:600;letter-spacing:0.05em;color:#6b6256;padding:4px 10px 6px;text-align:center;white-space:nowrap;">{nm}</th>'
+        for nm in names
+    )
+
+    # Data rows
+    data_rows = ""
+    for i, rname in enumerate(names):
+        cells = f'<td style="font-size:10px;font-weight:600;color:#6b6256;padding:5px 10px;white-space:nowrap;border-right:1px solid #ece3d2;">{rname}</td>'
+        for j in range(n):
+            is_diag = (i == j)
+            v = corr[i, j]
+            bg, txt = cell_color(v, is_diag)
+            vt = val_txt(v, is_diag)
+            cells += (f'<td style="background:{bg};color:{txt};font-family:\'IBM Plex Mono\',monospace;'
+                      f'font-size:12px;font-weight:500;text-align:center;padding:7px 14px;'
+                      f'border-radius:5px;white-space:nowrap;">{vt}</td>')
+        data_rows += f"<tr>{cells}</tr>"
+
+    # Per-portfolio stats row
+    stat_cells = '<td style="font-size:10px;font-weight:600;color:#a99f8c;padding:8px 10px;border-top:1px solid #ece3d2;border-right:1px solid #ece3d2;white-space:nowrap;">Stats (ann.)</td>'
+    for nm in names:
+        s = stats.get(nm, {})
+        ret_col = "#2f8f5b" if s.get("ret", 0) >= 0 else "#c14a32"
+        sh_col  = "#2f8f5b" if s.get("sharpe", 0) >= 0 else "#c14a32"
+        stat_cells += (
+            f'<td style="text-align:center;padding:8px 6px;border-top:1px solid #ece3d2;vertical-align:top;">'
+            f'<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:{ret_col};font-weight:600;">'
+            f'{s.get("ret", float("nan")):+.1f}%</div>'
+            f'<div style="font-size:9px;color:#a99f8c;">{s.get("vol", float("nan")):.1f}% vol</div>'
+            f'<div style="font-size:9px;color:{sh_col};">SR {s.get("sharpe", float("nan")):.2f}</div>'
+            f'</td>'
+        )
+
+    obs_note = f"{obs} trading day{'s' if obs != 1 else ''}"
+    date_range = ""
+    if stats:
+        first_stat = next(iter(stats.values()))
+        date_range = f" · {first_stat['start']} → {first_stat['end']}"
+
+    card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 16px 12px;box-shadow:0 1px 2px rgba(70,55,25,0.04);margin-bottom:12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">Portfolio Correlation</div>
+    <div style="font-size:9.5px;color:#a99f8c;font-family:'IBM Plex Mono',monospace;">{obs_note}{date_range}</div>
+  </div>
+  <div style="overflow-x:auto;">
+    <table style="border-collapse:separate;border-spacing:3px;font-family:'IBM Plex Sans',sans-serif;">
+      <thead><tr>{th_cells}</tr></thead>
+      <tbody>
+        {data_rows}
+        <tr>{stat_cells}</tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-size:9px;color:#a99f8c;margin-top:8px;">
+    Daily log-return correlations across all active equity strategies · Stats are annualised · SR = Sharpe ratio
+    {'· <span style="color:#c89b53;font-weight:500;">⚠ Low observation count — values will stabilise after 60+ trading days</span>' if obs < 60 else ''}
+  </div>
+</div>'''
+
+    return card
+
+corr_card_html = _build_corr_card()
 
 # ── Data fetching ─────────────────────────────────────────────────────────────
 
@@ -555,6 +698,9 @@ button:hover{{filter:brightness(0.94);}}
       {ticker_2x}
     </div>
   </div>
+
+  <!-- PORTFOLIO CORRELATION -->
+  {corr_card_html}
 
   <!-- ROW 1: price charts | yield curve | dr copper | risk & rates -->
   <div style="display:grid;grid-template-columns:1.95fr 1.12fr 1.12fr 1.02fr;gap:12px;align-items:stretch;margin-bottom:12px;">
