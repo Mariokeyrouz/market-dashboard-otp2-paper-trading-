@@ -18,7 +18,6 @@ localStorage['macro_region']; a 1s clock patches only the clock elements.
 """
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Macro Dashboard",
@@ -838,4 +837,4 @@ setInterval(tick, 1000);
 </body>
 </html>"""
 
-components.html(HTML, height=1355, scrolling=True)
+st.iframe(HTML, height=1355)

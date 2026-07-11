@@ -273,7 +273,7 @@ styled = display_pos.style.map(
     "Unrealized P/L ($)": "${:+,.2f}",
     "Unrealized P/L (%)": "{:+.2f}%",
 })
-st.dataframe(styled, use_container_width=True, hide_index=True)
+st.dataframe(styled, width='stretch', hide_index=True)
 
 cash = state.get("cash_dollars", 0.0)
 st.caption(
@@ -312,7 +312,7 @@ styled_f = factor_df.style.map(
     "RS-Ratio": lambda x: f"{x:.1f}" if x is not None else "N/A",
     "RS-Mom":   lambda x: f"{x:.1f}" if x is not None else "N/A",
 }, na_rep="N/A")
-st.dataframe(styled_f, use_container_width=True, hide_index=True)
+st.dataframe(styled_f, width='stretch', hide_index=True)
 st.caption("Scores are percentile ranks 0–100. RS-Ratio > 100 = outperforming SPX; "
            "RS-Momentum > 100 = acceleration vs SPX (RRG 'Leading' quadrant).")
 
@@ -358,7 +358,7 @@ fig.update_layout(
     xaxis=dict(title="Date"),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
 )
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width='stretch')
 
 # ── Drawdown chart ──────────────────────────────────────────────────────────────
 st.subheader("📉 Drawdown from Peak NAV")
@@ -376,7 +376,7 @@ fig_dd.update_layout(
     yaxis=dict(title="Drawdown (%)", gridcolor="#2a2a3e"),
     xaxis=dict(title="Date"),
 )
-st.plotly_chart(fig_dd, use_container_width=True)
+st.plotly_chart(fig_dd, width='stretch')
 
 st.divider()
 
@@ -398,7 +398,7 @@ log_cols = ["date", "NAV ($)", "invested %", "daily return %", "peak NAV ($)", "
 log_cols = [c for c in log_cols if c in display_log.columns]
 st.dataframe(
     display_log[log_cols].sort_values("date", ascending=False),
-    use_container_width=True, hide_index=True,
+    width='stretch', hide_index=True,
     column_config={
         "NAV ($)":         st.column_config.NumberColumn("NAV ($)", format="$%,.2f"),
         "peak NAV ($)":    st.column_config.NumberColumn("peak NAV ($)", format="$%,.2f"),

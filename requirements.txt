@@ -1,7 +1,8 @@
-streamlit
-yfinance
-pandas
-numpy
-plotly
-matplotlib
-pandas_datareader
+streamlit==1.58.0
+yfinance==1.4.1
+pandas==3.0.3
+jinja2==3.1.6
+numpy==1.26.0
+plotly==6.8.0
+matplotlib==3.6.2
+pandas_datareader==0.11.1

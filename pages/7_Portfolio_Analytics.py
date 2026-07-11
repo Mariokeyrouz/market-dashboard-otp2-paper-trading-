@@ -218,7 +218,7 @@ def _corr_heatmap(tickers, color_hex, title):
         hovertemplate="<b>%{y} vs %{x}</b><br>Correlation: %{z:.3f}<extra></extra>"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     st.caption(f"{len(available)} holdings · {CORR_PERIOD} daily returns · {len(ret_df)} observations")
 
 
@@ -300,7 +300,7 @@ if metric_rows:
 
     st.dataframe(
         _style(df_metrics).format(fmt_dict, na_rep="—"),
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
     )
 else:
@@ -335,7 +335,7 @@ fig_nav.update_layout(
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     hovermode="x unified",
 )
-st.plotly_chart(fig_nav, use_container_width=True)
+st.plotly_chart(fig_nav, width='stretch')
 
 st.divider()
 
@@ -370,7 +370,7 @@ fig_dd.update_layout(
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     hovermode="x unified",
 )
-st.plotly_chart(fig_dd, use_container_width=True)
+st.plotly_chart(fig_dd, width='stretch')
 
 st.divider()
 

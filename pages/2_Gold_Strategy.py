@@ -30,7 +30,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── Access gate ───────────────────────────────────────────────────────────────
-required_pw = st.secrets.get("PAPER_TRADING_PASSWORD") if hasattr(st, "secrets") else None
+try:
+    required_pw = st.secrets.get("PAPER_TRADING_PASSWORD")
+except Exception:
+    required_pw = None
 if required_pw:
     if "authed" not in st.session_state:
         st.session_state["authed"] = False
@@ -191,7 +194,7 @@ if in_pos and entry_price:
         "Unrealized P/L ($)": "${:+,.2f}",
         "Unrealized P/L (%)": "{:+.2f}%",
     })
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
     st.caption(
         f"Cash: **$0.00** (fully invested)  ·  "
         f"Entry date: **{state.get('entry_date', '—')}**  ·  "
@@ -318,7 +321,7 @@ fig.update_layout(
     xaxis=dict(title="Date"),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
 )
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width='stretch')
 
 # ── Drawdown chart ────────────────────────────────────────────────────────────
 st.subheader("📉 Drawdown")
@@ -336,7 +339,7 @@ fig_dd.update_layout(
     yaxis=dict(title="Drawdown (%)", gridcolor="#2a2a3e"),
     xaxis=dict(title="Date"),
 )
-st.plotly_chart(fig_dd, use_container_width=True)
+st.plotly_chart(fig_dd, width='stretch')
 
 st.divider()
 
@@ -356,7 +359,7 @@ log = log.rename(columns={
 st.dataframe(
     log[["date", "NAV ($)", "In GLD", "GLD Price", "Daily Ret %", "Signal", "Stop Fired"]]
         .sort_values("date", ascending=False),
-    use_container_width=True, hide_index=True,
+    width='stretch', hide_index=True,
     column_config={
         "NAV ($)":    st.column_config.NumberColumn("NAV ($)", format="$%,.2f"),
         "GLD Price":  st.column_config.NumberColumn("GLD Price", format="$%.2f"),

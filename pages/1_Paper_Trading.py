@@ -220,7 +220,7 @@ if pos_df is not None:
         "Unrealized P/L ($)": "${:+,.2f}",
         "Unrealized P/L (%)": "{:+.2f}%",
     })
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     cash = state.get("cash_dollars", 0.0)
     st.caption(
@@ -257,7 +257,7 @@ fig.update_layout(
     xaxis=dict(title="Date"),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
 )
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width='stretch')
 
 # ── Drawdown chart ───────────────────────────────────────────────────────────
 st.subheader("📉 Drawdown")
@@ -275,7 +275,7 @@ fig_dd.update_layout(
     yaxis=dict(title="Drawdown (%)", gridcolor="#2a2a3e"),
     xaxis=dict(title="Date"),
 )
-st.plotly_chart(fig_dd, use_container_width=True)
+st.plotly_chart(fig_dd, width='stretch')
 
 st.divider()
 
@@ -306,7 +306,7 @@ display_log = display_log.rename(columns={
 st.dataframe(
     display_log[["date", "NAV ($)", "invested %", "daily return %", "regime"]]
         .sort_values("date", ascending=False),
-    use_container_width=True, hide_index=True,
+    width='stretch', hide_index=True,
     column_config={
         "NAV ($)": st.column_config.NumberColumn("NAV ($)", format="$%,.2f"),
         "invested %": st.column_config.NumberColumn("invested %", format="%.1f%%"),

@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import yfinance as yf
 import json
 import os
@@ -859,4 +858,4 @@ function doRefresh() {{
 </body>
 </html>'''
 
-components.html(html, height=1160, scrolling=True)
+st.iframe(html, height=1160)
