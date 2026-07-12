@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+:root {
+  --canvas: #e8decb;
+  --tile: #fbf8f1;
+  --ink: #2b2721;
+  --body: #4a443b;
+  --muted: #8a8172;
+  --faint: #b4a98f;
+  --green: #5e7a3b;
+  --red: #b14a2e;
+  --amber: #b08018;
+  --gold: #a07b1d;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-plex-sans), sans-serif;
+}
+
+@keyframes mp-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+}
+
+.mws-select {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.mws-select:focus {
+  outline: 2px solid rgba(160, 123, 29, 0.4);
+  outline-offset: 1px;
+}
+
+/* react-grid-layout edit-mode styling */
+.react-grid-item.react-grid-placeholder {
+  background: rgba(160, 123, 29, 0.22) !important;
+  border-radius: 10px;
+  opacity: 1 !important;
+}
+.react-grid-item > .react-resizable-handle {
+  z-index: 20;
+}

@@ -1,0 +1,242 @@
+/**
+ * MOCK dataset — ported verbatim from the validated design handoff.
+ * ALL VALUES ARE PLACEHOLDER, NOT LIVE MARKET LEVELS.
+ * Real-data wiring (phase 2) replaces this module with API-backed data of the
+ * same shape; derive.ts and every element component stay unchanged.
+ */
+import type { CoreData, ExtraData, Region, RegionData } from "./types";
+
+const DATA: Record<Region, CoreData> = {
+  US: {
+    exchange: "NYSE · ET", regimeLabel: "Stagflation", regimeColor: "#B08018", regimeDays: 47, regimeSince: "May 15",
+    history: [
+      { label: "Reflation", color: "#5E7A3B", w: 34 },
+      { label: "Goldilocks", color: "#8FA05A", w: 26 },
+      { label: "Soft landing", color: "#C9A24B", w: 40 },
+      { label: "Stagflation", color: "#B08018", w: 52 },
+    ],
+    inflation: "3.1%", inflationSub: "core 3.3% · sticky", growth: 48.7, growthSub: "ISM mfg · slowing",
+    policy: "4.25–4.50%", policySub: "Fed · 2 cuts priced", cond: -0.15, condSub: "FCI · looser than avg",
+    hingeDef: "10Y nominal = real yield + breakeven inflation",
+    nom: [4.05, 4.08, 4.06, 4.11, 4.14, 4.17, 4.2], real: [1.92, 1.93, 1.92, 1.94, 1.93, 1.94, 1.95], be: [2.13, 2.15, 2.14, 2.17, 2.21, 2.23, 2.25],
+    dNom: 0.15, dReal: 0.03, dBe: 0.12,
+    classLabel: "Inflation Scare", classDesc: "Nominal up, led by the breakeven (inflation-expectations) leg.",
+    classTags: ["duration-negative", "gold-positive", "risk-ambiguous"], classMover: "Breakeven leg",
+    oilName: "Oil · WTI", oilVal: "70.94", oilChg: 2.47, oilSpark: [68, 67.5, 68.2, 69, 69.4, 70.1, 70.94],
+    playbook: [
+      { side: "SHORT", asset: "Long-duration USTs", note: "BE-led selloff", color: "#B14A2E" },
+      { side: "LONG", asset: "Gold / TIPS", note: "real-rate hedge", color: "#5E7A3B" },
+      { side: "LONG", asset: "Energy / commods", note: "impulse tailwind", color: "#5E7A3B" },
+      { side: "FADE", asset: "Long-duration tech", note: "rate-sensitive", color: "#B08018" },
+    ],
+    curve: [["3M", 4.55], ["1Y", 4.2], ["2Y", 3.86], ["5Y", 3.95], ["7Y", 4.05], ["10Y", 4.2], ["30Y", 4.45]],
+    tripwires: [
+      { label: "Credit · HY OAS", tag: "Leading tell for equity stress", val: "3.20%", chg: 0.1, unit: " pp", state: "", note: "Widening = rising stress.", tone: "#B08018" },
+      { label: "Equity Vol · VIX", tag: "Risk-on / risk-off tripwire", val: "18.2", chg: null, state: "Contango", note: "Front below back month — calm / risk-on tilt.", tone: "#5E7A3B" },
+      { label: "Dollar · DXY", tag: "Global liquidity valve", val: "104.8", chg: 0.3, state: "", note: "Stronger USD tightens conditions abroad.", tone: "#B08018" },
+      { label: "Curve · 2s10s", tag: "Late-cycle / recession watch", val: "+0.34", chg: null, state: "Normal", note: "Upward-sloping — no curve-inversion warning.", tone: "#5E7A3B" },
+    ],
+    cross: [
+      ["S&P 500", 0.4, 1.2, 3.1, 14.2], ["Nasdaq 100", 0.6, 1.8, 4.0, 19.5], ["UST 10Y", -0.3, -0.9, -1.4, -3.2],
+      ["IG Credit", -0.1, 0.2, 0.9, 4.1], ["HY Credit", 0.2, 0.7, 1.6, 6.8], ["USD (DXY)", 0.3, 0.5, -0.8, 1.9],
+      ["Gold", 0.9, 2.4, 5.2, 16.4], ["Brent", 1.1, 3.0, 4.8, -2.1], ["Copper", -0.4, 0.9, 2.2, 7.3],
+    ],
+    cb: { name: "FOMC · Federal Reserve", days: 29, date: "Jul 30", action: "Hold", prob: 78, move: "no change" },
+    releases: [["MON", "ISM Manufacturing", "48.5"], ["WED", "ADP Employment", "+150k"], ["THU", "Initial Jobless Claims", "232k"], ["FRI", "Nonfarm Payrolls", "+175k"], ["FRI", "Unemployment Rate", "4.1%"]],
+    positioning: [["USTs", -1.4], ["S&P 500", 0.8], ["USD", 1.2], ["Gold", 1.9], ["Crude", 0.6], ["EUR", -0.7]],
+  },
+  EU: {
+    exchange: "Euronext · CET", regimeLabel: "Disinflation", regimeColor: "#5E7A3B", regimeDays: 88, regimeSince: "Apr 4",
+    history: [
+      { label: "Stagnation", color: "#B08018", w: 44 },
+      { label: "Reflation", color: "#8FA05A", w: 24 },
+      { label: "Disinflation", color: "#5E7A3B", w: 56 },
+      { label: "Disinflation", color: "#5E7A3B", w: 28 },
+    ],
+    inflation: "2.2%", inflationSub: "core 2.4% · easing", growth: 47.3, growthSub: "PMI comp · below 50",
+    policy: "3.25%", policySub: "ECB · 1 cut priced", cond: 0.22, condSub: "FCI · tighter than avg",
+    hingeDef: "10Y Bund = real yield + breakeven inflation",
+    nom: [2.58, 2.55, 2.52, 2.5, 2.48, 2.46, 2.44], real: [0.34, 0.33, 0.31, 0.3, 0.29, 0.28, 0.27], be: [2.24, 2.22, 2.21, 2.2, 2.19, 2.18, 2.17],
+    dNom: -0.14, dReal: -0.07, dBe: -0.07,
+    classLabel: "Easing Path", classDesc: "Nominal drifting lower, led by the real-yield leg as cuts get priced.",
+    classTags: ["duration-positive", "euro-soft", "risk-supportive"], classMover: "Real-yield leg",
+    oilName: "Gas · TTF", oilVal: "32.10", oilChg: -1.8, oilSpark: [35, 34.2, 33.8, 33.1, 32.9, 32.5, 32.1],
+    playbook: [
+      { side: "LONG", asset: "Bund duration", note: "cuts ahead", color: "#5E7A3B" },
+      { side: "LONG", asset: "EU periphery", note: "spread carry", color: "#5E7A3B" },
+      { side: "FADE", asset: "EUR/USD rallies", note: "rate diff", color: "#B08018" },
+      { side: "LONG", asset: "EU cyclicals", note: "easing beta", color: "#5E7A3B" },
+    ],
+    curve: [["3M", 3.4], ["1Y", 2.95], ["2Y", 2.55], ["5Y", 2.4], ["7Y", 2.48], ["10Y", 2.44], ["30Y", 2.72]],
+    tripwires: [
+      { label: "Credit · iTraxx XO", tag: "Leading tell for equity stress", val: "298", chg: -6, unit: "", state: "bp", note: "Tightening = risk appetite firm.", tone: "#5E7A3B" },
+      { label: "Equity Vol · VSTOXX", tag: "Risk-on / risk-off tripwire", val: "16.4", chg: null, state: "Calm", note: "Subdued — supportive backdrop.", tone: "#5E7A3B" },
+      { label: "EUR/USD", tag: "Global liquidity valve", val: "1.082", chg: -0.2, state: "", note: "Soft EUR eases financial conditions.", tone: "#5E7A3B" },
+      { label: "Curve · 2s10s", tag: "Late-cycle / recession watch", val: "-0.11", chg: null, state: "Flat", note: "Mildly inverted — bull-steepening watch.", tone: "#B08018" },
+    ],
+    cross: [
+      ["Euro Stoxx 50", 0.3, 0.9, 2.4, 9.8], ["DAX", 0.5, 1.1, 2.8, 11.2], ["Bund 10Y", 0.4, 1.0, 1.8, 2.9],
+      ["IG Credit", 0.1, 0.4, 1.2, 4.6], ["HY Credit", 0.3, 0.8, 1.9, 7.1], ["EUR (index)", -0.2, -0.5, -1.1, -1.4],
+      ["Gold (EUR)", 0.7, 2.0, 4.6, 17.9], ["Brent", 1.1, 3.0, 4.8, -2.1], ["Copper", -0.4, 0.9, 2.2, 7.3],
+    ],
+    cb: { name: "Governing Council · ECB", days: 16, date: "Jul 17", action: "Cut 25bp", prob: 64, move: "a 25bp cut" },
+    releases: [["MON", "HCOB Mfg PMI", "45.8"], ["TUE", "Flash CPI (YoY)", "2.2%"], ["WED", "PPI (MoM)", "-0.1%"], ["THU", "ECB Minutes", "—"], ["FRI", "Retail Sales", "+0.3%"]],
+    positioning: [["Bunds", 1.6], ["Euro Stoxx", 0.4], ["EUR", -1.1], ["Gold", 1.7], ["Brent", 0.5], ["GBP", 0.2]],
+  },
+  CN: {
+    exchange: "SSE · CST", regimeLabel: "Deflation Risk", regimeColor: "#B14A2E", regimeDays: 132, regimeSince: "Feb 20",
+    history: [
+      { label: "Reopening", color: "#5E7A3B", w: 30 },
+      { label: "Slowdown", color: "#C9A24B", w: 38 },
+      { label: "Deflation risk", color: "#B14A2E", w: 60 },
+      { label: "Deflation risk", color: "#B14A2E", w: 24 },
+    ],
+    inflation: "0.3%", inflationSub: "core 0.6% · soft", growth: 49.5, growthSub: "Caixin PMI · fragile",
+    policy: "3.10%", policySub: "PBoC · easing bias", cond: 0.05, condSub: "FCI · near neutral",
+    hingeDef: "10Y CGB = real yield + breakeven inflation",
+    nom: [2.28, 2.24, 2.2, 2.16, 2.12, 2.1, 2.08], real: [1.42, 1.4, 1.38, 1.35, 1.33, 1.32, 1.31], be: [0.86, 0.84, 0.82, 0.81, 0.79, 0.78, 0.77],
+    dNom: -0.2, dReal: -0.11, dBe: -0.09,
+    classLabel: "Deflation Watch", classDesc: "Nominal grinding lower with breakevens near zero — demand deficit signal.",
+    classTags: ["duration-positive", "cny-weak", "stimulus-sensitive"], classMover: "Breakeven leg",
+    oilName: "Iron Ore", oilVal: "98.40", oilChg: -2.1, oilSpark: [106, 104, 102, 101, 100, 99, 98.4],
+    playbook: [
+      { side: "LONG", asset: "CGB duration", note: "deflation bid", color: "#5E7A3B" },
+      { side: "FADE", asset: "CNY strength", note: "easing bias", color: "#B08018" },
+      { side: "WATCH", asset: "Stimulus proxies", note: "policy optionality", color: "#B08018" },
+      { side: "SHORT", asset: "Industrial metals", note: "demand deficit", color: "#B14A2E" },
+    ],
+    curve: [["3M", 1.75], ["1Y", 1.85], ["2Y", 1.98], ["5Y", 2.02], ["7Y", 2.05], ["10Y", 2.08], ["30Y", 2.28]],
+    tripwires: [
+      { label: "Credit · Property HY", tag: "Leading tell for equity stress", val: "21.4%", chg: 0.6, unit: " pp", state: "", note: "Elevated — property stress lingers.", tone: "#B14A2E" },
+      { label: "Equity Vol · CSI Vol", tag: "Risk-on / risk-off tripwire", val: "19.8", chg: null, state: "Uneasy", note: "Policy-headline sensitive.", tone: "#B08018" },
+      { label: "USD/CNH", tag: "Global liquidity valve", val: "7.28", chg: 0.15, state: "", note: "Weaker CNH signals easing pressure.", tone: "#B08018" },
+      { label: "Curve · 2s10s", tag: "Late-cycle / recession watch", val: "+0.10", chg: null, state: "Flat", note: "Very flat — low growth expectations.", tone: "#B08018" },
+    ],
+    cross: [
+      ["CSI 300", -0.6, -1.4, -2.8, -4.5], ["Hang Seng", 0.4, 1.1, 2.0, 12.6], ["CGB 10Y", 0.5, 1.2, 2.4, 5.8],
+      ["Property HY", -1.2, -2.6, -4.0, -11.2], ["CNY (index)", -0.2, -0.6, -1.2, -2.4], ["Copper", -0.4, 0.9, 2.2, 7.3],
+      ["Iron Ore", -1.5, -3.2, -6.1, -14.8], ["Gold (CNY)", 0.9, 2.4, 5.4, 18.9], ["Brent", 1.1, 3.0, 4.8, -2.1],
+    ],
+    cb: { name: "LPR Fixing · PBoC", days: 20, date: "Jul 21", action: "Cut 10bp", prob: 55, move: "a 10bp LPR cut" },
+    releases: [["MON", "Caixin Mfg PMI", "49.5"], ["WED", "CPI (YoY)", "0.3%"], ["WED", "PPI (YoY)", "-1.6%"], ["THU", "Trade Balance", "$78b"], ["FRI", "New Loans", "¥1.9tn"]],
+    positioning: [["CGBs", 1.8], ["CSI 300", -0.9], ["CNY", -1.4], ["Copper", -0.6], ["Iron Ore", -1.7], ["Gold", 1.6]],
+  },
+  JP: {
+    exchange: "TSE · JST", regimeLabel: "Reflation", regimeColor: "#5E7A3B", regimeDays: 210, regimeSince: "Dec 3",
+    history: [
+      { label: "Deflation", color: "#B14A2E", w: 40 },
+      { label: "Exit", color: "#C9A24B", w: 30 },
+      { label: "Reflation", color: "#5E7A3B", w: 64 },
+      { label: "Reflation", color: "#5E7A3B", w: 28 },
+    ],
+    inflation: "2.6%", inflationSub: "core 2.4% · firming", growth: 50.9, growthSub: "PMI · expanding",
+    policy: "0.25%", policySub: "BoJ · hikes ahead", cond: -0.08, condSub: "FCI · accommodative",
+    hingeDef: "10Y JGB = real yield + breakeven inflation",
+    nom: [1.0, 1.02, 1.04, 1.05, 1.06, 1.05, 1.06], real: [-0.52, -0.51, -0.5, -0.49, -0.49, -0.5, -0.49], be: [1.52, 1.53, 1.54, 1.54, 1.55, 1.55, 1.55],
+    dNom: 0.06, dReal: 0.03, dBe: 0.03,
+    classLabel: "Normalization", classDesc: "Nominal rising as BoJ exits negative rates — breakevens anchoring above target.",
+    classTags: ["duration-negative", "yen-supportive", "equity-mixed"], classMover: "Real-yield leg",
+    oilName: "Oil · JPY", oilVal: "11,240", oilChg: 1.9, oilSpark: [10800, 10900, 11000, 11050, 11120, 11180, 11240],
+    playbook: [
+      { side: "SHORT", asset: "JGB duration", note: "normalization", color: "#B14A2E" },
+      { side: "LONG", asset: "JPY vs USD", note: "carry unwind", color: "#5E7A3B" },
+      { side: "LONG", asset: "JP banks", note: "steeper curve", color: "#5E7A3B" },
+      { side: "FADE", asset: "Exporters", note: "stronger yen", color: "#B08018" },
+    ],
+    curve: [["3M", 0.1], ["1Y", 0.28], ["2Y", 0.44], ["5Y", 0.72], ["7Y", 0.88], ["10Y", 1.06], ["30Y", 2.1]],
+    tripwires: [
+      { label: "Credit · JP IG", tag: "Leading tell for equity stress", val: "62", chg: -1, unit: "", state: "bp", note: "Tight — corporate stress low.", tone: "#5E7A3B" },
+      { label: "Equity Vol · N225 Vol", tag: "Risk-on / risk-off tripwire", val: "20.6", chg: null, state: "Elevated", note: "FX-driven volatility risk.", tone: "#B08018" },
+      { label: "USD/JPY", tag: "Global liquidity valve", val: "156.2", chg: -0.4, state: "", note: "Intervention watch above 158.", tone: "#B08018" },
+      { label: "Curve · 2s10s", tag: "Late-cycle / recession watch", val: "+0.62", chg: null, state: "Steep", note: "Bear-steepening as BoJ exits.", tone: "#5E7A3B" },
+    ],
+    cross: [
+      ["Nikkei 225", 0.7, 1.6, 3.4, 16.8], ["TOPIX", 0.5, 1.3, 2.9, 14.1], ["JGB 10Y", -0.4, -1.1, -2.0, -4.4],
+      ["JP IG", 0.1, 0.3, 0.8, 2.6], ["JPY (index)", 0.4, 1.0, 2.2, -6.8], ["Gold (JPY)", 0.6, 2.1, 5.0, 24.2],
+      ["Brent", 1.1, 3.0, 4.8, -2.1], ["Copper", -0.4, 0.9, 2.2, 7.3], ["JP banks", 0.9, 2.4, 5.1, 22.4],
+    ],
+    cb: { name: "Policy Meeting · BoJ", days: 30, date: "Jul 31", action: "Hike 15bp", prob: 48, move: "a 15bp hike" },
+    releases: [["MON", "Tankan Survey", "+13"], ["TUE", "Jibun Mfg PMI", "50.9"], ["WED", "Wages (YoY)", "+2.8%"], ["THU", "Machine Orders", "+1.2%"], ["FRI", "Tokyo CPI", "2.5%"]],
+    positioning: [["JGBs", -1.3], ["Nikkei", 0.9], ["JPY", 0.7], ["Gold", 1.4], ["JP banks", 1.5], ["Brent", 0.5]],
+  },
+  GL: {
+    exchange: "Global · UTC", regimeLabel: "Late Cycle", regimeColor: "#B08018", regimeDays: 63, regimeSince: "Apr 29",
+    history: [
+      { label: "Recovery", color: "#5E7A3B", w: 30 },
+      { label: "Mid cycle", color: "#8FA05A", w: 34 },
+      { label: "Late cycle", color: "#B08018", w: 56 },
+      { label: "Late cycle", color: "#B08018", w: 28 },
+    ],
+    inflation: "3.4%", inflationSub: "DM core 3.0% · mixed", growth: 49.8, growthSub: "Global PMI · flat",
+    policy: "—", policySub: "DM · net easing bias", cond: 0.03, condSub: "GFCI · near neutral",
+    hingeDef: "DM 10Y agg = real yield + breakeven inflation",
+    nom: [3.3, 3.32, 3.31, 3.35, 3.38, 3.4, 3.42], real: [1.1, 1.1, 1.09, 1.11, 1.12, 1.12, 1.13], be: [2.2, 2.22, 2.22, 2.24, 2.26, 2.28, 2.29],
+    dNom: 0.12, dReal: 0.03, dBe: 0.09,
+    classLabel: "Late-Cycle Drift", classDesc: "Aggregate nominal firming, breakeven-led — global reflation micro-pulse.",
+    classTags: ["duration-negative", "commodity-tilt", "dispersion-high"], classMover: "Breakeven leg",
+    oilName: "Brent · Global", oilVal: "74.20", oilChg: 1.8, oilSpark: [71, 71.5, 72, 72.8, 73.3, 73.8, 74.2],
+    playbook: [
+      { side: "UW", asset: "DM duration", note: "reflation pulse", color: "#B14A2E" },
+      { side: "OW", asset: "Real assets", note: "inflation hedge", color: "#5E7A3B" },
+      { side: "OW", asset: "EM ex-China", note: "carry + easing", color: "#5E7A3B" },
+      { side: "NEUTRAL", asset: "DM equities", note: "valuation-capped", color: "#B08018" },
+    ],
+    curve: [["3M", 4.1], ["1Y", 3.8], ["2Y", 3.55], ["5Y", 3.4], ["7Y", 3.44], ["10Y", 3.42], ["30Y", 3.7]],
+    tripwires: [
+      { label: "Credit · Global HY", tag: "Leading tell for equity stress", val: "3.60%", chg: 0.08, unit: " pp", state: "", note: "Contained — no systemic widening.", tone: "#5E7A3B" },
+      { label: "Equity Vol · VIX", tag: "Risk-on / risk-off tripwire", val: "17.4", chg: null, state: "Contango", note: "Calm cross-asset vol regime.", tone: "#5E7A3B" },
+      { label: "Dollar · DXY", tag: "Global liquidity valve", val: "103.9", chg: -0.1, state: "", note: "Sideways USD — liquidity neutral.", tone: "#5E7A3B" },
+      { label: "Curve · 2s10s", tag: "Late-cycle / recession watch", val: "-0.13", chg: null, state: "Flat", note: "Aggregate near flat — dispersion high.", tone: "#B08018" },
+    ],
+    cross: [
+      ["MSCI World", 0.4, 1.1, 2.9, 13.4], ["MSCI EM", 0.6, 1.5, 3.2, 9.1], ["Global Agg", -0.2, -0.6, -1.1, -2.0],
+      ["Global IG", -0.1, 0.2, 0.9, 3.8], ["Global HY", 0.2, 0.7, 1.7, 6.9], ["USD (DXY)", -0.1, -0.3, -0.6, 1.1],
+      ["Gold", 0.8, 2.2, 5.0, 17.1], ["Brent", 1.1, 3.0, 4.8, -1.2], ["Copper", -0.4, 0.9, 2.2, 7.3],
+    ],
+    cb: { name: "Next up · FOMC", days: 29, date: "Jul 30", action: "Hold", prob: 74, move: "no change" },
+    releases: [["MON", "Global Mfg PMI", "49.8"], ["WED", "US ISM Services", "52.1"], ["THU", "EU Retail Sales", "+0.3%"], ["FRI", "US Payrolls", "+175k"], ["FRI", "CA Employment", "+22k"]],
+    positioning: [["DM Bonds", -0.9], ["Global Eq", 0.7], ["USD", 0.3], ["Gold", 1.8], ["Brent", 0.9], ["EM FX", 0.5]],
+  },
+};
+
+const EXTRA: Record<Region, ExtraData> = {
+  US: {
+    labor: [["Nonfarm Payrolls", "+175k", "prev +206k"], ["Unemployment", "4.1%", "+0.1 m/m"], ["Avg Hourly Earn", "3.9% y/y", "−0.1 pp"], ["Jobless Claims", "232k", "+8k w/w"], ["Participation", "62.6%", "flat"], ["JOLTS Openings", "8.10M", "−0.20M"]],
+    fx: [["EUR/USD", -0.2, -1.4], ["USD/JPY", 0.3, 8.2], ["GBP/USD", -0.15, 0.9], ["USD/CNH", 0.15, 2.1], ["USD/CHF", 0.1, 3.4], ["AUD/USD", -0.25, -2.8]],
+    commods: [["WTI Crude", "70.94", 2.47], ["Brent", "74.20", 1.8], ["Copper", "4.28", -0.9], ["Gold", "2412", 0.85], ["Nat Gas", "2.68", -1.2]],
+    esi: 12, esiTrend: [-9, -12, -8, -4, 1, 6, 9, 12],
+    surprises: [["ISM Mfg", -0.6], ["ADP", 0.4], ["Jobless Claims", -0.3], ["Nonfarm Payrolls", -0.8], ["CPI", 0.9], ["Retail Sales", 0.5]],
+  },
+  EU: {
+    labor: [["Unemployment", "6.4%", "flat"], ["Employment q/q", "+0.3%", "+0.1 pp"], ["Neg. Wages", "4.7% y/y", "−0.2 pp"], ["Youth Unemp", "14.2%", "−0.1 pp"], ["Participation", "65.8%", "+0.1"], ["Vacancy Rate", "2.9%", "−0.1"]],
+    fx: [["EUR/USD", -0.2, -1.4], ["EUR/GBP", 0.1, -0.6], ["EUR/JPY", 0.25, 6.8], ["EUR/CHF", 0.08, 1.2], ["GBP/USD", -0.15, 0.9], ["USD/SEK", 0.3, 4.1]],
+    commods: [["Brent", "74.20", 1.8], ["TTF Gas", "32.10", -1.8], ["Copper", "4.28", -0.9], ["Gold (EUR)", "2228", 0.7], ["Carbon EUA", "68.40", 1.1]],
+    esi: -4, esiTrend: [6, 3, -1, -4, -6, -3, -5, -4],
+    surprises: [["HCOB PMI", -0.5], ["Flash CPI", -0.2], ["PPI", -0.4], ["ZEW", 0.6], ["Ifo", -0.3], ["Retail Sales", 0.2]],
+  },
+  CN: {
+    labor: [["Surveyed Unemp", "5.1%", "+0.1 pp"], ["Youth Unemp", "14.9%", "+0.3 pp"], ["Urban Jobs YTD", "6.8M", "on track"], ["Avg Wage g", "4.2% y/y", "−0.3 pp"], ["Mfg Employment", "48.1", "−0.4"], ["Svc Employment", "49.6", "−0.2"]],
+    fx: [["USD/CNH", 0.15, 2.1], ["USD/CNY", 0.12, 1.9], ["CNH/JPY", -0.1, 5.4], ["EUR/CNH", -0.08, 0.6], ["AUD/CNH", -0.2, -1.1], ["CNH/HKD", 0.05, 0.3]],
+    commods: [["Iron Ore", "98.40", -2.1], ["Copper", "4.28", -0.9], ["Brent", "74.20", 1.8], ["Thermal Coal", "118.5", -1.4], ["Gold (CNY)", "560.2", 0.8]],
+    esi: -11, esiTrend: [-4, -7, -10, -12, -11, -9, -12, -11],
+    surprises: [["Caixin PMI", -0.4], ["CPI", -0.7], ["PPI", -0.9], ["Exports", 0.5], ["Retail Sales", -0.3], ["New Loans", -0.6]],
+  },
+  JP: {
+    labor: [["Unemployment", "2.5%", "flat"], ["Jobs/Applicants", "1.26", "+0.01"], ["Wages nominal", "+2.8% y/y", "+0.2 pp"], ["Real Wages", "−0.4% y/y", "+0.3 pp"], ["Participation", "63.1%", "+0.1"], ["Shunto Wage", "5.1%", "—"]],
+    fx: [["USD/JPY", -0.4, 8.2], ["EUR/JPY", -0.2, 6.8], ["GBP/JPY", -0.15, 7.1], ["AUD/JPY", -0.3, 4.6], ["CNH/JPY", -0.1, 5.4], ["CHF/JPY", -0.05, 9.0]],
+    commods: [["WTI (JPY)", "11,240", 1.9], ["Brent", "74.20", 1.8], ["Copper", "4.28", -0.9], ["Gold (JPY)", "12,050", 0.9], ["LNG (JKM)", "12.40", -1.6]],
+    esi: 8, esiTrend: [-2, 1, 3, 5, 6, 8, 7, 8],
+    surprises: [["Tankan", 0.7], ["Jibun PMI", 0.3], ["Wages", 0.6], ["Machine Orders", 0.4], ["Tokyo CPI", 0.5], ["Exports", 0.2]],
+  },
+  GL: {
+    labor: [["DM Unemp (agg)", "4.6%", "flat"], ["US Payrolls", "+175k", "prev +206k"], ["EU Unemp", "6.4%", "flat"], ["JP Unemp", "2.5%", "flat"], ["DM Wage g", "4.1% y/y", "−0.1 pp"], ["Global PMI Emp", "49.6", "−0.2"]],
+    fx: [["DXY", 0.1, 1.1], ["EUR/USD", -0.2, -1.4], ["USD/JPY", 0.3, 8.2], ["GBP/USD", -0.15, 0.9], ["USD/CNH", 0.15, 2.1], ["EM FX idx", -0.3, -0.4]],
+    commods: [["Brent", "74.20", 1.8], ["WTI", "70.94", 2.47], ["Copper", "4.28", -0.9], ["Gold", "2412", 0.85], ["BBG Cmdty", "98.6", 0.6]],
+    esi: 2, esiTrend: [-6, -4, -2, 0, 1, 3, 2, 2],
+    surprises: [["Global PMI", -0.2], ["US CPI", 0.9], ["EU CPI", -0.2], ["China PPI", -0.9], ["US Payrolls", -0.8], ["Global Retail", 0.3]],
+  },
+};
+
+export function getRegionData(region: Region): RegionData {
+  return { ...DATA[region], ...EXTRA[region] };
+}
