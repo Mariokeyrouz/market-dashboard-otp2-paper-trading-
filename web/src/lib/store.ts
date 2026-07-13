@@ -5,13 +5,23 @@ import type { Region } from "./data/types";
 import { ELEMENT_MAP } from "./elements/registry";
 import { defaultLayout } from "./layout/defaults";
 
+export type Theme = "silver" | "dark" | "light";
+
+export const THEME_LABELS: Record<Theme, string> = {
+  silver: "Silver",
+  dark: "Black",
+  light: "White",
+};
+
 interface DashState {
   region: Region;
+  theme: Theme;
   layout: LayoutItem[];
   hidden: string[];
   editMode: boolean;
   logicOpen: boolean;
   setRegion: (r: Region) => void;
+  setTheme: (t: Theme) => void;
   setLayout: (l: Layout) => void;
   hideElement: (id: string) => void;
   showElement: (id: string) => void;
@@ -27,11 +37,13 @@ export const useDashStore = create<DashState>()(
   persist(
     (set) => ({
       region: "US",
+      theme: "silver",
       layout: defaultLayout(),
       hidden: [],
       editMode: false,
       logicOpen: false,
       setRegion: (region) => set({ region }),
+      setTheme: (theme) => set({ theme }),
       setLayout: (layout) => set({ layout: strip(layout) }),
       hideElement: (id) =>
         set((s) => ({
@@ -54,7 +66,7 @@ export const useDashStore = create<DashState>()(
     }),
     {
       name: "mws_state_v1",
-      partialize: (s) => ({ region: s.region, layout: s.layout, hidden: s.hidden }),
+      partialize: (s) => ({ region: s.region, theme: s.theme, layout: s.layout, hidden: s.hidden }),
     },
   ),
 );

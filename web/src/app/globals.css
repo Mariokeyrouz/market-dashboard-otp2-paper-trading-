@@ -1,16 +1,73 @@
 @import "tailwindcss";
 
-:root {
-  --canvas: #e8decb;
-  --tile: #fbf8f1;
-  --ink: #2b2721;
-  --body: #4a443b;
-  --muted: #8a8172;
-  --faint: #b4a98f;
-  --green: #5e7a3b;
+/* ---- Theme: Silver (default) ---- */
+:root,
+[data-theme="silver"] {
+  --canvas: #d6d8db;
+  --tile: #f4f5f6;
+  --tile-border: rgba(20, 22, 26, 0.11);
+  --control-border: rgba(20, 22, 26, 0.2);
+  --ink: #26282b;
+  --body: #44474c;
+  --muted: #787d85;
+  --faint: #a4a9b0;
+  --hairline: rgba(20, 22, 26, 0.07);
+  --track: rgba(20, 22, 26, 0.06);
+  --centerline: rgba(20, 22, 26, 0.22);
+  --strong-line: rgba(20, 22, 26, 0.25);
+  --green: #55763a;
   --red: #b14a2e;
-  --amber: #b08018;
-  --gold: #a07b1d;
+  --amber: #a1770f;
+  --gold: #96741c;
+  --gold-deep: #7d6115;
+  --blue-deep: #2c5480;
+  --scrim: rgba(24, 26, 29, 0.32);
+}
+
+/* ---- Theme: Black ---- */
+[data-theme="dark"] {
+  --canvas: #101114;
+  --tile: #1b1d21;
+  --tile-border: rgba(255, 255, 255, 0.1);
+  --control-border: rgba(255, 255, 255, 0.22);
+  --ink: #e7e8ea;
+  --body: #c4c7cb;
+  --muted: #8f939b;
+  --faint: #61656c;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --track: rgba(255, 255, 255, 0.09);
+  --centerline: rgba(255, 255, 255, 0.28);
+  --strong-line: rgba(255, 255, 255, 0.3);
+  --green: #8cb05c;
+  --red: #d9764f;
+  --amber: #d2a13a;
+  --gold: #c79c43;
+  --gold-deep: #d8b369;
+  --blue-deep: #7fa8ce;
+  --scrim: rgba(0, 0, 0, 0.55);
+}
+
+/* ---- Theme: White ---- */
+[data-theme="light"] {
+  --canvas: #f7f7f6;
+  --tile: #ffffff;
+  --tile-border: rgba(0, 0, 0, 0.1);
+  --control-border: rgba(0, 0, 0, 0.18);
+  --ink: #1f2124;
+  --body: #3e4145;
+  --muted: #75797f;
+  --faint: #a3a7ad;
+  --hairline: rgba(0, 0, 0, 0.06);
+  --track: rgba(0, 0, 0, 0.05);
+  --centerline: rgba(0, 0, 0, 0.2);
+  --strong-line: rgba(0, 0, 0, 0.24);
+  --green: #55763a;
+  --red: #b14a2e;
+  --amber: #a1770f;
+  --gold: #96741c;
+  --gold-deep: #7d6115;
+  --blue-deep: #2c5480;
+  --scrim: rgba(24, 26, 29, 0.3);
 }
 
 body {
@@ -37,13 +94,13 @@ body {
   cursor: pointer;
 }
 .mws-select:focus {
-  outline: 2px solid rgba(160, 123, 29, 0.4);
+  outline: 2px solid color-mix(in srgb, var(--gold) 45%, transparent);
   outline-offset: 1px;
 }
 
 /* react-grid-layout edit-mode styling */
 .react-grid-item.react-grid-placeholder {
-  background: rgba(160, 123, 29, 0.22) !important;
+  background: color-mix(in srgb, var(--gold) 25%, transparent) !important;
   border-radius: 10px;
   opacity: 1 !important;
 }

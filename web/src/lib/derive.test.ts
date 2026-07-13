@@ -47,9 +47,9 @@ describe("helpers", () => {
     expect(sign(-1.4, 1, true)).toBe("-1.4%");
   });
 
-  it("toneUpDown maps sign to green/red", () => {
-    expect(toneUpDown(0.1)).toBe("#5E7A3B");
-    expect(toneUpDown(-0.1)).toBe("#B14A2E");
+  it("toneUpDown maps sign to green/red theme variables", () => {
+    expect(toneUpDown(0.1)).toBe("var(--green)");
+    expect(toneUpDown(-0.1)).toBe("var(--red)");
   });
 
   it("heatColor alpha caps at |v| = 8", () => {

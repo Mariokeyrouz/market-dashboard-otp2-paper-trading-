@@ -8,7 +8,7 @@ export default function EconSurprises() {
   const s = v.surprises;
   return (
     <div style={TILE}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
         <div style={{ whiteSpace: "nowrap" }}>
           <PanelTitle>Economic Surprises</PanelTitle>
         </div>
@@ -17,16 +17,16 @@ export default function EconSurprises() {
           <Sparkline d={s.spark} stroke={s.color} w={56} h={20} />
         </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {s.rows.map((r) => (
           <div key={r.name} style={{ display: "grid", gridTemplateColumns: "104px 1fr 34px", gap: 10, alignItems: "center" }}>
-            <span style={{ fontSize: 12, color: "#2B2721" }}>{r.name}</span>
+            <span style={{ fontSize: 12, color: "var(--ink)" }}>{r.name}</span>
             <DivergingBar barLeft={r.barLeft} barW={r.barW} color={r.color} height={11} track="transparent" />
             <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, textAlign: "right", color: r.color }}>{r.val}</span>
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 10, color: "#B4A98F", marginTop: 9 }}>bars = actual vs consensus, σ · beats right / misses left</div>
+      <div style={{ fontSize: 10, color: "var(--faint)", marginTop: 7 }}>bars = actual vs consensus, σ · beats right / misses left</div>
     </div>
   );
 }

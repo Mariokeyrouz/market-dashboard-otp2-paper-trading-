@@ -104,7 +104,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "Data versus expectations — the pulse of whether the macro narrative is beating or missing. Feeds the growth leg of the regime read.",
-    defaultLayout: { x: 0, y: 30, w: 4, h: 8, minW: 3, minH: 6 },
+    defaultLayout: { x: 0, y: 30, w: 4, h: 7, minW: 3, minH: 6 },
   },
   {
     id: "cb",
@@ -158,7 +158,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "The currency channel: how the region's exchange rates are moving and what that does to financial conditions.",
-    defaultLayout: { x: 8, y: 27, w: 4, h: 7, minW: 3, minH: 5 },
+    defaultLayout: { x: 8, y: 27, w: 4, h: 6, minW: 3, minH: 5 },
   },
   {
     id: "labor",

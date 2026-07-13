@@ -7,8 +7,8 @@ export default function Playbook() {
   const v = useDerived();
   return (
     <div style={TILE}>
-      <Micro style={{ letterSpacing: ".14em", marginBottom: 12 }}>Regime Playbook</Micro>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <Micro style={{ letterSpacing: ".14em", marginBottom: 9 }}>Regime Playbook</Micro>
+      <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
         {v.playbook.map((p) => (
           <div key={p.asset} style={{ display: "flex", alignItems: "center", gap: 11 }}>
             <span
@@ -19,8 +19,8 @@ export default function Playbook() {
             >
               {p.side}
             </span>
-            <span style={{ fontSize: 13, color: "#2B2721" }}>{p.asset}</span>
-            <span style={{ fontSize: 12, color: "#8A8172", marginLeft: "auto" }}>{p.note}</span>
+            <span style={{ fontSize: 13, color: "var(--ink)" }}>{p.asset}</span>
+            <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: "auto" }}>{p.note}</span>
           </div>
         ))}
       </div>

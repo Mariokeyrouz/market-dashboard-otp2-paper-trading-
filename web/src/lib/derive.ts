@@ -7,9 +7,9 @@ import { getRegionData } from "./data/mock";
 import type { PlaybookRow, Region, RegimeSeg } from "./data/types";
 
 // ---------- formatting / color helpers ----------
-export const GREEN = "#5E7A3B";
-export const RED = "#B14A2E";
-export const AMBER = "#B08018";
+export const GREEN = "var(--green)";
+export const RED = "var(--red)";
+export const AMBER = "var(--amber)";
 
 export function sign(v: number, dp = 2, pct = false): string {
   return (v >= 0 ? "+" : "") + v.toFixed(dp) + (pct ? "%" : "");
@@ -25,8 +25,8 @@ export function heatColor(v: number): { bg: string; fg: string } {
   const a = Math.min(Math.abs(v) / cap, 1);
   const alpha = (0.1 + a * 0.32).toFixed(3);
   return v >= 0
-    ? { bg: `rgba(94,122,59,${alpha})`, fg: "#2B2721" }
-    : { bg: `rgba(177,74,46,${alpha})`, fg: "#2B2721" };
+    ? { bg: `rgba(94,122,59,${alpha})`, fg: "var(--ink)" }
+    : { bg: `rgba(177,74,46,${alpha})`, fg: "var(--ink)" };
 }
 export function makeSpark(last: number, chgPct: number): number[] {
   const start = last / (1 + chgPct / 100);
@@ -219,7 +219,7 @@ export function deriveAll(region: Region): Derived {
     return { name, price: priceStr, chg: sign(chg, 2, true), chgColor: toneUpDown(chg), spark: sparkPath(makeSpark(price, chg), 70, 24) };
   });
 
-  const dayColors: Record<string, string> = { MON: "#8A8172", TUE: "#8A8172", WED: "#8A8172", THU: "#8A8172", FRI: AMBER };
+  const dayColors: Record<string, string> = { MON: "var(--muted)", TUE: "var(--muted)", WED: "var(--muted)", THU: "var(--muted)", FRI: AMBER };
 
   return {
     region,
@@ -234,9 +234,9 @@ export function deriveAll(region: Region): Derived {
     hinge: {
       def: d.hingeDef,
       legend: [
-        { name: "Nominal 10Y", color: "#2B2721", val: d.nom[n - 1].toFixed(2) + "%", delta: dArrow(d.dNom), dColor: toneUpDown(d.dNom) },
+        { name: "Nominal 10Y", color: "var(--ink)", val: d.nom[n - 1].toFixed(2) + "%", delta: dArrow(d.dNom), dColor: toneUpDown(d.dNom) },
         { name: "Real (TIPS)", color: "#3A6B9E", val: d.real[n - 1].toFixed(2) + "%", delta: dArrow(d.dReal), dColor: toneUpDown(d.dReal) },
-        { name: "Breakeven", color: "#A07B1D", val: d.be[n - 1].toFixed(2) + "%", delta: dArrow(d.dBe), dColor: toneUpDown(d.dBe) },
+        { name: "Breakeven", color: "var(--gold)", val: d.be[n - 1].toFixed(2) + "%", delta: dArrow(d.dBe), dColor: toneUpDown(d.dBe) },
       ],
       ticks, xTicks,
       nomPath: buildPath(d.nom, hx, hy),
@@ -245,7 +245,7 @@ export function deriveAll(region: Region): Derived {
       beArea: areaBetween(d.nom, d.real),
       beMid: { x: (endX - 6).toFixed(1), y: (hy(hingeMidVal) + 4).toFixed(1), v: d.be[n - 1].toFixed(2) },
       realMid: { x: (endX - 6).toFixed(1), y: (hy(d.real[n - 1] / 2) + 4).toFixed(1), v: d.real[n - 1].toFixed(2) },
-      end: { x: endX.toFixed(1), y: endY.toFixed(1), lx: (endX - 9).toFixed(1), ly: (endY - 8).toFixed(1), v: d.nom[n - 1].toFixed(2), color: "#2B2721" },
+      end: { x: endX.toFixed(1), y: endY.toFixed(1), lx: (endX - 9).toFixed(1), ly: (endY - 8).toFixed(1), v: d.nom[n - 1].toFixed(2), color: "var(--ink)" },
       impulse: { name: d.oilName, val: d.oilVal, chg: sign(d.oilChg, 2, true), color: toneUpDown(d.oilChg), spark: oilSparkPath },
     },
     classification: { label: d.classLabel, desc: d.classDesc, tags: d.classTags, mover: d.classMover, color: d.regimeColor },
@@ -253,7 +253,7 @@ export function deriveAll(region: Region): Derived {
     tripwires: d.tripwires.map((t) => ({
       label: t.label, tag: t.tag, val: t.val, state: t.state, note: t.note, tone: t.tone,
       chg: t.chg == null ? "" : sign(t.chg, 2) + (t.unit || ""),
-      chgColor: t.chg == null ? "#8A8172" : toneUpDown(t.chg),
+      chgColor: t.chg == null ? "var(--muted)" : toneUpDown(t.chg),
     })),
     heatmap: {
       cols: ["1D", "1W", "1M", "YTD"],
@@ -278,7 +278,7 @@ export function deriveAll(region: Region): Derived {
     labor: d.labor.map(([name, value, delta]) => ({ name, value, delta })),
     fx, commods,
     cb: { name: d.cb.name, days: String(d.cb.days), date: d.cb.date, action: d.cb.action, prob: d.cb.prob, move: d.cb.move },
-    releases: d.releases.map(([day, name, cons]) => ({ day, name, cons, dayColor: dayColors[day] || "#8A8172" })),
+    releases: d.releases.map(([day, name, cons]) => ({ day, name, cons, dayColor: dayColors[day] || "var(--muted)" })),
     positioning,
   };
 }

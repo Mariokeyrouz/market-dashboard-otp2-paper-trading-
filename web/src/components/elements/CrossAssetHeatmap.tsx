@@ -9,7 +9,7 @@ export default function CrossAssetHeatmap() {
   const h = v.heatmap;
   return (
     <div style={TILE}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 9 }}>
         <PanelTitle>Cross-Asset Heatmap</PanelTitle>
         <ItalicNote>total return, %</ItalicNote>
       </div>
@@ -20,7 +20,7 @@ export default function CrossAssetHeatmap() {
             key={c}
             style={{
               fontSize: 10, letterSpacing: ".08em", textTransform: "uppercase", fontWeight: 600,
-              color: "#8A8172", textAlign: "center", paddingBottom: 4,
+              color: "var(--muted)", textAlign: "center", paddingBottom: 4,
             }}
           >
             {c}
@@ -28,7 +28,7 @@ export default function CrossAssetHeatmap() {
         ))}
         {h.rows.map((r) => (
           <Fragment key={r.name}>
-            <div style={{ fontSize: 12, color: "#2B2721", display: "flex", alignItems: "center", padding: "0 2px", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: 12, color: "var(--ink)", display: "flex", alignItems: "center", padding: "0 2px", whiteSpace: "nowrap" }}>
               {r.name}
             </div>
             {r.cells.map((cell, i) => (
@@ -36,7 +36,7 @@ export default function CrossAssetHeatmap() {
                 key={i}
                 style={{
                   fontFamily: MONO, fontSize: 12.5, fontWeight: 500, textAlign: "center",
-                  padding: "4px 4px", borderRadius: 5, background: cell.bg, color: cell.fg,
+                  padding: "3px 4px", borderRadius: 5, background: cell.bg, color: cell.fg,
                 }}
               >
                 {cell.txt}

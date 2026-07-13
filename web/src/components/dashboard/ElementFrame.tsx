@@ -32,15 +32,15 @@ export default function ElementFrame({
               zIndex: 10,
               cursor: "grab",
               borderRadius: 10,
-              border: "1.5px dashed rgba(160,123,29,.6)",
-              background: "rgba(232,222,203,.06)",
+              border: "1.5px dashed color-mix(in srgb, var(--gold) 60%, transparent)",
+              background: "color-mix(in srgb, var(--canvas) 8%, transparent)",
             }}
           />
           <span
             style={{
               position: "absolute", top: 6, left: 8, zIndex: 20, pointerEvents: "none",
               fontSize: 10, fontWeight: 600, letterSpacing: ".08em", textTransform: "uppercase",
-              color: "#A07B1D", background: "rgba(251,248,241,.92)", border: "1px solid rgba(160,123,29,.4)",
+              color: "var(--gold)", background: "var(--tile)", border: "1px solid color-mix(in srgb, var(--gold) 40%, transparent)",
               borderRadius: 5, padding: "2px 7px",
             }}
           >
@@ -53,8 +53,8 @@ export default function ElementFrame({
             style={{
               position: "absolute", top: 5, right: 5, zIndex: 30, width: 22, height: 22,
               display: "flex", alignItems: "center", justifyContent: "center",
-              background: "#FBF8F1", border: "1px solid rgba(177,74,46,.5)", borderRadius: 6,
-              color: "#B14A2E", fontSize: 14, lineHeight: 1, cursor: "pointer",
+              background: "var(--tile)", border: "1px solid rgba(177,74,46,.5)", borderRadius: 6,
+              color: "var(--red)", fontSize: 14, lineHeight: 1, cursor: "pointer",
             }}
           >
             ×

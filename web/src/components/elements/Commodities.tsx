@@ -7,7 +7,7 @@ export default function Commodities() {
   const v = useDerived();
   return (
     <div style={TILE}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 7 }}>
         <PanelTitle>Commodities</PanelTitle>
         <ItalicNote>price · Δ 1D · 7d</ItalicNote>
       </div>
@@ -17,10 +17,10 @@ export default function Commodities() {
             key={c.name}
             style={{
               display: "grid", gridTemplateColumns: "1fr auto 62px 72px", gap: 12, alignItems: "center",
-              padding: "6px 0", borderBottom: "1px solid rgba(0,0,0,.05)",
+              padding: "4px 0", borderBottom: "1px solid var(--hairline)",
             }}
           >
-            <span style={{ fontSize: 12.5, color: "#2B2721" }}>{c.name}</span>
+            <span style={{ fontSize: 12.5, color: "var(--ink)" }}>{c.name}</span>
             <span style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600 }}>{c.price}</span>
             <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, textAlign: "right", color: c.chgColor }}>{c.chg}</span>
             <Sparkline d={c.spark} stroke={c.chgColor} w={70} h={24} />

@@ -13,17 +13,18 @@ export default function ElementLibrary() {
     <div
       style={{
         display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
-        background: "rgba(251,248,241,.7)", border: "1px dashed rgba(160,123,29,.5)",
+        background: "color-mix(in srgb, var(--tile) 72%, transparent)",
+        border: "1px dashed color-mix(in srgb, var(--gold) 50%, transparent)",
         borderRadius: 10, padding: "8px 13px",
       }}
     >
       <Micro>Customize</Micro>
-      <span style={{ fontSize: 12, color: "#8A8172" }}>
+      <span style={{ fontSize: 12, color: "var(--muted)" }}>
         Drag any element to move it · drag the corner to resize · × to hide.
       </span>
       {hidden.length > 0 && (
         <span style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginLeft: "auto" }}>
-          <span style={{ fontSize: 11, color: "#8A8172" }}>Hidden — click to re-add:</span>
+          <span style={{ fontSize: 11, color: "var(--muted)" }}>Hidden — click to re-add:</span>
           {hidden.map((id) => {
             const def = ELEMENT_MAP.get(id);
             if (!def) return null;
@@ -32,7 +33,7 @@ export default function ElementLibrary() {
                 key={id}
                 onClick={() => showElement(id)}
                 style={{
-                  fontSize: 11.5, fontWeight: 600, color: "#5E7A3B", background: "rgba(94,122,59,.08)",
+                  fontSize: 11.5, fontWeight: 600, color: "var(--green)", background: "rgba(94,122,59,.08)",
                   border: "1px solid rgba(94,122,59,.4)", borderRadius: 6, padding: "4px 10px", cursor: "pointer",
                 }}
               >

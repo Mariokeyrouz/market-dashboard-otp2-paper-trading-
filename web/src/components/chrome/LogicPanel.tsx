@@ -5,28 +5,28 @@ import { useDashStore } from "@/lib/store";
 import { MONO, SERIF } from "../ui";
 
 const ROLE_COLORS: Record<ZRole, string> = {
-  anchor: "#A07B1D",
-  scan: "#B08018",
-  pivot: "#2B2721",
-  terminal: "#5E7A3B",
-  support: "#8A8172",
+  anchor: "var(--gold)",
+  scan: "var(--amber)",
+  pivot: "var(--ink)",
+  terminal: "var(--green)",
+  support: "var(--muted)",
 };
 
 /** Small Z diagram showing the reading order. */
 function ZDiagram() {
   const lbl = (x: number, y: number, t: string, anchor: "start" | "end" | "middle" = "start") => (
-    <text x={x} y={y} fontSize={9.5} fill="#8A8172" textAnchor={anchor} fontFamily="var(--font-plex-sans), sans-serif">
+    <text x={x} y={y} fontSize={9.5} fill="var(--muted)" textAnchor={anchor} fontFamily="var(--font-plex-sans), sans-serif">
       {t}
     </text>
   );
   return (
     <svg viewBox="0 0 320 150" style={{ width: "100%", height: "auto", display: "block" }}>
-      <rect x={8} y={8} width={304} height={134} rx={10} fill="#FBF8F1" stroke="rgba(0,0,0,.09)" />
-      <path d="M40 36 L280 36 L40 114 L280 114" fill="none" stroke="#A07B1D" strokeWidth={2.4} strokeLinejoin="round" strokeLinecap="round" strokeDasharray="1 6" />
-      <circle cx={40} cy={36} r={5} fill="#A07B1D" />
-      <circle cx={280} cy={36} r={5} fill="#B08018" />
-      <circle cx={40} cy={114} r={5} fill="#2B2721" />
-      <circle cx={280} cy={114} r={5} fill="#5E7A3B" />
+      <rect x={8} y={8} width={304} height={134} rx={10} fill="var(--tile)" stroke="var(--tile-border)" />
+      <path d="M40 36 L280 36 L40 114 L280 114" fill="none" stroke="var(--gold)" strokeWidth={2.4} strokeLinejoin="round" strokeLinecap="round" strokeDasharray="1 6" />
+      <circle cx={40} cy={36} r={5} fill="var(--gold)" />
+      <circle cx={280} cy={36} r={5} fill="var(--amber)" />
+      <circle cx={40} cy={114} r={5} fill="var(--ink)" />
+      <circle cx={280} cy={114} r={5} fill="var(--green)" />
       {lbl(52, 30, "1 · Regime — where are we?")}
       {lbl(268, 30, "2 · Classification — the signal", "end")}
       {lbl(120, 72, "3 · The Hinge — why it's moving")}
@@ -58,8 +58,8 @@ export default function LogicPanel() {
         style={{
           position: "fixed", right: 0, top: "42%", zIndex: 60,
           writingMode: "vertical-rl", letterSpacing: ".18em",
-          fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "#A07B1D",
-          background: "#FBF8F1", border: "1px solid rgba(160,123,29,.5)", borderRight: "none",
+          fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "var(--gold)",
+          background: "var(--tile)", border: "1px solid rgba(160,123,29,.5)", borderRight: "none",
           borderRadius: "8px 0 0 8px", padding: "14px 7px", cursor: "pointer",
           boxShadow: "-2px 2px 8px rgba(43,39,33,.08)",
         }}
@@ -71,14 +71,14 @@ export default function LogicPanel() {
       {open && (
         <div
           onClick={() => setOpen(false)}
-          style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(43,39,33,.28)" }}
+          style={{ position: "fixed", inset: 0, zIndex: 70, background: "var(--scrim)" }}
         />
       )}
       <aside
         aria-hidden={!open}
         style={{
           position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 80, width: 400, maxWidth: "92vw",
-          background: "#FBF8F1", borderLeft: "1px solid rgba(0,0,0,.12)",
+          background: "var(--tile)", borderLeft: "1px solid var(--tile-border)",
           boxShadow: "-8px 0 28px rgba(43,39,33,.16)",
           transform: open ? "translateX(0)" : "translateX(105%)",
           transition: "transform .25s ease", overflowY: "auto", padding: "18px 20px 24px",
@@ -89,51 +89,52 @@ export default function LogicPanel() {
           <button
             onClick={() => setOpen(false)}
             aria-label="Close"
-            style={{ background: "none", border: "1px solid rgba(0,0,0,.16)", borderRadius: 6, width: 26, height: 26, cursor: "pointer", color: "#8A8172", fontSize: 14 }}
+            style={{ background: "none", border: "1px solid var(--control-border)", borderRadius: 6, width: 26, height: 26, cursor: "pointer", color: "var(--muted)", fontSize: 14 }}
           >
             ×
           </button>
         </div>
 
-        <p style={{ fontSize: 13, lineHeight: 1.55, color: "#4A443B", margin: "0 0 12px" }}>
+        <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--body)", margin: "0 0 12px" }}>
           The default arrangement follows a <strong>Z-pattern</strong> — the natural path a reader&apos;s eye takes across a
           page: enter top-left, sweep right, cut diagonally down, sweep right again.
           Each stop on that path answers the next question a macro investor asks.
         </p>
         <ZDiagram />
-        <p style={{ fontSize: 13, lineHeight: 1.55, color: "#4A443B", margin: "12px 0 6px" }}>
+        <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--body)", margin: "12px 0 6px" }}>
           <strong>1 · Where are we?</strong> (regime, top-left) → <strong>2 · What&apos;s the signal?</strong> (classification,
           top-right) → <strong>3 · Why?</strong> (the Hinge decomposition on the diagonal) →{" "}
           <strong>4 · Is it confirmed?</strong> (tripwires, the bottom stroke) → <strong>5 · What&apos;s next?</strong>{" "}
           (calendar, bottom-right exit). Everything else is supporting evidence you consult on demand.
         </p>
 
-        <div style={{ fontSize: 10, letterSpacing: ".13em", color: "#8A8172", textTransform: "uppercase", fontWeight: 600, margin: "18px 0 8px" }}>
+        <div style={{ fontSize: 10, letterSpacing: ".13em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600, margin: "18px 0 8px" }}>
           Elements — in your current order
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {ordered.map((d) => (
-            <div key={d.id} style={{ borderBottom: "1px solid rgba(0,0,0,.06)", paddingBottom: 10 }}>
+            <div key={d.id} style={{ borderBottom: "1px solid var(--hairline)", paddingBottom: 10 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 3 }}>
                 <span style={{ fontFamily: SERIF, fontSize: 14.5, fontWeight: 600 }}>{d.title}</span>
                 <span
                   style={{
                     fontFamily: MONO, fontSize: 9.5, fontWeight: 600, letterSpacing: ".04em",
-                    color: ROLE_COLORS[d.zRole], border: `1px solid ${ROLE_COLORS[d.zRole]}55`,
+                    color: ROLE_COLORS[d.zRole],
+                    border: `1px solid color-mix(in srgb, ${ROLE_COLORS[d.zRole]} 40%, transparent)`,
                     borderRadius: 4, padding: "1px 6px", whiteSpace: "nowrap",
                   }}
                 >
                   {Z_ROLE_LABELS[d.zRole]}
                 </span>
               </div>
-              <div style={{ fontSize: 12.5, lineHeight: 1.5, color: "#4A443B" }}>{d.logic}</div>
+              <div style={{ fontSize: 12.5, lineHeight: 1.5, color: "var(--body)" }}>{d.logic}</div>
             </div>
           ))}
         </div>
 
         <div
           style={{
-            marginTop: 16, fontSize: 11.5, lineHeight: 1.5, color: "#8A8172",
+            marginTop: 16, fontSize: 11.5, lineHeight: 1.5, color: "var(--muted)",
             border: "1px solid rgba(160,123,29,.35)", borderRadius: 8, padding: "9px 12px", background: "rgba(160,123,29,.06)",
           }}
         >

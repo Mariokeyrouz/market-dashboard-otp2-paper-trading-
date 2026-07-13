@@ -7,9 +7,9 @@ export default function Tripwires() {
   const v = useDerived();
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 6 }}>
         <div style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 600 }}>Risk Tripwires</div>
-        <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 13, color: "#8A8172" }}>
+        <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 13, color: "var(--muted)" }}>
           faster confirming signals — directional, not mechanically precise
         </div>
       </div>
@@ -18,20 +18,20 @@ export default function Tripwires() {
           <div
             key={t.label}
             style={{
-              background: "#FBF8F1", border: "1px solid rgba(0,0,0,.09)", borderTop: `3px solid ${t.tone}`,
-              borderRadius: 11, padding: "11px 14px", overflow: "hidden",
+              background: "var(--tile)", border: "1px solid var(--tile-border)", borderTop: `3px solid ${t.tone}`,
+              borderRadius: 11, padding: "9px 12px", overflow: "hidden",
             }}
           >
-            <div style={{ fontSize: 10, letterSpacing: ".11em", textTransform: "uppercase", fontWeight: 600, color: "#8A8172" }}>
+            <div style={{ fontSize: 10, letterSpacing: ".11em", textTransform: "uppercase", fontWeight: 600, color: "var(--muted)" }}>
               {t.label}
             </div>
-            <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12.5, color: "#8A8172", margin: "4px 0 7px" }}>{t.tag}</div>
+            <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12.5, color: "var(--muted)", margin: "4px 0 7px" }}>{t.tag}</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
               <span style={{ fontFamily: MONO, fontSize: 22, fontWeight: 600 }}>{t.val}</span>
               <span style={{ fontFamily: MONO, fontSize: 12, color: t.chgColor }}>{t.chg}</span>
-              <span style={{ fontSize: 11, color: "#8A8172" }}>{t.state}</span>
+              <span style={{ fontSize: 11, color: "var(--muted)" }}>{t.state}</span>
             </div>
-            <div style={{ fontSize: 11.5, color: "#8A8172", marginTop: 7, lineHeight: 1.4 }}>{t.note}</div>
+            <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 7, lineHeight: 1.4 }}>{t.note}</div>
           </div>
         ))}
       </div>

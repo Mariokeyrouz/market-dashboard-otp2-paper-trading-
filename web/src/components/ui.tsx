@@ -8,17 +8,17 @@ export const MONO = "var(--font-plex-mono), monospace";
 export const MICRO: CSSProperties = {
   fontSize: 10,
   letterSpacing: ".13em",
-  color: "#8A8172",
+  color: "var(--muted)",
   textTransform: "uppercase",
   fontWeight: 600,
 };
 
 /** Standard tile chrome; fills its grid cell. */
 export const TILE: CSSProperties = {
-  background: "#FBF8F1",
-  border: "1px solid rgba(0,0,0,.09)",
+  background: "var(--tile)",
+  border: "1px solid var(--tile-border)",
   borderRadius: 10,
-  padding: "9px 12px",
+  padding: "8px 11px",
   boxSizing: "border-box",
   height: "100%",
   overflow: "hidden",
@@ -36,7 +36,7 @@ export function PanelTitle({ children }: { children: React.ReactNode }) {
 
 export function ItalicNote({ children, style }: { children: React.ReactNode; style?: CSSProperties }) {
   return (
-    <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12, color: "#8A8172", ...style }}>
+    <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12, color: "var(--muted)", ...style }}>
       {children}
     </div>
   );
@@ -48,7 +48,7 @@ export function DivergingBar({
   barW,
   color,
   height = 8,
-  track = "rgba(0,0,0,.06)",
+  track = "var(--hairline)",
 }: {
   barLeft: string;
   barW: string;
@@ -58,7 +58,7 @@ export function DivergingBar({
 }) {
   return (
     <div style={{ position: "relative", height, background: track, borderRadius: 4 }}>
-      <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "rgba(0,0,0,.2)" }} />
+      <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "var(--centerline)" }} />
       <div
         style={{
           position: "absolute",
