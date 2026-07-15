@@ -99,7 +99,9 @@ def _compute_metrics(ledger):
     dates = ledger["date"]
 
     total_ret   = (nav.iloc[-1] / nav.iloc[0] - 1) * 100
-    n_days      = (dates.iloc[-1] - dates.iloc[0]).days
+    # Days live = calendar days since inception up to TODAY (not the last ledger
+    # date, which lags whenever the daily update hasn't run yet).
+    n_days      = (pd.Timestamp.today().normalize() - dates.iloc[0].normalize()).days
     ann_factor  = 252 / max(len(rets), 1)
     ann_ret     = rets.mean() * 252 * 100
     ann_vol     = rets.std() * np.sqrt(252) * 100
