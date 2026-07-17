@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { getRegionData } from "./data/mock";
 import { REGIONS } from "./data/types";
-import { curveShapeWord, deriveAll, heatColor, makeSpark, sign, toneUpDown } from "./derive";
+import {
+  curveShapeWord, deriveAll, deriveMatrix, heatColor, makeSpark, sign, toneUpDown,
+} from "./derive";
 
 describe("mock data integrity", () => {
   it("hinge identity holds: real + breakeven == nominal (±0.011) for every region/point", () => {
@@ -22,6 +24,56 @@ describe("mock data integrity", () => {
       expect(v.tripwires).toHaveLength(4);
       expect(v.heatmap.rows).toHaveLength(9);
       expect(v.hinge.legend).toHaveLength(3);
+    }
+  });
+});
+
+describe("macro matrix", () => {
+  it("has one row per region, in REGIONS order, with Global flagged as the aggregate", () => {
+    const m = deriveMatrix();
+    expect(m.rows.map((r) => r.region)).toEqual(REGIONS);
+    expect(m.rows.filter((r) => r.isAgg).map((r) => r.region)).toEqual(["GL"]);
+    for (const r of m.rows) expect(r.cells.map((c) => c.key)).toEqual(m.cols.map((c) => c.key));
+  });
+
+  it("hinge identity holds on the 10Y / Real / BE it reports", () => {
+    for (const r of deriveMatrix().rows) {
+      const num = (k: string) => parseFloat(r.cells.find((c) => c.key === k)!.txt);
+      expect(Math.abs(num("real") + num("be") - num("y10"))).toBeLessThanOrEqual(0.011);
+    }
+  });
+
+  it("2s10s matches the region's own curve", () => {
+    for (const r of deriveMatrix().rows) {
+      const d = getRegionData(r.region);
+      const at = (t: string) => d.curve.find((p) => p[0] === t)![1];
+      expect(r.cells.find((c) => c.key === "s2s10")!.txt).toBe(sign(at("10Y") - at("2Y"), 2));
+    }
+  });
+
+  // The point of the matrix is that it can't contradict the tile showing the
+  // same number — so pin every shared cell to deriveAll's own output.
+  it("never disagrees with deriveAll for the same region", () => {
+    for (const r of deriveMatrix().rows) {
+      const v = deriveAll(r.region);
+      const cell = (k: string) => r.cells.find((c) => c.key === k)!;
+      const legend = (n: string) => v.hinge.legend.find((l) => l.name.startsWith(n))!;
+
+      expect(r.regime.label).toBe(v.regime.label);
+      expect(r.regime.color).toBe(v.regime.color);
+      expect(cell("cpi").txt).toBe(v.metrics.inflation);
+      expect(cell("growth").txt).toBe(v.metrics.growth);
+      expect(cell("growth").color).toBe(v.metrics.growthColor);
+      expect(cell("policy").txt).toBe(v.metrics.policy);
+      expect(cell("fci").txt).toBe(v.metrics.cond);
+      expect(cell("fci").color).toBe(v.metrics.condColor);
+      expect(cell("y10").txt).toBe(legend("Nominal").val);
+      expect(cell("real").txt).toBe(legend("Real").val);
+      expect(cell("be").txt).toBe(legend("Breakeven").val);
+      expect(cell("s2s10").txt).toBe(v.curve.spread);
+      expect(cell("s2s10").color).toBe(v.curve.spreadColor);
+      expect(cell("esi").txt).toBe(v.surprises.headline);
+      expect(cell("esi").color).toBe(v.surprises.color);
     }
   });
 });

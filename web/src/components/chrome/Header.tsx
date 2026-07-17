@@ -49,7 +49,13 @@ const btnStyle = (accent: string): React.CSSProperties => ({
   cursor: "pointer",
 });
 
-export default function Header() {
+/**
+ * `showControls` is false once the left rail is on screen: the rail owns the
+ * POV switcher and the customize actions, and duplicating them here would give
+ * the same state two places to be changed from. Theme stays — it's a
+ * preference, not navigation.
+ */
+export default function Header({ showControls = true }: { showControls?: boolean }) {
   const v = useDerived();
   const { clock, open } = useClock();
   const region = useDashStore((s) => s.region);
@@ -89,27 +95,31 @@ export default function Header() {
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+              {showControls && (
+                <>
+                  <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
+                    Region
+                  </span>
+                  <div style={{ position: "relative" }}>
+                    <select
+                      className="mws-select"
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value as Region)}
+                      style={selectStyle}
+                    >
+                      {REGIONS.map((r) => (
+                        <option key={r} value={r}>
+                          {REGION_LABELS[r]}
+                        </option>
+                      ))}
+                    </select>
+                    <span style={{ position: "absolute", right: 11, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--muted)", fontSize: 9 }}>
+                      ▼
+                    </span>
+                  </div>
+                </>
+              )}
               <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
-                Region
-              </span>
-              <div style={{ position: "relative" }}>
-                <select
-                  className="mws-select"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value as Region)}
-                  style={selectStyle}
-                >
-                  {REGIONS.map((r) => (
-                    <option key={r} value={r}>
-                      {REGION_LABELS[r]}
-                    </option>
-                  ))}
-                </select>
-                <span style={{ position: "absolute", right: 11, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--muted)", fontSize: 9 }}>
-                  ▼
-                </span>
-              </div>
-              <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600, marginLeft: 8 }}>
                 Theme
               </span>
               <div style={{ position: "relative" }}>
@@ -133,20 +143,21 @@ export default function Header() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {edit ? (
-            <>
-              <button style={btnStyle("var(--muted)")} onClick={resetLayout}>
-                Reset layout
+          {showControls &&
+            (edit ? (
+              <>
+                <button style={btnStyle("var(--muted)")} onClick={resetLayout}>
+                  Reset layout
+                </button>
+                <button style={{ ...btnStyle("var(--green)"), background: "rgba(94,122,59,.1)" }} onClick={() => setEditMode(false)}>
+                  ✓ Done
+                </button>
+              </>
+            ) : (
+              <button style={btnStyle("var(--gold)")} onClick={() => setEditMode(true)}>
+                ✎ Customize
               </button>
-              <button style={{ ...btnStyle("var(--green)"), background: "rgba(94,122,59,.1)" }} onClick={() => setEditMode(false)}>
-                ✓ Done
-              </button>
-            </>
-          ) : (
-            <button style={btnStyle("var(--gold)")} onClick={() => setEditMode(true)}>
-              ✎ Customize
-            </button>
-          )}
+            ))}
           <div
             style={{
               display: "flex", alignItems: "center", gap: 14, background: "var(--tile)",
@@ -168,7 +179,7 @@ export default function Header() {
           </div>
         </div>
       </div>
-      {edit && <ElementLibrary />}
+      {showControls && edit && <ElementLibrary />}
     </div>
   );
 }

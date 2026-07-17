@@ -4,6 +4,7 @@
  * No React, no side effects: unit-testable and swappable to real data.
  */
 import { getRegionData } from "./data/mock";
+import { REGION_LABELS, REGIONS } from "./data/types";
 import type { PlaybookRow, Region, RegimeSeg } from "./data/types";
 
 // ---------- formatting / color helpers ----------
@@ -115,6 +116,73 @@ export interface Derived {
 /** Curve shape word from the 2s10s spread (design thresholds). */
 export function curveShapeWord(spread: number): string {
   return spread < -0.05 ? "inverted" : spread < 0.1 ? "flat" : spread > 0.5 ? "steep" : "upward-sloping";
+}
+
+// ---------- cross-region comparison matrix ----------
+export interface MatrixCell { key: string; txt: string; color: string }
+export interface MatrixRow {
+  region: Region;
+  label: string;
+  /** Global is an aggregate, not a peer of the single economies — rendered apart. */
+  isAgg: boolean;
+  regime: { label: string; color: string };
+  cells: MatrixCell[];
+}
+export interface MatrixDerived {
+  cols: { key: string; label: string }[];
+  rows: MatrixRow[];
+}
+
+export const MATRIX_COLS: { key: string; label: string }[] = [
+  { key: "cpi", label: "CPI" },
+  { key: "growth", label: "Growth" },
+  { key: "policy", label: "Policy" },
+  { key: "fci", label: "FCI" },
+  { key: "y10", label: "10Y" },
+  { key: "real", label: "Real" },
+  { key: "be", label: "BE" },
+  { key: "d10", label: "Δ10Y" },
+  { key: "s2s10", label: "2s10s" },
+  { key: "esi", label: "ESI" },
+];
+
+/**
+ * Every region on one row, so they can be read against each other instead of
+ * one at a time behind the global lens.
+ *
+ * Colors reuse deriveAll's rules verbatim (growth < 50 = red, looser FCI =
+ * green, direction elsewhere) so a matrix cell can never disagree with the
+ * tile showing the same number. Deliberately no background heat-shading: the
+ * columns are on incompatible scales (a diffusion index, a z-score, a spread
+ * in pp), so a shared color ramp across them would imply a comparison that
+ * isn't there.
+ */
+export function deriveMatrix(): MatrixDerived {
+  const rows: MatrixRow[] = REGIONS.map((region) => {
+    const d = getRegionData(region);
+    const last = d.nom.length - 1;
+    const at = (t: string) => d.curve.find((p) => p[0] === t)![1];
+    const s2s10 = at("10Y") - at("2Y");
+    return {
+      region,
+      label: REGION_LABELS[region],
+      isAgg: region === "GL",
+      regime: { label: d.regimeLabel, color: d.regimeColor },
+      cells: [
+        { key: "cpi", txt: d.inflation, color: "var(--ink)" },
+        { key: "growth", txt: String(d.growth), color: d.growth < 50 ? RED : GREEN },
+        { key: "policy", txt: d.policy, color: "var(--ink)" },
+        { key: "fci", txt: sign(d.cond, 2), color: toneUpDown(-d.cond) },
+        { key: "y10", txt: d.nom[last].toFixed(2) + "%", color: "var(--ink)" },
+        { key: "real", txt: d.real[last].toFixed(2) + "%", color: "var(--ink)" },
+        { key: "be", txt: d.be[last].toFixed(2) + "%", color: "var(--ink)" },
+        { key: "d10", txt: bpSign(d.dNom * 100), color: toneUpDown(d.dNom) },
+        { key: "s2s10", txt: sign(s2s10, 2), color: toneUpDown(s2s10) },
+        { key: "esi", txt: sign(d.esi, 0), color: toneUpDown(d.esi) },
+      ],
+    };
+  });
+  return { cols: MATRIX_COLS, rows };
 }
 
 export function deriveAll(region: Region): Derived {

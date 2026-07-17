@@ -1,13 +1,16 @@
 "use client";
 
 import { useDerived } from "../DataContext";
+import { useCompact } from "../DensityContext";
 import { DivergingBar, ItalicNote, MONO, PanelTitle, TILE } from "../ui";
 
 export default function FxChanges() {
   const v = useDerived();
+  // Compact tightens row air so every pair stays on screen.
+  const compact = useCompact();
   return (
     <div style={TILE}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 7 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: compact ? 3 : 7 }}>
         <PanelTitle>FX Changes</PanelTitle>
         <ItalicNote>Δ 1D · YTD %</ItalicNote>
       </div>
@@ -17,7 +20,7 @@ export default function FxChanges() {
             key={f.pair}
             style={{
               display: "grid", gridTemplateColumns: "74px 1fr 54px 54px", gap: 10, alignItems: "center",
-              padding: "4px 0", borderBottom: "1px solid var(--hairline)",
+              padding: compact ? "1px 0" : "4px 0", borderBottom: "1px solid var(--hairline)",
             }}
           >
             <span style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: "var(--ink)" }}>{f.pair}</span>

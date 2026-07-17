@@ -1,11 +1,15 @@
 "use client";
 
 import { useDerived } from "../DataContext";
+import { useCompact } from "../DensityContext";
 import { MONO, PanelTitle, SERIF, TILE } from "../ui";
 
 export default function YieldCurve() {
   const v = useDerived();
   const c = v.curve;
+  // Compact hides the text inside the stretched svg (it scales illegibly);
+  // the spreads row and tenor boxes above already carry every number.
+  const compact = useCompact();
   const spread = (label: string, val: string, color: string) => (
     <span style={{ fontSize: 11, color: "var(--muted)" }}>
       {label} <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 600, color }}>{val}</span>
@@ -47,9 +51,11 @@ export default function YieldCurve() {
         {c.ticks.map((t, i) => (
           <g key={i}>
             <line x1={42} y1={t.y} x2={446} y2={t.y} stroke="var(--hairline)" strokeWidth={1} />
-            <text x={37} y={t.ty} fontFamily="var(--font-plex-mono), monospace" fontSize={10} fill="var(--faint)" textAnchor="end">
-              {t.label}
-            </text>
+            {!compact && (
+              <text x={37} y={t.ty} fontFamily="var(--font-plex-mono), monospace" fontSize={10} fill="var(--faint)" textAnchor="end">
+                {t.label}
+              </text>
+            )}
           </g>
         ))}
         <line x1={42} y1={22} x2={42} y2={176} stroke="var(--strong-line)" strokeWidth={1} />
@@ -59,20 +65,28 @@ export default function YieldCurve() {
         {c.pts.map((p) => (
           <g key={p.t}>
             <circle cx={p.x} cy={p.y} r={3.2} fill="var(--gold)" />
-            <text x={p.x} y={p.vy} fontFamily="var(--font-plex-mono), monospace" fontSize={9.5} fontWeight={600} fill="var(--gold-deep)" textAnchor="middle">
-              {p.v}
-            </text>
-            <text x={p.x} y={190} fontFamily="var(--font-plex-mono), monospace" fontSize={10} fill="var(--muted)" textAnchor="middle">
-              {p.t}
-            </text>
+            {!compact && (
+              <>
+                <text x={p.x} y={p.vy} fontFamily="var(--font-plex-mono), monospace" fontSize={9.5} fontWeight={600} fill="var(--gold-deep)" textAnchor="middle">
+                  {p.v}
+                </text>
+                <text x={p.x} y={190} fontFamily="var(--font-plex-mono), monospace" fontSize={10} fill="var(--muted)" textAnchor="middle">
+                  {p.t}
+                </text>
+              </>
+            )}
           </g>
         ))}
-        <text x={6} y={18} fontFamily="var(--font-plex-sans), sans-serif" fontSize={9} fill="var(--faint)">
-          yield %
-        </text>
-        <text x={446} y={205} fontFamily="var(--font-plex-sans), sans-serif" fontSize={9} fill="var(--faint)" textAnchor="end">
-          tenor
-        </text>
+        {!compact && (
+          <>
+            <text x={6} y={18} fontFamily="var(--font-plex-sans), sans-serif" fontSize={9} fill="var(--faint)">
+              yield %
+            </text>
+            <text x={446} y={205} fontFamily="var(--font-plex-sans), sans-serif" fontSize={9} fill="var(--faint)" textAnchor="end">
+              tenor
+            </text>
+          </>
+        )}
       </svg>
     </div>
   );
