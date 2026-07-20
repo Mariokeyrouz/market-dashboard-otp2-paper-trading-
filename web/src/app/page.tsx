@@ -17,6 +17,8 @@ export default function Page() {
   const theme = useDashStore((s) => s.theme);
   const dockOpen = useDashStore((s) => s.dockOpen);
   const setDockOpen = useDashStore((s) => s.setDockOpen);
+  const railCollapsed = useDashStore((s) => s.railCollapsed);
+  const setRailCollapsed = useDashStore((s) => s.setRailCollapsed);
   const derived = useMemo(() => deriveAll(region), [region]);
   const mode = useShellMode();
 
@@ -34,6 +36,9 @@ export default function Page() {
 
   const rails = mode !== "narrow";
   const docked = mode === "wide";
+  // The rail auto-collapses in `mid` (it's forced, not a choice); in `wide`
+  // it respects the user's manual override instead.
+  const collapsed = mode === "mid" || railCollapsed;
 
   return (
     <DataContext.Provider value={derived}>
@@ -41,7 +46,12 @@ export default function Page() {
           Z-pattern depends on a scannable sweep width — the reclaimed margin
           becomes standing chrome, not wider tiles. */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 14px 14px" }}>
-        {rails && <LeftRail collapsed={mode === "mid"} />}
+        {rails && (
+          <LeftRail
+            collapsed={collapsed}
+            onToggleCollapse={mode === "wide" ? () => setRailCollapsed(!railCollapsed) : undefined}
+          />
+        )}
         <div style={{ flex: 1, minWidth: 0, maxWidth: 1820, margin: "0 auto" }}>
           <Header showControls={!rails} />
           <DashboardGrid />

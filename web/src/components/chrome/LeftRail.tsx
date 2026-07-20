@@ -4,17 +4,29 @@ import { REGION_LABELS, REGIONS } from "@/lib/data/types";
 import { ELEMENT_MAP } from "@/lib/elements/registry";
 import { useDashStore } from "@/lib/store";
 import { RAIL_W, RAIL_W_COLLAPSED } from "@/lib/useShellMode";
-import { MICRO, MONO } from "../ui";
+import { MICRO, MONO, SERIF } from "../ui";
+import ThemeToggle from "./ThemeToggle";
+
+const divider = { height: 1, background: "var(--hairline)", margin: "7px 0 5px" };
 
 /**
- * Persistent left rail: the POV switcher plus the customize controls.
+ * Persistent left rail: brand, the POV switcher, appearance, and the
+ * customize controls, grouped into labeled sections.
  *
  * The region lens was a header dropdown, which hid the alternatives behind a
  * click. As a rail it becomes a list you can see and compare against — the
  * available points of view are the product's spine, so they get standing
  * chrome rather than a collapsed control.
  */
-export default function LeftRail({ collapsed }: { collapsed: boolean }) {
+export default function LeftRail({
+  collapsed,
+  onToggleCollapse,
+}: {
+  collapsed: boolean;
+  /** Manual collapse override, available only in `wide` mode. Undefined in
+   *  `mid`, where the rail is force-collapsed and a toggle would be a no-op. */
+  onToggleCollapse?: () => void;
+}) {
   const region = useDashStore((s) => s.region);
   const setRegion = useDashStore((s) => s.setRegion);
   const edit = useDashStore((s) => s.editMode);
@@ -35,6 +47,62 @@ export default function LeftRail({ collapsed }: { collapsed: boolean }) {
         borderRadius: 10, padding: collapsed ? "9px 7px" : "10px 10px 12px",
       }}
     >
+      {/* Brand */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: collapsed ? "column" : "row",
+          alignItems: collapsed ? "center" : "flex-start",
+          justifyContent: collapsed ? "flex-start" : "space-between",
+          gap: collapsed ? 6 : 8,
+        }}
+      >
+        <div
+          style={{
+            width: 32, height: 32, borderRadius: 8, background: "var(--ink)", color: "var(--canvas)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: SERIF, fontSize: 18, fontWeight: 600, flexShrink: 0,
+          }}
+        >
+          M
+        </div>
+        {!collapsed && (
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, letterSpacing: "-.01em", lineHeight: 1.2 }}>
+              Macro Signal Dashboard
+            </div>
+            <span
+              style={{
+                display: "inline-block", marginTop: 4,
+                fontFamily: MONO, fontSize: 10, padding: "2px 6px",
+                border: "1px solid var(--control-border)", borderRadius: 5, color: "var(--muted)",
+              }}
+            >
+              OTP2.0
+            </span>
+          </div>
+        )}
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            aria-label={collapsed ? "Expand the rail" : "Collapse the rail"}
+            title={collapsed ? "Expand" : "Collapse"}
+            style={{
+              flexShrink: 0, cursor: "pointer", fontSize: 12, fontWeight: 700,
+              color: "var(--muted)", background: "transparent",
+              border: "1px solid var(--control-border)", borderRadius: 6,
+              width: collapsed ? "100%" : 22, height: 22,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            {collapsed ? "»" : "«"}
+          </button>
+        )}
+      </div>
+
+      <div style={divider} />
+
+      {/* Point of view */}
       {!collapsed && <div style={{ ...MICRO, marginBottom: 2 }}>Point of view</div>}
 
       {REGIONS.map((r) => {
@@ -53,7 +121,8 @@ export default function LeftRail({ collapsed }: { collapsed: boolean }) {
               justifyContent: collapsed ? "center" : "flex-start",
               width: "100%", textAlign: "left", cursor: "pointer",
               background: active ? "color-mix(in srgb, var(--gold) 13%, transparent)" : "transparent",
-              border: `1px solid ${active ? "color-mix(in srgb, var(--gold) 45%, transparent)" : "transparent"}`,
+              border: "1px solid transparent",
+              boxShadow: active ? "inset 3px 0 0 var(--gold)" : undefined,
               borderRadius: 7, padding: collapsed ? "6px 0" : "6px 8px",
               color: active ? "var(--ink)" : "var(--body)",
             }}
@@ -70,7 +139,16 @@ export default function LeftRail({ collapsed }: { collapsed: boolean }) {
         );
       })}
 
-      <div style={{ height: 1, background: "var(--hairline)", margin: "7px 0 5px" }} />
+      <div style={divider} />
+
+      {/* Appearance */}
+      {!collapsed && <div style={{ ...MICRO, marginBottom: 2 }}>Appearance</div>}
+      <ThemeToggle collapsed={collapsed} />
+
+      <div style={divider} />
+
+      {/* Layout */}
+      {!collapsed && <div style={{ ...MICRO, marginBottom: 2 }}>Layout</div>}
 
       <button
         onClick={() => setEditMode(!edit)}

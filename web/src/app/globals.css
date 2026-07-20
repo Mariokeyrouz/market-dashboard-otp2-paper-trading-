@@ -1,30 +1,7 @@
 @import "tailwindcss";
 
-/* ---- Theme: Silver (default) ---- */
+/* ---- Theme: Black (default) ---- */
 :root,
-[data-theme="silver"] {
-  --canvas: #d6d8db;
-  --tile: #f4f5f6;
-  --tile-border: rgba(20, 22, 26, 0.11);
-  --control-border: rgba(20, 22, 26, 0.2);
-  --ink: #26282b;
-  --body: #44474c;
-  --muted: #787d85;
-  --faint: #a4a9b0;
-  --hairline: rgba(20, 22, 26, 0.07);
-  --track: rgba(20, 22, 26, 0.06);
-  --centerline: rgba(20, 22, 26, 0.22);
-  --strong-line: rgba(20, 22, 26, 0.25);
-  --green: #55763a;
-  --red: #b14a2e;
-  --amber: #a1770f;
-  --gold: #96741c;
-  --gold-deep: #7d6115;
-  --blue-deep: #2c5480;
-  --scrim: rgba(24, 26, 29, 0.32);
-}
-
-/* ---- Theme: Black ---- */
 [data-theme="dark"] {
   --canvas: #101114;
   --tile: #1b1d21;

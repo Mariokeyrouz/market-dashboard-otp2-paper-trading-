@@ -9,10 +9,9 @@ import { defaultLayout } from "./layout/defaults";
 const visibleDefaultLayout = (): LayoutItem[] =>
   defaultLayout().filter((l) => !DEFAULT_HIDDEN.includes(l.i));
 
-export type Theme = "silver" | "dark" | "light";
+export type Theme = "dark" | "light";
 
 export const THEME_LABELS: Record<Theme, string> = {
-  silver: "Silver",
   dark: "Black",
   light: "White",
 };
@@ -32,6 +31,8 @@ interface DashState {
   logicOpen: boolean;
   /** Persisted: whether the right-hand Logic dock is expanded (wide screens). */
   dockOpen: boolean;
+  /** Persisted: manual override that collapses the left rail in `wide` mode. */
+  railCollapsed: boolean;
   setRegion: (r: Region) => void;
   setTheme: (t: Theme) => void;
   setLayout: (l: Layout) => void;
@@ -43,6 +44,7 @@ interface DashState {
   setEditMode: (b: boolean) => void;
   setLogicOpen: (b: boolean) => void;
   setDockOpen: (b: boolean) => void;
+  setRailCollapsed: (b: boolean) => void;
 }
 
 const strip = (l: readonly LayoutItem[]): LayoutItem[] =>
@@ -52,13 +54,14 @@ export const useDashStore = create<DashState>()(
   persist(
     (set) => ({
       region: "US",
-      theme: "silver",
+      theme: "dark",
       layout: visibleDefaultLayout(),
       hidden: [...DEFAULT_HIDDEN],
       pins: {},
       editMode: false,
       logicOpen: false,
       dockOpen: false,
+      railCollapsed: false,
       setRegion: (region) => set({ region }),
       setTheme: (theme) => set({ theme }),
       setLayout: (layout) => set({ layout: strip(layout) }),
@@ -92,15 +95,28 @@ export const useDashStore = create<DashState>()(
       setEditMode: (editMode) => set({ editMode }),
       setLogicOpen: (logicOpen) => set({ logicOpen }),
       setDockOpen: (dockOpen) => set({ dockOpen }),
+      setRailCollapsed: (railCollapsed) => set({ railCollapsed }),
     }),
     {
       name: "mws_state_v1",
+      version: 1,
+      // Pre-v1 browsers may have a persisted `theme` from a since-removed
+      // third theme option — coerce anything that isn't a known theme to the
+      // new default (Black) rather than letting it fall through to a dead
+      // `data-theme` value with no CSS rule.
+      migrate: (persisted, version) => {
+        const state = persisted as { theme?: string } | undefined;
+        if (version < 1 && state && state.theme !== "dark" && state.theme !== "light") {
+          state.theme = "dark";
+        }
+        return persisted;
+      },
       // dockOpen persists (a layout preference) but logicOpen deliberately
       // does not — the overlay is transient, and persisting it would slide the
       // drawer open over the dashboard on load after you'd narrowed the window.
       partialize: (s) => ({
         region: s.region, theme: s.theme, layout: s.layout, hidden: s.hidden,
-        pins: s.pins, dockOpen: s.dockOpen,
+        pins: s.pins, dockOpen: s.dockOpen, railCollapsed: s.railCollapsed,
       }),
     },
   ),

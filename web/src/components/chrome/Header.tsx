@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { REGIONS, REGION_LABELS, type Region } from "@/lib/data/types";
-import { THEME_LABELS, useDashStore, type Theme } from "@/lib/store";
+import { useDashStore } from "@/lib/store";
 import { useDerived } from "../DataContext";
 import { MONO, SERIF } from "../ui";
 import ElementLibrary from "./ElementLibrary";
+import ThemeToggle from "./ThemeToggle";
 
 function useClock() {
   const [clock, setClock] = useState("--:--:--");
@@ -51,21 +52,49 @@ const btnStyle = (accent: string): React.CSSProperties => ({
 
 /**
  * `showControls` is false once the left rail is on screen: the rail owns the
- * POV switcher and the customize actions, and duplicating them here would give
- * the same state two places to be changed from. Theme stays — it's a
- * preference, not navigation.
+ * brand, POV switcher, theme, and the customize actions, and duplicating
+ * them here would give the same state two places to be changed from. In
+ * that case the header shrinks to just the clock/market-status box.
  */
 export default function Header({ showControls = true }: { showControls?: boolean }) {
   const v = useDerived();
   const { clock, open } = useClock();
   const region = useDashStore((s) => s.region);
   const setRegion = useDashStore((s) => s.setRegion);
-  const theme = useDashStore((s) => s.theme);
-  const setTheme = useDashStore((s) => s.setTheme);
   const edit = useDashStore((s) => s.editMode);
   const setEditMode = useDashStore((s) => s.setEditMode);
   const resetLayout = useDashStore((s) => s.resetLayout);
   const mktColor = open ? "var(--green)" : "var(--red)";
+
+  const clockBox = (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 14, background: "var(--tile)",
+        border: "1px solid var(--tile-border)", borderRadius: 10, padding: "9px 15px",
+      }}
+    >
+      <div style={{ textAlign: "right" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: mktColor, animation: "mp-pulse 2s ease-in-out infinite" }} />
+          <span style={{ fontSize: 10, letterSpacing: ".12em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
+            {v.exchange}
+          </span>
+        </div>
+        <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 500, letterSpacing: ".02em", marginTop: 2 }}>{clock}</div>
+      </div>
+      <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, color: mktColor, letterSpacing: ".06em" }}>
+        {open ? "OPEN" : "CLOSED"}
+      </div>
+    </div>
+  );
+
+  if (!showControls) {
+    return (
+      <div style={{ marginBottom: 8, display: "flex", justifyContent: "flex-end" }}>
+        {clockBox}
+      </div>
+    );
+  }
 
   return (
     <div style={{ marginBottom: 8 }}>
@@ -95,43 +124,19 @@ export default function Header({ showControls = true }: { showControls?: boolean
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
-              {showControls && (
-                <>
-                  <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
-                    Region
-                  </span>
-                  <div style={{ position: "relative" }}>
-                    <select
-                      className="mws-select"
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value as Region)}
-                      style={selectStyle}
-                    >
-                      {REGIONS.map((r) => (
-                        <option key={r} value={r}>
-                          {REGION_LABELS[r]}
-                        </option>
-                      ))}
-                    </select>
-                    <span style={{ position: "absolute", right: 11, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--muted)", fontSize: 9 }}>
-                      ▼
-                    </span>
-                  </div>
-                </>
-              )}
               <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
-                Theme
+                Region
               </span>
               <div style={{ position: "relative" }}>
                 <select
                   className="mws-select"
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value as Theme)}
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value as Region)}
                   style={selectStyle}
                 >
-                  {(Object.keys(THEME_LABELS) as Theme[]).map((t) => (
-                    <option key={t} value={t}>
-                      {THEME_LABELS[t]}
+                  {REGIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {REGION_LABELS[r]}
                     </option>
                   ))}
                 </select>
@@ -139,47 +144,34 @@ export default function Header({ showControls = true }: { showControls?: boolean
                   ▼
                 </span>
               </div>
+              <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
+                Theme
+              </span>
+              <div style={{ width: 108 }}>
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {showControls &&
-            (edit ? (
-              <>
-                <button style={btnStyle("var(--muted)")} onClick={resetLayout}>
-                  Reset layout
-                </button>
-                <button style={{ ...btnStyle("var(--green)"), background: "rgba(94,122,59,.1)" }} onClick={() => setEditMode(false)}>
-                  ✓ Done
-                </button>
-              </>
-            ) : (
-              <button style={btnStyle("var(--gold)")} onClick={() => setEditMode(true)}>
-                ✎ Customize
+          {edit ? (
+            <>
+              <button style={btnStyle("var(--muted)")} onClick={resetLayout}>
+                Reset layout
               </button>
-            ))}
-          <div
-            style={{
-              display: "flex", alignItems: "center", gap: 14, background: "var(--tile)",
-              border: "1px solid var(--tile-border)", borderRadius: 10, padding: "9px 15px",
-            }}
-          >
-            <div style={{ textAlign: "right" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: mktColor, animation: "mp-pulse 2s ease-in-out infinite" }} />
-                <span style={{ fontSize: 10, letterSpacing: ".12em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
-                  {v.exchange}
-                </span>
-              </div>
-              <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 500, letterSpacing: ".02em", marginTop: 2 }}>{clock}</div>
-            </div>
-            <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, color: mktColor, letterSpacing: ".06em" }}>
-              {open ? "OPEN" : "CLOSED"}
-            </div>
-          </div>
+              <button style={{ ...btnStyle("var(--green)"), background: "rgba(94,122,59,.1)" }} onClick={() => setEditMode(false)}>
+                ✓ Done
+              </button>
+            </>
+          ) : (
+            <button style={btnStyle("var(--gold)")} onClick={() => setEditMode(true)}>
+              ✎ Customize
+            </button>
+          )}
+          {clockBox}
         </div>
       </div>
-      {showControls && edit && <ElementLibrary />}
+      {edit && <ElementLibrary />}
     </div>
   );
 }
