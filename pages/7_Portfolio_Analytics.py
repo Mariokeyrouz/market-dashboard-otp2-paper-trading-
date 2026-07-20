@@ -166,6 +166,107 @@ def fetch_stock_returns(tickers, period="1y"):
         return pd.DataFrame()
 
 
+@st.cache_data(ttl=3600)
+def fetch_benchmark(ticker="SPY", period="6mo"):
+    """Benchmark daily total-return closes (auto_adjust folds in dividends)."""
+    try:
+        raw = yf.download(ticker, period=period, interval="1d",
+                          auto_adjust=True, progress=False)
+        if raw.empty:
+            return pd.Series(dtype=float)
+        closes = raw["Close"]
+        if isinstance(closes, pd.DataFrame):
+            closes = closes.iloc[:, 0]
+        if getattr(closes.index, "tz", None) is not None:
+            closes.index = closes.index.tz_localize(None)
+        return closes.dropna()
+    except Exception:
+        return pd.Series(dtype=float)
+
+
+def _benchmark_return(spy, start, end):
+    """Total return (%) of the benchmark over each portfolio's own live window."""
+    if spy is None or spy.empty:
+        return float("nan")
+    s = spy[(spy.index >= start) & (spy.index <= end)]
+    if len(s) < 2:
+        return float("nan")
+    return (s.iloc[-1] / s.iloc[0] - 1) * 100
+
+
+@st.cache_data(ttl=900)
+def fetch_current_prices(tickers):
+    """Latest close per ticker (one download). Missing symbols fall back to the
+    state file's stored last_prices at the call site."""
+    tickers = sorted(set(t for t in tickers if t))
+    if not tickers:
+        return {}
+    try:
+        raw = yf.download(tickers, period="5d", interval="1d",
+                          auto_adjust=True, progress=False)
+        if raw.empty:
+            return {}
+        closes = raw["Close"] if isinstance(raw.columns, pd.MultiIndex) else raw[["Close"]]
+        if len(tickers) == 1 and "Close" in closes:
+            return {tickers[0]: float(closes["Close"].dropna().iloc[-1])}
+        out = {}
+        for t in tickers:
+            if t in closes.columns:
+                col = closes[t].dropna()
+                if len(col):
+                    out[t] = float(col.iloc[-1])
+        return out
+    except Exception:
+        return {}
+
+
+def _position_rows(name, cfg, state, current_prices, selection):
+    """One attribution row per held position, from the strategy's state file."""
+    shares  = state.get("shares", {}) or {}
+    entries = state.get("entry_prices", {}) or {}
+    lasts   = state.get("last_prices", {}) or {}
+    invested = state.get("invested_dollars", 0.0) or 0.0
+    holdings = selection.get("holdings", {}) if selection else {}
+
+    rows = []
+    for t, sh in shares.items():
+        entry = entries.get(t)
+        if not entry or sh in (None, 0):
+            continue
+        cur = current_prices.get(t, lasts.get(t))   # fresh quote, else last stored
+        if not cur:
+            continue
+        ret   = (cur / entry - 1) * 100
+        mv    = sh * cur
+        pnl   = sh * (cur - entry)
+        wfrac = (mv / invested) if invested else float("nan")
+        contrib = (wfrac * ret) if pd.notna(wfrac) else float("nan")  # % of invested return
+        row = {
+            "Ticker": t, "Strategy": name,
+            "Return %": ret, "Contribution %": contrib,
+            "P&L $": pnl, "Weight %": wfrac * 100 if pd.notna(wfrac) else float("nan"),
+            "Entry": entry, "Now": cur,
+        }
+        h = holdings.get(t, {})   # factor context (FMTS strategies only)
+        if h:
+            row["Sector"]   = h.get("sector", "—")
+            row["Momentum"] = h.get("score_momentum")
+            row["Quality"]  = h.get("score_quality")
+            row["Value"]    = h.get("score_value")
+            row["LowVol"]   = h.get("score_low_vol")
+        rows.append(row)
+    return rows
+
+
+def _ret_color(v):
+    if isinstance(v, (int, float)) and pd.notna(v):
+        if v > 0:
+            return "color:#00c896; font-weight:600"
+        if v < 0:
+            return "color:#ff4b4b; font-weight:600"
+    return ""
+
+
 def _corr_heatmap(tickers, color_hex, title):
     if not tickers:
         st.info("No holdings data available.")
@@ -241,6 +342,8 @@ st.divider()
 
 st.subheader("📊 Performance Metrics")
 
+spy = fetch_benchmark("SPY")   # total-return benchmark
+
 metric_rows = []
 for name, cfg in PORTFOLIOS.items():
     ledger = _load_ledger(cfg["ledger"])
@@ -252,11 +355,15 @@ for name, cfg in PORTFOLIOS.items():
                 state = json.load(f)
         m["Strategy"]  = f"{cfg['icon']} {name}"
         m["Invested %"] = state.get("invested", float("nan")) * 100
+        # Benchmark over THIS portfolio's live window (apples-to-apples)
+        spy_ret = _benchmark_return(spy, ledger["date"].iloc[0], ledger["date"].iloc[-1])
+        m["SPY %"]  = spy_ret
+        m["vs SPY"] = (m["Total Return"] - spy_ret) if pd.notna(spy_ret) else float("nan")
         metric_rows.append(m)
 
 if metric_rows:
     cols_order = [
-        "Strategy", "NAV", "Total Return", "Ann. Return", "Ann. Vol",
+        "Strategy", "NAV", "Total Return", "SPY %", "vs SPY", "Ann. Return", "Ann. Vol",
         "Sharpe", "Sortino", "Calmar", "Max Drawdown",
         "Win Rate", "Best Day", "Worst Day", "Invested %", "Days Live",
     ]
@@ -265,8 +372,8 @@ if metric_rows:
     def _fmt(col, val):
         if pd.isna(val):
             return "—"
-        pct_cols = {"Total Return", "Ann. Return", "Ann. Vol", "Max Drawdown",
-                    "Win Rate", "Best Day", "Worst Day", "Invested %"}
+        pct_cols = {"Total Return", "SPY %", "vs SPY", "Ann. Return", "Ann. Vol",
+                    "Max Drawdown", "Win Rate", "Best Day", "Worst Day", "Invested %"}
         ratio_cols = {"Sharpe", "Sortino", "Calmar"}
         if col == "NAV":
             return f"${val:,.2f}"
@@ -281,7 +388,7 @@ if metric_rows:
     # Style: colour-code return/risk columns
     def _style(df):
         styled = df.style
-        for col in ["Total Return", "Ann. Return", "Max Drawdown", "Best Day", "Worst Day"]:
+        for col in ["Total Return", "SPY %", "vs SPY", "Ann. Return", "Max Drawdown", "Best Day", "Worst Day"]:
             if col in df.columns:
                 styled = styled.map(
                     lambda v: f"color: {'#00c896' if isinstance(v, float) and v > 0 else '#ff4b4b' if isinstance(v, float) and v < 0 else ''}; font-weight: 600",
@@ -310,6 +417,98 @@ else:
 
 st.divider()
 
+# ── Section 1b: Position Attribution ──────────────────────────────────────────
+
+st.subheader("🎯 Position Attribution")
+st.caption(
+    "Per-position return since entry, dollar P&L, and contribution to each strategy's "
+    "invested return. Positions reflect current holdings as of each strategy's last "
+    "rebalance. A few weeks is far too short to separate skill from noise — read this as "
+    "descriptive, not predictive."
+)
+
+# Load every strategy's state + (factor) selection once; price all held tickers together.
+_states, _selections, _all_tickers = {}, {}, set()
+for name, cfg in PORTFOLIOS.items():
+    if os.path.exists(cfg["state"]):
+        with open(cfg["state"]) as f:
+            _states[name] = json.load(f)
+        _all_tickers |= set((_states[name].get("shares") or {}).keys())
+    sel_path = cfg.get("selection", "")
+    if sel_path and os.path.exists(sel_path):
+        with open(sel_path) as f:
+            _selections[name] = json.load(f)
+
+with st.spinner(f"Pricing {len(_all_tickers)} positions…"):
+    _cur = fetch_current_prices(tuple(sorted(_all_tickers)))
+
+_all_rows = []
+for name, cfg in PORTFOLIOS.items():
+    if name in _states:
+        _all_rows += _position_rows(name, cfg, _states[name], _cur, _selections.get(name))
+
+if not _all_rows:
+    st.info("No open positions found in the strategy state files.")
+else:
+    df_pos = pd.DataFrame(_all_rows)
+    _priced = sum(1 for r in _all_rows if r["Ticker"] in _cur)
+    if _priced < len(_all_rows):
+        st.caption(f"⚠ {len(_all_rows) - _priced} of {len(_all_rows)} positions used the last "
+                   "stored price (Yahoo returned no fresh quote).")
+
+    _pnl_fmt = {"Return %": "{:+.2f}%", "Contribution %": "{:+.2f}%",
+                "P&L $": "${:+,.0f}", "Weight %": "{:.1f}%"}
+
+    # (a) Combined best & worst across all portfolios
+    st.markdown("**Best & worst positions — across all portfolios**")
+    combined = df_pos.sort_values("Contribution %", ascending=False, na_position="last")
+    cc = combined.dropna(subset=["Contribution %"])
+    if len(cc):
+        b, w = cc.iloc[0], cc.iloc[-1]
+        st.markdown(
+            f"Top contributor: **{b['Ticker']}** ({b['Strategy']}) {b['Return %']:+.1f}%  ·  "
+            f"Biggest drag: **{w['Ticker']}** ({w['Strategy']}) {w['Return %']:+.1f}%"
+        )
+    st.dataframe(
+        combined[["Ticker", "Strategy", "Return %", "Contribution %", "P&L $", "Weight %"]]
+            .style.map(_ret_color, subset=["Return %", "Contribution %", "P&L $"])
+            .format(_pnl_fmt, na_rep="—"),
+        width='stretch', hide_index=True,
+    )
+
+    # (b) Per-strategy, with factor context where available (FMTS strategies)
+    st.markdown("**By strategy**")
+    ptabs = st.tabs([f"{cfg['icon']} {name}" for name, cfg in PORTFOLIOS.items()])
+    for tab, (name, cfg) in zip(ptabs, PORTFOLIOS.items()):
+        with tab:
+            sub = df_pos[df_pos["Strategy"] == name].sort_values(
+                "Contribution %", ascending=False, na_position="last")
+            if sub.empty:
+                st.info("No open positions.")
+                continue
+            has_factors = "Momentum" in sub.columns and sub["Momentum"].notna().any()
+            cols = ["Ticker", "Return %", "Contribution %", "P&L $", "Weight %"]
+            fmt = dict(_pnl_fmt)
+            if has_factors:
+                cols += ["Sector", "Momentum", "Quality", "Value", "LowVol"]
+                fmt.update({k: "{:.0f}" for k in ["Momentum", "Quality", "Value", "LowVol"]})
+            st.dataframe(
+                sub[cols].style
+                    .map(_ret_color, subset=["Return %", "Contribution %", "P&L $"])
+                    .format(fmt, na_rep="—"),
+                width='stretch', hide_index=True,
+            )
+            cw = sub.dropna(subset=["Contribution %"])
+            if len(cw):
+                t, d = cw.iloc[0], cw.iloc[-1]
+                note = (f"Top: **{t['Ticker']}** ({t['Contribution %']:+.2f}% contrib) · "
+                        f"Drag: **{d['Ticker']}** ({d['Contribution %']:+.2f}% contrib)")
+                if has_factors:
+                    note += "  ·  factor scores shown are as of the last rebalance"
+                st.caption(note)
+
+st.divider()
+
 # ── Section 2: NAV comparison chart ───────────────────────────────────────────
 
 st.subheader("📈 NAV Comparison (indexed to 10,000)")
@@ -326,6 +525,18 @@ for name, cfg in PORTFOLIOS.items():
         name=f"{cfg['icon']} {name}",
         line=dict(color=cfg["color"], width=2),
     ))
+
+# Benchmark overlay: SPY rebased to 10,000 at the earliest inception shown.
+_starts = [l["date"].iloc[0] for cfg in PORTFOLIOS.values()
+           if (l := _load_ledger(cfg["ledger"])) is not None and len(l) >= 2]
+if _starts and not spy.empty:
+    _s = spy[spy.index >= min(_starts)]
+    if len(_s) >= 2:
+        fig_nav.add_trace(go.Scatter(
+            x=_s.index, y=10000 * _s / _s.iloc[0], mode="lines",
+            name="⚑ S&P 500 (SPY)",
+            line=dict(color="#9aa0a6", width=2, dash="dash"),
+        ))
 
 fig_nav.update_layout(
     height=340,
