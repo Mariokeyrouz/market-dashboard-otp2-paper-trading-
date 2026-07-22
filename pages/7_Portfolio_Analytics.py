@@ -418,8 +418,11 @@ if metric_rows:
     for col in cols_order[1:]:
         display_df[col] = display_df[col].apply(lambda v, c=col: _fmt(c, v))
 
+    # na_rep is deliberately omitted: Streamlit ignores the Styler's na_rep and
+    # renders NaN as "None". Letting the per-column formatter receive NaN instead
+    # (it returns "—" via _fmt) makes empty cells render cleanly.
     st.dataframe(
-        _style(df_metrics).format(fmt_dict, na_rep="—"),
+        _style(df_metrics).format(fmt_dict),
         width='stretch',
         hide_index=True,
     )
