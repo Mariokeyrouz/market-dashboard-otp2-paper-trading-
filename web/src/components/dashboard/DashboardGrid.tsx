@@ -17,7 +17,7 @@ import ElementFrame from "./ElementFrame";
 /** Space reserved below the grid for the footer badges (measured ~52px incl. margins). */
 const FOOTER_ALLOWANCE = 58;
 /** Fit-to-height bounds: crush no further than MIN (then the page scrolls), grow to MAX to fill tall windows. */
-const ROW_H_MIN = 17;
+const ROW_H_MIN = 20;
 const ROW_H_MAX = 32;
 
 export default function DashboardGrid() {

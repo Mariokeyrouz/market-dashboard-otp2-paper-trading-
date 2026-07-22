@@ -39,107 +39,109 @@ export default function LeftRail({
     <aside
       aria-label="Point of view and layout controls"
       style={{
-        position: "sticky", top: 8, alignSelf: "flex-start",
+        alignSelf: "stretch",
         width: collapsed ? RAIL_W_COLLAPSED : RAIL_W, flexShrink: 0,
-        maxHeight: "calc(100vh - 22px)", overflowY: "auto",
+        overflowY: "auto",
         display: "flex", flexDirection: "column", gap: 5,
         background: "var(--tile)", border: "1px solid var(--tile-border)",
         borderRadius: 10, padding: collapsed ? "9px 7px" : "10px 10px 12px",
       }}
     >
-      {/* Brand */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: collapsed ? "column" : "row",
-          alignItems: collapsed ? "center" : "flex-start",
-          justifyContent: collapsed ? "flex-start" : "space-between",
-          gap: collapsed ? 6 : 8,
-        }}
-      >
+      <div style={{ position: "sticky", top: 8, display: "flex", flexDirection: "column", gap: 5 }}>
+        {/* Brand */}
         <div
           style={{
-            width: 32, height: 32, borderRadius: 8, background: "var(--ink)", color: "var(--canvas)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: SERIF, fontSize: 18, fontWeight: 600, flexShrink: 0,
+            display: "flex",
+            flexDirection: collapsed ? "column" : "row",
+            alignItems: collapsed ? "center" : "flex-start",
+            justifyContent: collapsed ? "flex-start" : "space-between",
+            gap: collapsed ? 6 : 8,
           }}
         >
-          M
-        </div>
-        {!collapsed && (
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, letterSpacing: "-.01em", lineHeight: 1.2 }}>
-              Macro Signal Dashboard
+          <div
+            style={{
+              width: 32, height: 32, borderRadius: 8, background: "var(--ink)", color: "var(--canvas)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: SERIF, fontSize: 18, fontWeight: 600, flexShrink: 0,
+            }}
+          >
+            M
+          </div>
+          {!collapsed && (
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, letterSpacing: "-.01em", lineHeight: 1.2 }}>
+                Macro Signal Dashboard
+              </div>
+              <span
+                style={{
+                  display: "inline-block", marginTop: 4,
+                  fontFamily: MONO, fontSize: 10, padding: "2px 6px",
+                  border: "1px solid var(--control-border)", borderRadius: 5, color: "var(--muted)",
+                }}
+              >
+                OTP2.0
+              </span>
             </div>
-            <span
+          )}
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              aria-label={collapsed ? "Expand the rail" : "Collapse the rail"}
+              title={collapsed ? "Expand" : "Collapse"}
               style={{
-                display: "inline-block", marginTop: 4,
-                fontFamily: MONO, fontSize: 10, padding: "2px 6px",
-                border: "1px solid var(--control-border)", borderRadius: 5, color: "var(--muted)",
+                flexShrink: 0, cursor: "pointer", fontSize: 12, fontWeight: 700,
+                color: "var(--muted)", background: "transparent",
+                border: "1px solid var(--control-border)", borderRadius: 6,
+                width: collapsed ? "100%" : 22, height: 22,
+                display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              OTP2.0
-            </span>
-          </div>
-        )}
-        {onToggleCollapse && (
-          <button
-            onClick={onToggleCollapse}
-            aria-label={collapsed ? "Expand the rail" : "Collapse the rail"}
-            title={collapsed ? "Expand" : "Collapse"}
-            style={{
-              flexShrink: 0, cursor: "pointer", fontSize: 12, fontWeight: 700,
-              color: "var(--muted)", background: "transparent",
-              border: "1px solid var(--control-border)", borderRadius: 6,
-              width: collapsed ? "100%" : 22, height: 22,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}
-          >
-            {collapsed ? "»" : "«"}
-          </button>
-        )}
+              {collapsed ? "»" : "«"}
+            </button>
+          )}
+        </div>
+
+        <div style={divider} />
+
+        {/* Point of view */}
+        {!collapsed && <div style={{ ...MICRO, marginBottom: 2 }}>Point of view</div>}
+
+        {REGIONS.map((r) => {
+          const active = r === region;
+          return (
+            <button
+              key={r}
+              onClick={() => setRegion(r)}
+              aria-current={active}
+              // Collapsed, the only visible text is the "US"/"EU" code, so the
+              // full name has to come from the label rather than the content.
+              aria-label={`Set the region lens to ${REGION_LABELS[r]}`}
+              title={collapsed ? REGION_LABELS[r] : undefined}
+              style={{
+                display: "flex", alignItems: "center", gap: 8,
+                justifyContent: collapsed ? "center" : "flex-start",
+                width: "100%", textAlign: "left", cursor: "pointer",
+                background: active ? "color-mix(in srgb, var(--gold) 13%, transparent)" : "transparent",
+                border: "1px solid transparent",
+                boxShadow: active ? "inset 3px 0 0 var(--gold)" : undefined,
+                borderRadius: 7, padding: collapsed ? "6px 0" : "6px 8px",
+                color: active ? "var(--ink)" : "var(--body)",
+              }}
+            >
+              <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, color: active ? "var(--gold)" : "var(--faint)" }}>
+                {r}
+              </span>
+              {!collapsed && (
+                <span style={{ fontSize: 12.5, fontWeight: active ? 600 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {REGION_LABELS[r]}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      <div style={divider} />
-
-      {/* Point of view */}
-      {!collapsed && <div style={{ ...MICRO, marginBottom: 2 }}>Point of view</div>}
-
-      {REGIONS.map((r) => {
-        const active = r === region;
-        return (
-          <button
-            key={r}
-            onClick={() => setRegion(r)}
-            aria-current={active}
-            // Collapsed, the only visible text is the "US"/"EU" code, so the
-            // full name has to come from the label rather than the content.
-            aria-label={`Set the region lens to ${REGION_LABELS[r]}`}
-            title={collapsed ? REGION_LABELS[r] : undefined}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              justifyContent: collapsed ? "center" : "flex-start",
-              width: "100%", textAlign: "left", cursor: "pointer",
-              background: active ? "color-mix(in srgb, var(--gold) 13%, transparent)" : "transparent",
-              border: "1px solid transparent",
-              boxShadow: active ? "inset 3px 0 0 var(--gold)" : undefined,
-              borderRadius: 7, padding: collapsed ? "6px 0" : "6px 8px",
-              color: active ? "var(--ink)" : "var(--body)",
-            }}
-          >
-            <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, color: active ? "var(--gold)" : "var(--faint)" }}>
-              {r}
-            </span>
-            {!collapsed && (
-              <span style={{ fontSize: 12.5, fontWeight: active ? 600 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {REGION_LABELS[r]}
-              </span>
-            )}
-          </button>
-        );
-      })}
-
-      <div style={divider} />
+      <div style={{ ...divider, marginTop: "auto" }} />
 
       {/* Appearance */}
       {!collapsed && <div style={{ ...MICRO, marginBottom: 2 }}>Appearance</div>}

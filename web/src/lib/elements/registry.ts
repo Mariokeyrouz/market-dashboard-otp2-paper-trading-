@@ -62,7 +62,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "anchor",
     logic:
       "The eye enters a page top-left, so the first thing you see is cycle context: which regime we're in, for how long, and the four state variables (inflation, growth, policy, conditions) that define it. Every other read on the page is conditioned on this.",
-    defaultLayout: { x: 0, y: 0, w: 8, h: 5, minW: 5, minH: 4 },
+    defaultLayout: { x: 0, y: 0, w: 8, h: 6, minW: 5, minH: 4 },
   },
   {
     id: "classification",
@@ -71,7 +71,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "scan",
     logic:
       "The first horizontal sweep ends top-right on the single actionable read: what today's yield move means (which leg is driving) and its portfolio implications. Context on the left, signal on the right.",
-    defaultLayout: { x: 8, y: 0, w: 4, h: 6, minW: 3, minH: 5 },
+    defaultLayout: { x: 8, y: 0, w: 4, h: 7, minW: 3, minH: 5 },
   },
   {
     id: "hinge",
@@ -80,7 +80,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "pivot",
     logic:
       "The Z's diagonal lands on the centerpiece: the 10Y nominal yield decomposed into its real-yield and breakeven legs. Which leg drives a move determines the regime classification and the playbook — this is the chart the whole dashboard hangs on, so it gets the most area.",
-    defaultLayout: { x: 0, y: 5, w: 8, h: 8, minW: 6, minH: 8 },
+    defaultLayout: { x: 0, y: 6, w: 8, h: 8, minW: 6, minH: 8 },
   },
   {
     id: "playbook",
@@ -89,7 +89,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "pivot",
     logic:
       "Sits directly beside the hinge because it translates the decomposition into positioning tilts — the bridge from 'what's moving' to 'what to do about it'.",
-    defaultLayout: { x: 8, y: 6, w: 4, h: 4, minW: 3, minH: 4 },
+    defaultLayout: { x: 8, y: 7, w: 4, h: 5, minW: 3, minH: 4 },
   },
   {
     id: "tripwires",
@@ -98,7 +98,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "scan",
     logic:
       "The Z's bottom stroke: a fast left-to-right confirm/deny scan. Credit, equity vol, the dollar and the curve either corroborate the hinge read or warn you off it. Directional signals, deliberately not precise.",
-    defaultLayout: { x: 0, y: 14, w: 12, h: 4, minW: 8, minH: 4 },
+    defaultLayout: { x: 0, y: 16, w: 12, h: 4, minW: 8, minH: 4 },
   },
   {
     id: "matrix",
@@ -108,7 +108,7 @@ export const ELEMENTS: ElementDef[] = [
     crossRegion: true,
     logic:
       "Everything above reads one economy at a time; this reads all of them at once. A regime call only means something relative to the alternatives — US stagflation implies a different book if Europe is disinflating than if it's stuck too. Sits directly under the tripwires because it answers the question they provoke: 'is this local or global?' Click a row to move the lens to that region.",
-    defaultLayout: { x: 0, y: 18, w: 12, h: 8, minW: 8, minH: 5 },
+    defaultLayout: { x: 0, y: 20, w: 12, h: 8, minW: 8, minH: 5 },
   },
   {
     id: "heatmap",
@@ -117,7 +117,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "The tape's verdict: cross-asset returns over four horizons. If the regime read is right, it should be visible here — and disagreements are information.",
-    defaultLayout: { x: 0, y: 26, w: 4, h: 8, minW: 3, minH: 7 },
+    defaultLayout: { x: 0, y: 28, w: 4, h: 10, minW: 3, minH: 7 },
   },
   {
     id: "surprises",
@@ -136,7 +136,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "terminal",
     logic:
       "Part of the natural exit point of the page: after reading state and signals, the last question is 'what's next?' — the countdown to the central bank and what's priced.",
-    defaultLayout: { x: 8, y: 10, w: 4, h: 4, minW: 3, minH: 4 },
+    defaultLayout: { x: 8, y: 12, w: 4, h: 4, minW: 3, minH: 4 },
   },
   {
     id: "curve",
@@ -145,7 +145,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "The full term structure behind the hinge's single point: slope, shape word, and week-over-week shift. Where the cycle expresses itself in rates space.",
-    defaultLayout: { x: 4, y: 26, w: 4, h: 8, minW: 3, minH: 8 },
+    defaultLayout: { x: 4, y: 28, w: 4, h: 8, minW: 3, minH: 8 },
   },
   {
     id: "releases",
@@ -174,7 +174,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "The real-economy inflation impulse in detail — the complex that feeds the breakeven leg of the hinge.",
-    defaultLayout: { x: 8, y: 26, w: 4, h: 4, minW: 3, minH: 4 },
+    defaultLayout: { x: 8, y: 28, w: 4, h: 5, minW: 3, minH: 4 },
   },
   {
     id: "fx",
@@ -183,7 +183,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "The currency channel: how the region's exchange rates are moving and what that does to financial conditions.",
-    defaultLayout: { x: 8, y: 30, w: 4, h: 4, minW: 3, minH: 4 },
+    defaultLayout: { x: 8, y: 33, w: 4, h: 6, minW: 3, minH: 4 },
   },
   {
     id: "labor",

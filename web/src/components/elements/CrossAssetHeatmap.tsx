@@ -2,18 +2,20 @@
 
 import { Fragment } from "react";
 import { useDerived } from "../DataContext";
+import { useCompact } from "../DensityContext";
 import { ItalicNote, MONO, PanelTitle, TILE } from "../ui";
 
 export default function CrossAssetHeatmap() {
   const v = useDerived();
   const h = v.heatmap;
+  const compact = useCompact();
   return (
     <div style={TILE}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 9 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: compact ? 3 : 9 }}>
         <PanelTitle>Cross-Asset Heatmap</PanelTitle>
         <ItalicNote>total return, %</ItalicNote>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(4,1fr)", gap: 4 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(4,1fr)", gap: compact ? 2 : 4 }}>
         <div />
         {h.cols.map((c) => (
           <div
@@ -28,15 +30,15 @@ export default function CrossAssetHeatmap() {
         ))}
         {h.rows.map((r) => (
           <Fragment key={r.name}>
-            <div style={{ fontSize: 12, color: "var(--ink)", display: "flex", alignItems: "center", padding: "0 2px", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: compact ? 11 : 12, color: "var(--ink)", display: "flex", alignItems: "center", padding: "0 2px", whiteSpace: "nowrap" }}>
               {r.name}
             </div>
             {r.cells.map((cell, i) => (
               <div
                 key={i}
                 style={{
-                  fontFamily: MONO, fontSize: 12.5, fontWeight: 500, textAlign: "center",
-                  padding: "3px 4px", borderRadius: 5, background: cell.bg, color: cell.fg,
+                  fontFamily: MONO, fontSize: compact ? 11 : 12.5, fontWeight: 500, textAlign: "center",
+                  padding: compact ? "1px 3px" : "3px 4px", borderRadius: 5, background: cell.bg, color: cell.fg,
                 }}
               >
                 {cell.txt}

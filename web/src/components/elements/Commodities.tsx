@@ -10,23 +10,23 @@ export default function Commodities() {
   const compact = useCompact();
   return (
     <div style={TILE}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: compact ? 3 : 7 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: compact ? 1 : 7 }}>
         <PanelTitle>Commodities</PanelTitle>
-        <ItalicNote>{compact ? "price · Δ 1D" : "price · Δ 1D · 7d"}</ItalicNote>
+        {!compact && <ItalicNote>price · Δ 1D · 7d</ItalicNote>}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: compact ? 0 : 2 }}>
         {v.commods.map((c) => (
           <div
             key={c.name}
             style={{
               display: "grid", gridTemplateColumns: compact ? "1fr auto 62px" : "1fr auto 62px 72px",
-              gap: 12, alignItems: "center",
-              padding: compact ? "1px 0" : "4px 0", borderBottom: "1px solid var(--hairline)",
+              gap: 12, alignItems: "center", lineHeight: compact ? 1.05 : undefined,
+              padding: compact ? "0" : "4px 0", borderBottom: "1px solid var(--hairline)",
             }}
           >
-            <span style={{ fontSize: 12.5, color: "var(--ink)" }}>{c.name}</span>
-            <span style={{ fontFamily: MONO, fontSize: compact ? 12.5 : 14, fontWeight: 600 }}>{c.price}</span>
-            <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, textAlign: "right", color: c.chgColor }}>{c.chg}</span>
+            <span style={{ fontSize: compact ? 10.5 : 12.5, color: "var(--ink)" }}>{c.name}</span>
+            <span style={{ fontFamily: MONO, fontSize: compact ? 11 : 14, fontWeight: 600 }}>{c.price}</span>
+            <span style={{ fontFamily: MONO, fontSize: compact ? 10.5 : 12, fontWeight: 600, textAlign: "right", color: c.chgColor }}>{c.chg}</span>
             {!compact && <Sparkline d={c.spark} stroke={c.chgColor} w={70} h={24} />}
           </div>
         ))}

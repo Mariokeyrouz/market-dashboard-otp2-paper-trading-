@@ -19,9 +19,9 @@ export default function RightRail({ open, onToggle }: { open: boolean; onToggle:
         <aside
           aria-label="Why this layout"
           style={{
-            position: "sticky", top: 8, alignSelf: "flex-start",
+            alignSelf: "stretch",
             width: DOCK_W, flexShrink: 0,
-            maxHeight: "calc(100vh - 22px)", overflowY: "auto",
+            overflowY: "auto",
             background: "var(--tile)", border: "1px solid var(--tile-border)",
             borderRadius: 10, padding: "12px 14px 16px",
           }}
@@ -47,38 +47,40 @@ export default function RightRail({ open, onToggle }: { open: boolean; onToggle:
       <nav
         aria-label="Panels"
         style={{
-          position: "sticky", top: 8, alignSelf: "flex-start",
+          alignSelf: "stretch",
           width: DOCK_RAIL_W, flexShrink: 0,
           display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
           background: "var(--tile)", border: "1px solid var(--tile-border)",
           borderRadius: 10, padding: "7px 0",
         }}
       >
-        <button
-          onClick={() => onToggle(!open)}
-          aria-label={open ? "Collapse the layout logic panel" : "Expand the layout logic panel"}
-          aria-expanded={open}
-          title={open ? "Hide “Why this layout”" : "Show “Why this layout”"}
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            width: 26, height: 26, cursor: "pointer", fontSize: 13, lineHeight: 1,
-            color: open ? "var(--gold)" : "var(--muted)",
-            background: open ? "color-mix(in srgb, var(--gold) 13%, transparent)" : "transparent",
-            border: `1px solid ${open ? "color-mix(in srgb, var(--gold) 45%, transparent)" : "var(--control-border)"}`,
-            borderRadius: 7,
-          }}
-        >
-          ⓘ
-        </button>
-        <span
-          aria-hidden
-          style={{
-            writingMode: "vertical-rl", letterSpacing: ".16em", fontSize: 9.5, fontWeight: 600,
-            textTransform: "uppercase", color: open ? "var(--gold)" : "var(--faint)", marginTop: 2,
-          }}
-        >
-          Logic
-        </span>
+        <div style={{ position: "sticky", top: 8, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <button
+            onClick={() => onToggle(!open)}
+            aria-label={open ? "Collapse the layout logic panel" : "Expand the layout logic panel"}
+            aria-expanded={open}
+            title={open ? "Hide “Why this layout”" : "Show “Why this layout”"}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: 26, height: 26, cursor: "pointer", fontSize: 13, lineHeight: 1,
+              color: open ? "var(--gold)" : "var(--muted)",
+              background: open ? "color-mix(in srgb, var(--gold) 13%, transparent)" : "transparent",
+              border: `1px solid ${open ? "color-mix(in srgb, var(--gold) 45%, transparent)" : "var(--control-border)"}`,
+              borderRadius: 7,
+            }}
+          >
+            ⓘ
+          </button>
+          <span
+            aria-hidden
+            style={{
+              writingMode: "vertical-rl", letterSpacing: ".16em", fontSize: 9.5, fontWeight: 600,
+              textTransform: "uppercase", color: open ? "var(--gold)" : "var(--faint)", marginTop: 2,
+            }}
+          >
+            Logic
+          </span>
+        </div>
       </nav>
     </>
   );
