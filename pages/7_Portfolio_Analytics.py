@@ -396,33 +396,33 @@ if metric_rows:
             return f"{int(val)}d"
         return str(val)
 
-    # Style: colour-code return/risk columns
-    def _style(df):
-        styled = df.style
-        for col in ["Total Return", "SPY %", "vs SPY", "Ann. Return", "Max Drawdown", "Best Day", "Worst Day"]:
-            if col in df.columns:
-                styled = styled.map(
-                    lambda v: f"color: {'#00c896' if isinstance(v, float) and v > 0 else '#ff4b4b' if isinstance(v, float) and v < 0 else ''}; font-weight: 600",
-                    subset=[col]
-                )
-        for col in ["Sharpe", "Sortino", "Calmar"]:
-            if col in df.columns:
-                styled = styled.map(
-                    lambda v: f"color: {'#00c896' if isinstance(v, float) and v > 1 else '#ff4b4b' if isinstance(v, float) and v < 0 else '#e8a020' if isinstance(v, float) and 0 <= v <= 1 else ''}; font-weight: 600",
-                    subset=[col]
-                )
-        return styled
+    # Per-cell colour derived from the NUMERIC frame (green/red/amber by sign/threshold).
+    _GREEN, _RED, _AMBER = ("color: #00c896; font-weight: 600",
+                            "color: #ff4b4b; font-weight: 600",
+                            "color: #e8a020; font-weight: 600")
 
-    fmt_dict = {col: (lambda v, c=col: _fmt(c, v)) for col in cols_order if col != "Strategy"}
+    def _cell_color(col, v):
+        if not isinstance(v, (int, float)) or pd.isna(v):
+            return ""
+        if col in {"Total Return", "SPY %", "vs SPY", "Ann. Return", "Max Drawdown", "Best Day", "Worst Day"}:
+            return _GREEN if v > 0 else _RED if v < 0 else ""
+        if col in {"Sharpe", "Sortino", "Calmar"}:
+            if v > 1:        return _GREEN
+            if v < 0:        return _RED
+            if 0 <= v <= 1:  return _AMBER
+        return ""
+
+    # Streamlit renders a Styler's NaN cells as "None" regardless of na_rep, so we
+    # hand it a fully pre-formatted STRING table ("—" for NaN via _fmt) and attach
+    # the colours as a same-shaped CSS matrix computed from the numeric values.
     display_df = df_metrics.copy()
+    color_df = pd.DataFrame("", index=df_metrics.index, columns=cols_order)
     for col in cols_order[1:]:
+        color_df[col] = df_metrics[col].map(lambda v, c=col: _cell_color(c, v))
         display_df[col] = display_df[col].apply(lambda v, c=col: _fmt(c, v))
 
-    # na_rep is deliberately omitted: Streamlit ignores the Styler's na_rep and
-    # renders NaN as "None". Letting the per-column formatter receive NaN instead
-    # (it returns "—" via _fmt) makes empty cells render cleanly.
     st.dataframe(
-        _style(df_metrics).format(fmt_dict),
+        display_df.style.apply(lambda _: color_df, axis=None),
         width='stretch',
         hide_index=True,
     )
