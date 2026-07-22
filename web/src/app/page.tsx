@@ -53,7 +53,9 @@ export default function Page() {
           />
         )}
         <div style={{ flex: 1, minWidth: 0, maxWidth: 1820, margin: "0 auto" }}>
-          <Header showControls={!rails} />
+          {/* In wide/mid the rail owns brand + controls + clock, so there is no
+              header band — the grid starts at the top. Narrow keeps the header. */}
+          {!rails && <Header />}
           <DashboardGrid />
           <footer
             style={{

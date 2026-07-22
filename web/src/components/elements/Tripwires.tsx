@@ -25,23 +25,28 @@ export default function Tripwires() {
             key={t.label}
             style={{
               background: "var(--tile)", border: "1px solid var(--tile-border)", borderTop: `3px solid ${t.tone}`,
-              borderRadius: 11, padding: compact ? "6px 11px" : "9px 12px", overflow: "hidden",
+              borderRadius: 11, padding: compact ? "5px 10px" : "9px 12px", overflow: "hidden",
+              // Spread label→value→note across the card height so tall cards fill
+              // instead of stranding content at the top.
+              display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 2,
             }}
           >
-            <div style={{ fontSize: 10, letterSpacing: ".11em", textTransform: "uppercase", fontWeight: 600, color: "var(--muted)" }}>
-              {t.label}
+            <div>
+              <div style={{ fontSize: 10, letterSpacing: ".11em", textTransform: "uppercase", fontWeight: 600, color: "var(--muted)" }}>
+                {t.label}
+              </div>
+              {!compact && (
+                <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12.5, color: "var(--muted)", marginTop: 4 }}>{t.tag}</div>
+              )}
             </div>
-            {!compact && (
-              <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12.5, color: "var(--muted)", margin: "4px 0 7px" }}>{t.tag}</div>
-            )}
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: compact ? 4 : 0 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
               <span style={{ fontFamily: MONO, fontSize: compact ? 19 : 22, fontWeight: 600 }}>{t.val}</span>
               <span style={{ fontFamily: MONO, fontSize: 12, color: t.chgColor }}>{t.chg}</span>
               <span style={{ fontSize: 11, color: "var(--muted)" }}>{t.state}</span>
             </div>
-            {!compact && (
-              <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 7, lineHeight: 1.4 }}>{t.note}</div>
-            )}
+            {/* The note always shows: it's a third element that lets the card
+                fill its height via space-between instead of stranding a big gap. */}
+            <div style={{ fontSize: 11.5, color: "var(--muted)", lineHeight: 1.25 }}>{t.note}</div>
           </div>
         ))}
       </div>

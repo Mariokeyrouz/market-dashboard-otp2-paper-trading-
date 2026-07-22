@@ -1,30 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { REGIONS, REGION_LABELS, type Region } from "@/lib/data/types";
 import { useDashStore } from "@/lib/store";
+import { useClock } from "@/lib/useClock";
 import { useDerived } from "../DataContext";
 import { MONO, SERIF } from "../ui";
 import ElementLibrary from "./ElementLibrary";
 import ThemeToggle from "./ThemeToggle";
-
-function useClock() {
-  const [clock, setClock] = useState("--:--:--");
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      setClock(now.toLocaleTimeString("en-US", { hour12: false }));
-      const h = now.getHours();
-      const day = now.getDay();
-      setOpen(day >= 1 && day <= 5 && h >= 9 && h < 16);
-    };
-    tick();
-    const iv = setInterval(tick, 1000);
-    return () => clearInterval(iv);
-  }, []);
-  return { clock, open };
-}
 
 const selectStyle: React.CSSProperties = {
   fontFamily: "var(--font-plex-sans), sans-serif",

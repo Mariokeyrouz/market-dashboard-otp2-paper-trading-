@@ -80,7 +80,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "pivot",
     logic:
       "The Z's diagonal lands on the centerpiece: the 10Y nominal yield decomposed into its real-yield and breakeven legs. Which leg drives a move determines the regime classification and the playbook — this is the chart the whole dashboard hangs on, so it gets the most area.",
-    defaultLayout: { x: 0, y: 6, w: 8, h: 8, minW: 6, minH: 8 },
+    defaultLayout: { x: 0, y: 6, w: 8, h: 10, minW: 6, minH: 8 },
   },
   {
     id: "playbook",
@@ -98,7 +98,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "scan",
     logic:
       "The Z's bottom stroke: a fast left-to-right confirm/deny scan. Credit, equity vol, the dollar and the curve either corroborate the hinge read or warn you off it. Directional signals, deliberately not precise.",
-    defaultLayout: { x: 0, y: 16, w: 12, h: 4, minW: 8, minH: 4 },
+    defaultLayout: { x: 0, y: 16, w: 12, h: 5, minW: 8, minH: 4 },
   },
   {
     id: "matrix",

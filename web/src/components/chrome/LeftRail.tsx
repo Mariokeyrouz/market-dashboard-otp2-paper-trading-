@@ -3,7 +3,9 @@
 import { REGION_LABELS, REGIONS } from "@/lib/data/types";
 import { ELEMENT_MAP } from "@/lib/elements/registry";
 import { useDashStore } from "@/lib/store";
+import { useClock } from "@/lib/useClock";
 import { RAIL_W, RAIL_W_COLLAPSED } from "@/lib/useShellMode";
+import { useDerived } from "../DataContext";
 import { MICRO, MONO, SERIF } from "../ui";
 import ThemeToggle from "./ThemeToggle";
 
@@ -34,6 +36,9 @@ export default function LeftRail({
   const resetLayout = useDashStore((s) => s.resetLayout);
   const hidden = useDashStore((s) => s.hidden);
   const showElement = useDashStore((s) => s.showElement);
+  const { clock, open } = useClock();
+  const v = useDerived();
+  const mktColor = open ? "var(--green)" : "var(--red)";
 
   return (
     <aside
@@ -141,7 +146,37 @@ export default function LeftRail({
         })}
       </div>
 
-      <div style={{ ...divider, marginTop: "auto" }} />
+      {/* Market clock + session status — relocated from the old header band.
+          Content is top-aligned (empty space falls at the bottom, matching the
+          right rail) rather than bottom-anchored, which stranded a big mid-rail gap. */}
+      <div
+        style={{
+          display: "flex", alignItems: "center",
+          justifyContent: collapsed ? "center" : "flex-start",
+          gap: 8, padding: collapsed ? "6px 0" : "8px 4px",
+          borderTop: "1px solid var(--hairline)", borderBottom: "1px solid var(--hairline)",
+        }}
+        title={`${v.exchange} · ${open ? "OPEN" : "CLOSED"}`}
+      >
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: mktColor, animation: "mp-pulse 2s ease-in-out infinite", flexShrink: 0 }} />
+        {collapsed ? (
+          <span style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: 600, color: "var(--muted)", writingMode: "vertical-rl", letterSpacing: ".1em" }}>
+            {open ? "OPEN" : "CLOSED"}
+          </span>
+        ) : (
+          <>
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+              <span style={{ ...MICRO, marginBottom: 1 }}>{v.exchange}</span>
+              <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 500, letterSpacing: ".02em", color: "var(--ink)" }}>{clock}</span>
+            </div>
+            <span style={{ marginLeft: "auto", fontFamily: MONO, fontSize: 11, fontWeight: 600, letterSpacing: ".06em", color: mktColor }}>
+              {open ? "OPEN" : "CLOSED"}
+            </span>
+          </>
+        )}
+      </div>
+
+      <div style={divider} />
 
       {/* Appearance */}
       {!collapsed && <div style={{ ...MICRO, marginBottom: 2 }}>Appearance</div>}
