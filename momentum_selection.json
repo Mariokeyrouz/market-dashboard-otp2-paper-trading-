@@ -1,0 +1,169 @@
+{
+  "as_of": "2026-06-01",
+  "strategy": "single-stock momentum (blended 6&12m, top20, SPY trend gate)",
+  "risk_on": true,
+  "trend_note": "SPY above 10mo SMA",
+  "n_holdings": 20,
+  "holdings": {
+    "SNDK": {
+      "target_weight": 0.05,
+      "score_composite": 100.0,
+      "score_momentum": 100.0,
+      "ret_6m": 659.13,
+      "ret_12m": 4397.16,
+      "sector": "Information Technology"
+    },
+    "WDC": {
+      "target_weight": 0.05,
+      "score_composite": 99.6,
+      "score_momentum": 99.6,
+      "ret_6m": 225.65,
+      "ret_12m": 934.92,
+      "sector": "Information Technology"
+    },
+    "MU": {
+      "target_weight": 0.05,
+      "score_composite": 99.6,
+      "score_momentum": 99.6,
+      "ret_6m": 310.94,
+      "ret_12m": 930.41,
+      "sector": "Information Technology"
+    },
+    "STX": {
+      "target_weight": 0.05,
+      "score_composite": 99.3,
+      "score_momentum": 99.3,
+      "ret_6m": 219.36,
+      "ret_12m": 655.59,
+      "sector": "Information Technology"
+    },
+    "LITE": {
+      "target_weight": 0.05,
+      "score_composite": 99.2,
+      "score_momentum": 99.2,
+      "ret_6m": 162.94,
+      "ret_12m": 1082.84,
+      "sector": "Information Technology"
+    },
+    "CIEN": {
+      "target_weight": 0.05,
+      "score_composite": 98.9,
+      "score_momentum": 98.9,
+      "ret_6m": 184.13,
+      "ret_12m": 624.74,
+      "sector": "Information Technology"
+    },
+    "INTC": {
+      "target_weight": 0.05,
+      "score_composite": 98.7,
+      "score_momentum": 98.7,
+      "ret_6m": 182.74,
+      "ret_12m": 486.6,
+      "sector": "Information Technology"
+    },
+    "DELL": {
+      "target_weight": 0.05,
+      "score_composite": 98.4,
+      "score_momentum": 98.4,
+      "ret_6m": 218.0,
+      "ret_12m": 284.03,
+      "sector": "Information Technology"
+    },
+    "ECHO": {
+      "target_weight": 0.05,
+      "score_composite": 97.2,
+      "score_momentum": 97.2,
+      "ret_6m": 76.27,
+      "ret_12m": 628.65,
+      "sector": "Communication Services"
+    },
+    "FIX": {
+      "target_weight": 0.05,
+      "score_composite": 97.0,
+      "score_momentum": 97.0,
+      "ret_6m": 87.31,
+      "ret_12m": 283.14,
+      "sector": "Industrials"
+    },
+    "VRT": {
+      "target_weight": 0.05,
+      "score_composite": 95.8,
+      "score_momentum": 95.8,
+      "ret_6m": 75.7,
+      "ret_12m": 192.88,
+      "sector": "Industrials"
+    },
+    "GNRC": {
+      "target_weight": 0.05,
+      "score_composite": 95.4,
+      "score_momentum": 95.4,
+      "ret_6m": 83.28,
+      "ret_12m": 127.55,
+      "sector": "Industrials"
+    },
+    "NUE": {
+      "target_weight": 0.05,
+      "score_composite": 93.6,
+      "score_momentum": 93.6,
+      "ret_6m": 57.82,
+      "ret_12m": 132.07,
+      "sector": "Materials"
+    },
+    "CAT": {
+      "target_weight": 0.05,
+      "score_composite": 93.0,
+      "score_momentum": 93.0,
+      "ret_6m": 52.77,
+      "ret_12m": 154.39,
+      "sector": "Industrials"
+    },
+    "GEV": {
+      "target_weight": 0.05,
+      "score_composite": 92.9,
+      "score_momentum": 92.9,
+      "ret_6m": 61.67,
+      "ret_12m": 105.18,
+      "sector": "Industrials"
+    },
+    "STLD": {
+      "target_weight": 0.05,
+      "score_composite": 92.6,
+      "score_momentum": 92.6,
+      "ret_6m": 55.94,
+      "ret_12m": 114.24,
+      "sector": "Materials"
+    },
+    "MRNA": {
+      "target_weight": 0.05,
+      "score_composite": 92.6,
+      "score_momentum": 92.6,
+      "ret_6m": 81.64,
+      "ret_12m": 77.67,
+      "sector": "Health Care"
+    },
+    "JBHT": {
+      "target_weight": 0.05,
+      "score_composite": 92.3,
+      "score_momentum": 92.3,
+      "ret_6m": 59.52,
+      "ret_12m": 101.01,
+      "sector": "Industrials"
+    },
+    "APA": {
+      "target_weight": 0.05,
+      "score_composite": 91.9,
+      "score_momentum": 91.9,
+      "ret_6m": 48.27,
+      "ret_12m": 123.09,
+      "sector": "Energy"
+    },
+    "PWR": {
+      "target_weight": 0.05,
+      "score_composite": 91.9,
+      "score_momentum": 91.9,
+      "ret_6m": 53.17,
+      "ret_12m": 107.97,
+      "sector": "Industrials"
+    }
+  }
+}

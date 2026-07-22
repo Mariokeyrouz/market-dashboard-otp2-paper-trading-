@@ -66,6 +66,13 @@ PORTFOLIOS = {
         "color":     "#f57c00",
         "icon":      "🔬",
     },
+    "Momentum": {
+        "ledger":    "momentum_ledger.csv",
+        "state":     "momentum_state.json",
+        "selection": "momentum_selection.json",
+        "color":     "#6a1b9a",
+        "icon":      "🚀",
+    },
 }
 
 CORR_PERIOD = "1y"   # yfinance period for stock correlation data

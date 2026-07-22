@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 .streamlit/secrets.toml
 ot2_data_cache.pkl
+momentum_stocks_prices.csv
+*_curve.csv
