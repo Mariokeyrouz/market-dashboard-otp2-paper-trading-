@@ -98,7 +98,11 @@ def _load_ledger(path):
 
 
 def _compute_metrics(ledger):
-    if ledger is None or len(ledger) < 2:
+    # A freshly-seeded strategy has a single ledger row (no return history yet).
+    # Still surface it as a row — NAV / Total Return / Days Live are meaningful;
+    # the return-based stats (Sharpe, vol, drawdown…) stay NaN and render as "—"
+    # until the daily engine appends more days.
+    if ledger is None or len(ledger) < 1:
         return {}
 
     nav   = ledger["nav"]
