@@ -294,6 +294,18 @@ def _corr_heatmap(tickers, color_hex, title):
 
     ret_df  = ret_df[available].dropna()
     corr    = ret_df.corr().round(2)
+
+    # Diversification score: mean of the off-diagonal correlations (lower = the
+    # book's names move more independently = better intra-portfolio diversification).
+    _nh = len(corr)
+    if _nh >= 2:
+        _off = corr.values[np.triu_indices(_nh, k=1)]
+        _avg = float(np.nanmean(_off)) if len(_off) else float("nan")
+        _lab = ("well diversified" if _avg < 0.3 else
+                "moderately correlated" if _avg < 0.6 else "highly correlated")
+        st.caption(f"📊 Diversification score — avg pairwise correlation **{_avg:.2f}** "
+                   f"({_lab}; lower = more diversified)")
+
     labels  = list(corr.columns)
     z       = corr.values.tolist()
     n       = len(labels)
@@ -334,6 +346,171 @@ def _corr_heatmap(tickers, color_hex, title):
 
     st.plotly_chart(fig, width='stretch')
     st.caption(f"{len(available)} holdings · {CORR_PERIOD} daily returns · {len(ret_df)} observations")
+
+
+# ── System-health helpers (operational monitoring across all strategies) ──────
+
+def _load_all_states():
+    """Every strategy's state + (optional) selection JSON."""
+    states, selections = {}, {}
+    for name, cfg in PORTFOLIOS.items():
+        if os.path.exists(cfg["state"]):
+            try:
+                with open(cfg["state"]) as f:
+                    states[name] = json.load(f)
+            except Exception:
+                pass
+        sp = cfg.get("selection", "")
+        if sp and os.path.exists(sp):
+            try:
+                with open(sp) as f:
+                    selections[name] = json.load(f)
+            except Exception:
+                pass
+    return states, selections
+
+
+def _eff_shares(state):
+    """Holdings as {ticker: shares}, folding Gold's gld_shares/in_position into
+    the same shape as the equity strategies' `shares` dict."""
+    sh = dict(state.get("shares") or {})
+    if not sh and state.get("in_position") and state.get("gld_shares"):
+        sh = {"GLD": state["gld_shares"]}
+    return {t: q for t, q in sh.items() if q}
+
+
+def _days_since(date_str):
+    if not date_str:
+        return None
+    try:
+        return (pd.Timestamp.today().normalize() - pd.Timestamp(date_str).normalize()).days
+    except Exception:
+        return None
+
+
+def _diag_rows(states, selections):
+    rows = []
+    for name, cfg in PORTFOLIOS.items():
+        s = states.get(name, {})
+        led = _load_ledger(cfg["ledger"])
+        last = s.get("last_date") or (str(led["date"].iloc[-1].date())
+                                      if led is not None and len(led) else None)
+        days = _days_since(last)
+        dot = "🟢" if (days is not None and days <= 4) else \
+              "🟡" if (days is not None and days <= 8) else "🔴"
+        health = "current" if (days is not None and days <= 4) else \
+                 "stale" if (days is not None and days <= 8) else "frozen"
+        inv = s.get("invested", s.get("invested_pct"))
+        if inv is not None and inv > 1.5:
+            inv = inv / 100.0
+        if s.get("stopped_out"):
+            stance = "⚠ Stopped (50%)"
+        elif s.get("risk_on") is False:
+            stance = "Risk-off (cash)"
+        elif "in_position" in s:
+            stance = "Long GLD" if s.get("in_position") else "Cash (no signal)"
+        elif inv is not None:
+            stance = f"{inv*100:.0f}% invested"
+        else:
+            stance = "—"
+        rows.append({
+            "Strategy": f"{cfg['icon']} {name}", "Status": f"{dot} {health}",
+            "Last update": last or "—", "Days ago": days if days is not None else "—",
+            "Stance": stance, "Holdings": len(_eff_shares(s)),
+            "Selection": selections.get(name, {}).get("as_of", "—"),
+        })
+    return rows
+
+
+def _system_totals(states):
+    total_nav = sum(float(s.get("nav", 0) or 0) for s in states.values())
+    invested, riskoff = 0.0, 0
+    for s in states.values():
+        inv_d = s.get("invested_dollars")
+        if inv_d is None:                                    # Gold has no invested_dollars
+            inv_d = float(s.get("nav", 0) or 0) if s.get("in_position") else 0.0
+        invested += float(inv_d or 0)
+        if s.get("risk_on") is False or s.get("in_position") is False or \
+           (s.get("invested") is not None and s.get("invested") < 0.05):
+            riskoff += 1
+    n = len(states)
+    pnl = total_nav - 10000.0 * n
+    return {"nav": total_nav, "invested": invested, "cash": total_nav - invested,
+            "pct_inv": (invested / total_nav * 100) if total_nav else 0.0,
+            "pnl": pnl, "pnl_pct": (pnl / (10000 * n) * 100) if n else 0.0,
+            "n": n, "riskoff": riskoff}
+
+
+def _aggregate_exposure(states, cur):
+    """Total $ exposure per ticker across ALL strategies (surfaces cross-book
+    concentration in names several strategies happen to share)."""
+    agg = {}
+    for name, s in states.items():
+        lasts = s.get("last_prices") or {}
+        entries = s.get("entry_prices") or {}
+        for t, q in _eff_shares(s).items():
+            px = cur.get(t) or lasts.get(t) or entries.get(t)
+            if not px:
+                continue
+            e = agg.setdefault(t, {"value": 0.0, "strats": []})
+            e["value"] += q * px
+            e["strats"].append(name)
+    return agg
+
+
+def _strategy_return_frame():
+    rets = {}
+    for name, cfg in PORTFOLIOS.items():
+        led = _load_ledger(cfg["ledger"])
+        if led is not None and len(led) > 2 and "daily_log_ret" in led.columns:
+            rets[name] = pd.to_numeric(led.set_index("date")["daily_log_ret"], errors="coerce")
+    return pd.DataFrame(rets)
+
+
+def _system_events(limit=40):
+    """Reverse-chronological activity feed reconstructed from ledger history —
+    seeds, rebalances, stop triggers/re-entries, risk-on/off flips, big trims."""
+    events = []
+    for name, cfg in PORTFOLIOS.items():
+        led = _load_ledger(cfg["ledger"])
+        if led is None or len(led) == 0:
+            continue
+        led = led.reset_index(drop=True)
+        who = f"{cfg['icon']} {name}"
+        events.append((led["date"].iloc[0], who, "seed", f"Seeded at ${led['nav'].iloc[0]:,.0f}"))
+        cols = led.columns
+        if "holdings" in cols:
+            prev = None
+            for i in range(len(led)):
+                h = led["holdings"].iloc[i]
+                if prev is not None and isinstance(h, str) and isinstance(prev, str) and h != prev:
+                    events.append((led["date"].iloc[i], who, "rebalance", "Rebalanced holdings"))
+                prev = h
+        if "stopped_out" in cols:
+            v = led["stopped_out"].astype(str).str.lower().isin(["true", "1"]).values
+            for i in range(1, len(v)):
+                if v[i] and not v[i-1]:
+                    events.append((led["date"].iloc[i], who, "stop", "Trailing stop → scaled to 50%"))
+                elif not v[i] and v[i-1]:
+                    events.append((led["date"].iloc[i], who, "reentry", "Re-entered after stop"))
+        if "risk_on" in cols:
+            v = led["risk_on"].astype(str).str.lower().isin(["true", "1"]).values
+            for i in range(1, len(v)):
+                if not v[i] and v[i-1]:
+                    events.append((led["date"].iloc[i], who, "risk-off", "Trend gate → risk-off (cash)"))
+                elif v[i] and not v[i-1]:
+                    events.append((led["date"].iloc[i], who, "risk-on", "Trend gate → risk-on"))
+        if "invested_pct" in cols:
+            iv = pd.to_numeric(led["invested_pct"], errors="coerce").values
+            for i in range(1, len(iv)):
+                if np.isfinite(iv[i]) and np.isfinite(iv[i-1]):
+                    d = iv[i] - iv[i-1]
+                    if d <= -8:
+                        events.append((led["date"].iloc[i], who, "trim", f"Trimmed to {iv[i]:.0f}% invested"))
+                    elif d >= 8:
+                        events.append((led["date"].iloc[i], who, "reload", f"Reloaded to {iv[i]:.0f}% invested"))
+    events.sort(key=lambda e: e[0], reverse=True)
+    return events[:limit]
 
 
 # ── Page ──────────────────────────────────────────────────────────────────────
@@ -428,6 +605,90 @@ if metric_rows:
     )
 else:
     st.info("No ledger data found. Run the strategy engines to generate data.")
+
+st.divider()
+
+# ── Section 1c: System Health & Diagnostics ──────────────────────────────────
+
+st.subheader("🩺 System Health & Diagnostics")
+
+_hstates, _hsel = _load_all_states()
+
+# (a) Combined system totals
+_tot = _system_totals(_hstates)
+_hc = st.columns(5)
+_hc[0].metric("Total System NAV", f"${_tot['nav']:,.0f}")
+_hc[1].metric("Invested / Cash", f"{_tot['pct_inv']:.0f}% / {100 - _tot['pct_inv']:.0f}%")
+_hc[2].metric("System P&L", f"${_tot['pnl']:+,.0f}", f"{_tot['pnl_pct']:+.2f}% since seed")
+_hc[3].metric("Strategies", f"{_tot['n']}")
+_hc[4].metric("In Cash / Risk-off", f"{_tot['riskoff']} / {_tot['n']}")
+
+# (b) Per-strategy diagnostics + staleness heartbeat
+st.markdown("**Strategy status** — operational state & data freshness")
+_diagrows = _diag_rows(_hstates, _hsel)
+st.dataframe(pd.DataFrame(_diagrows), width='stretch', hide_index=True)
+_frozen = [r["Strategy"] for r in _diagrows if "🔴" in r["Status"]]
+if _frozen:
+    st.warning(f"⚠ Stale/frozen ledgers: {', '.join(_frozen)} — the daily update job may not be running.")
+else:
+    st.caption("🟢 all ledgers current · 🟡 5–8 days behind · 🔴 frozen (>8 days) — the freshness heartbeat.")
+
+# (c) Aggregate exposure & overlap
+st.markdown("**Aggregate exposure & overlap** — total system exposure per name, across every strategy")
+_htk = set()
+for _s in _hstates.values():
+    _htk |= set(_eff_shares(_s).keys())
+_hcur = fetch_current_prices(tuple(sorted(t for t in _htk if t)))
+_exp = _aggregate_exposure(_hstates, _hcur)
+if _exp:
+    _tinv = sum(e["value"] for e in _exp.values()) or 1.0
+    _erows = [{"Ticker": t, "Total $": e["value"], "% of System": e["value"] / _tinv * 100,
+               "# Strategies": len(e["strats"]), "Held by": ", ".join(e["strats"])}
+              for t, e in sorted(_exp.items(), key=lambda kv: -kv[1]["value"])]
+    _edf = pd.DataFrame(_erows)
+    _ov = _edf[_edf["# Strategies"] > 1]
+    if len(_ov):
+        _t0 = _ov.iloc[0]
+        st.caption(f"⚠ {len(_ov)} names are held by 2+ strategies (hidden concentration). Largest shared "
+                   f"exposure: **{_t0['Ticker']}** = {_t0['% of System']:.1f}% of the whole system across "
+                   f"{int(_t0['# Strategies'])} strategies.")
+    st.dataframe(
+        _edf.head(20).style.format({"Total $": "${:,.0f}", "% of System": "{:.1f}%"}).apply(
+            lambda row: ["background-color: rgba(255,180,0,0.13)" if row["# Strategies"] > 1 else ""
+                         for _ in row], axis=1),
+        width='stretch', hide_index=True,
+    )
+else:
+    st.info("No open positions to aggregate (all strategies in cash).")
+
+# (d) Cross-strategy correlation
+st.markdown("**Cross-strategy correlation** — are the strategies actually diversifying each other?")
+_ccorr = _strategy_return_frame().corr(min_periods=8)
+if _ccorr.notna().values.sum() > len(_ccorr):
+    _cl = list(_ccorr.columns)
+    _cz = _ccorr.values
+    _figc = go.Figure(data=go.Heatmap(
+        z=_cz, x=_cl, y=_cl, zmin=-1, zmax=1, colorscale="RdBu_r",
+        text=np.where(np.isnan(_cz), "", np.round(_cz, 2).astype(str)),
+        texttemplate="%{text}", hoverongaps=False, colorbar=dict(title="ρ")))
+    _figc.update_layout(height=340, margin=dict(l=0, r=0, t=10, b=0), paper_bgcolor="rgba(0,0,0,0)")
+    st.plotly_chart(_figc, width='stretch')
+    st.caption("Blank cells = not enough shared history yet (e.g. Momentum, seeded recently). "
+               "Near-1 = redundant (the OTP2.0 and FMTS variant pairs); low/negative = genuine "
+               "diversification (the two families vs each other, and Gold ≈ 0 with everything).")
+else:
+    st.info("Not enough overlapping history yet to compute cross-strategy correlations.")
+
+# (e) Event log / backlog
+st.markdown("**Event log** — rebalances, stop triggers, risk-flips & seeds across the whole system")
+_ev = _system_events()
+if _ev:
+    _evdf = pd.DataFrame([{"Date": d.date().isoformat(), "Strategy": who, "Event": ty, "Detail": msg}
+                          for d, who, ty, msg in _ev])
+    st.dataframe(_evdf, width='stretch', hide_index=True,
+                 height=min(380, 45 + 35 * len(_evdf)))
+else:
+    st.info("No events recorded yet.")
 
 st.divider()
 
