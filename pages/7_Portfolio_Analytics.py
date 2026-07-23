@@ -350,10 +350,10 @@ def _corr_heatmap(tickers, color_hex, title):
 
 # ── System-health helpers (operational monitoring across all strategies) ──────
 
-def _load_all_states():
+def _load_all_states(portfolios=PORTFOLIOS):
     """Every strategy's state + (optional) selection JSON."""
     states, selections = {}, {}
-    for name, cfg in PORTFOLIOS.items():
+    for name, cfg in portfolios.items():
         if os.path.exists(cfg["state"]):
             try:
                 with open(cfg["state"]) as f:
@@ -388,9 +388,9 @@ def _days_since(date_str):
         return None
 
 
-def _diag_rows(states, selections):
+def _diag_rows(states, selections, portfolios=PORTFOLIOS):
     rows = []
-    for name, cfg in PORTFOLIOS.items():
+    for name, cfg in portfolios.items():
         s = states.get(name, {})
         led = _load_ledger(cfg["ledger"])
         last = s.get("last_date") or (str(led["date"].iloc[-1].date())
@@ -458,20 +458,20 @@ def _aggregate_exposure(states, cur):
     return agg
 
 
-def _strategy_return_frame():
+def _strategy_return_frame(portfolios=PORTFOLIOS):
     rets = {}
-    for name, cfg in PORTFOLIOS.items():
+    for name, cfg in portfolios.items():
         led = _load_ledger(cfg["ledger"])
         if led is not None and len(led) > 2 and "daily_log_ret" in led.columns:
             rets[name] = pd.to_numeric(led.set_index("date")["daily_log_ret"], errors="coerce")
     return pd.DataFrame(rets)
 
 
-def _system_events(limit=40):
+def _system_events(portfolios=PORTFOLIOS, limit=40):
     """Reverse-chronological activity feed reconstructed from ledger history —
     seeds, rebalances, stop triggers/re-entries, risk-on/off flips, big trims."""
     events = []
-    for name, cfg in PORTFOLIOS.items():
+    for name, cfg in portfolios.items():
         led = _load_ledger(cfg["ledger"])
         if led is None or len(led) == 0:
             continue
@@ -612,7 +612,12 @@ st.divider()
 
 st.subheader("🩺 System Health & Diagnostics")
 
-_hstates, _hsel = _load_all_states()
+# The system view spans EVERY strategy, including Gold — which has its own page
+# and is deliberately excluded from the equity-only sections above/below.
+SYSTEM_PORTFOLIOS = {**PORTFOLIOS, "Gold": {
+    "ledger": "gold_ledger.csv", "state": "gold_state.json", "selection": "",
+    "icon": "🥇", "color": "#c9a227"}}
+_hstates, _hsel = _load_all_states(SYSTEM_PORTFOLIOS)
 
 # (a) Combined system totals
 _tot = _system_totals(_hstates)
@@ -625,7 +630,7 @@ _hc[4].metric("In Cash / Risk-off", f"{_tot['riskoff']} / {_tot['n']}")
 
 # (b) Per-strategy diagnostics + staleness heartbeat
 st.markdown("**Strategy status** — operational state & data freshness")
-_diagrows = _diag_rows(_hstates, _hsel)
+_diagrows = _diag_rows(_hstates, _hsel, SYSTEM_PORTFOLIOS)
 st.dataframe(pd.DataFrame(_diagrows), width='stretch', hide_index=True)
 _frozen = [r["Strategy"] for r in _diagrows if "🔴" in r["Status"]]
 if _frozen:
@@ -663,7 +668,7 @@ else:
 
 # (d) Cross-strategy correlation
 st.markdown("**Cross-strategy correlation** — are the strategies actually diversifying each other?")
-_ccorr = _strategy_return_frame().corr(min_periods=8)
+_ccorr = _strategy_return_frame(SYSTEM_PORTFOLIOS).corr(min_periods=8)
 if _ccorr.notna().values.sum() > len(_ccorr):
     _cl = list(_ccorr.columns)
     _cz = _ccorr.values
@@ -681,7 +686,7 @@ else:
 
 # (e) Event log / backlog
 st.markdown("**Event log** — rebalances, stop triggers, risk-flips & seeds across the whole system")
-_ev = _system_events()
+_ev = _system_events(SYSTEM_PORTFOLIOS)
 if _ev:
     _evdf = pd.DataFrame([{"Date": d.date().isoformat(), "Strategy": who, "Event": ty, "Detail": msg}
                           for d, who, ty, msg in _ev])
