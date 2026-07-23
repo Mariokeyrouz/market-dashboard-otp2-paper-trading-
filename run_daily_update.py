@@ -9,12 +9,14 @@ What it does:
   1. Runs each strategy engine in its own subprocess (one crash can't stop the
      rest). Every engine is idempotent — it prints "No new trading days" and
      exits cleanly if already current, so daily/hourly reruns are safe.
-  2. Auto-rotates the monthly momentum strategy: at each month-turn — when a
-     newly completed month makes its selection stale — it re-runs the fast
-     momentum screener with fresh prices, so the strategy rebalances on its own
-     with no separate task. Within a month this is skipped, so the daily run
-     stays fast. (--monthly forces it. factor_screener stays on the user's
-     separate cadence — it fetches fundamentals for ~500 names and is slow.)
+  2. Auto-rotates the monthly strategies at each month-turn, so they rebalance
+     on their own with no separate task (within a month this is skipped, so the
+     daily run stays fast; --monthly forces it):
+       - Momentum: re-runs its fast (cached-price) screener when a newly
+         completed month makes its selection stale.
+       - FMTS / FMTS AMA: re-run their factor screeners once per calendar month
+         (only when they have not screened yet this month). These are slow
+         (~500 fundamentals fetches each), so they fire at most once a month.
   3. If any tracked ledger/state/selection file changed, commits with the
      existing "Daily paper-trading update: <date>" message and pushes to main.
 
@@ -42,13 +44,6 @@ ENGINES = [
     "factor_strategy_engine_AMA.py",   # FMTS AMA
     "gold_strategy_engine.py",         # Gold timer
     "momentum_strategy_engine.py",     # Momentum (new)
-]
-
-# Fast screeners safe to run on a monthly rebalance pass. factor_screener.py is
-# intentionally excluded — it fetches fundamentals for ~500 names (very slow) and
-# stays on the user's separate cadence.
-MONTHLY_SCREENERS = [
-    "momentum_screener.py",
 ]
 
 # Files the update touches — used to detect whether a commit is warranted.
@@ -90,11 +85,11 @@ def _latest_completed_month():
     return (first_this - timedelta(days=1)).replace(day=1).isoformat()
 
 
-def _momentum_needs_rescreen():
-    """True if momentum_selection.json is missing or older than the latest
-    completed month — i.e. a new month turned and the strategy should rotate.
-    ISO date strings compare correctly, so a plain `<` is enough."""
-    path = os.path.join(REPO, "momentum_selection.json")
+def _needs_monthly_rescreen(selection_file, threshold):
+    """True if `selection_file` is missing or its `as_of` sorts before
+    `threshold` (both ISO strings, so a plain `<` works). Fires each monthly
+    screener exactly once per rotation."""
+    path = os.path.join(REPO, selection_file)
     if not os.path.exists(path):
         return True
     try:
@@ -102,7 +97,7 @@ def _momentum_needs_rescreen():
             asof = json.load(f).get("as_of", "")
     except Exception:
         return True
-    return asof < _latest_completed_month()
+    return asof < threshold
 
 
 def main():
@@ -111,21 +106,30 @@ def main():
     do_push = do_commit and "--no-push" not in sys.argv
 
     ok, failed = [], []
+    this_month = date.today().strftime("%Y-%m-01")   # first day of the current month
 
-    # Auto-rotate the monthly momentum strategy. Re-screen only when a newly
-    # completed month makes the current selection stale (or --monthly forces
-    # it); within a month this is a no-op, so the daily run stays fast. Delete
-    # the price cache first so the fresh screen includes the new month's close
-    # (a <18h cache could still be pre-month-end and screen the old month).
-    if monthly or _momentum_needs_rescreen():
+    # ── Auto-rotate the monthly strategies at month-turn ─────────────────────
+    # Momentum: fast (cached prices). Re-screen when a newly completed month
+    # makes its selection stale; delete the cache first so the fresh screen
+    # includes the new month's close (a <18h cache could still be pre-month-end).
+    if monthly or _needs_monthly_rescreen("momentum_selection.json", _latest_completed_month()):
         cache = os.path.join(REPO, "momentum_stocks_prices.csv")
         if os.path.exists(cache):
             os.remove(cache)
         print("Momentum: month-turn/forced — re-screening with fresh prices to rotate.")
-        for s in MONTHLY_SCREENERS:
-            (ok if run(s) else failed).append(s)
+        (ok if run("momentum_screener.py") else failed).append("momentum_screener.py")
     else:
-        print(f"Momentum: selection already current for {_latest_completed_month()[:7]} — no re-screen.")
+        print(f"Momentum: current for {_latest_completed_month()[:7]} — no re-screen.")
+
+    # FMTS / FMTS AMA: slow factor screeners (~500 fundamentals each). Fire once
+    # per calendar month — only when they have not screened yet this month.
+    for scr, sel in [("factor_screener.py", "factor_selection.json"),
+                     ("factor_screener_AMA.py", "factor_selection_AMA.json")]:
+        if monthly or _needs_monthly_rescreen(sel, this_month):
+            print(f"FMTS: monthly re-screen — {scr} (slow; ~once a month).")
+            (ok if run(scr, timeout=2400) else failed).append(scr)
+        else:
+            print(f"FMTS: {sel} current for {date.today().strftime('%Y-%m')} — no re-screen.")
 
     for e in ENGINES:
         (ok if run(e) else failed).append(e)
