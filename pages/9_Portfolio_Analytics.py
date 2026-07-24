@@ -534,6 +534,12 @@ st.divider()
 # ── Section 1: Performance metrics comparison ─────────────────────────────────
 
 st.subheader("📊 Performance Metrics")
+st.caption(
+    "ℹ️ **NAV here is the last recorded close** — this table is the end-of-day scorecard, "
+    "updated when the daily job runs. Each strategy's own page shows the **live** intraday "
+    "mark-to-market, so its “Portfolio Value” will differ from this by the day's price "
+    "movement. Both are correct — they just measure at different moments."
+)
 
 spy = fetch_benchmark("SPY")   # total-return benchmark
 
