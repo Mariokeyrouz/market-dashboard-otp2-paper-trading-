@@ -112,9 +112,14 @@ def backfill_from_ledgers():
     """Regenerate the derived (source='backfill') events from current ledgers,
     preserving any source='engine' events. Idempotent — safe to re-run daily."""
     kept = [e for e in load_events() if e.get("source") != "backfill"]
+    # A live engine event (with realized P&L) takes precedence — don't re-derive
+    # a ledger version of the same (strategy, date, type).
+    engine_keys = {(e.get("strategy"), e.get("date"), e.get("type")) for e in kept}
     derived = []
     for name, ledger, _ in STRATS:
         for date, strat, etype, detail in _derive_events(name, os.path.join(REPO, ledger)):
+            if (strat, date, etype) in engine_keys:
+                continue
             derived.append({"date": date, "strategy": strat, "type": etype,
                             "detail": detail, "source": "backfill"})
     with open(LOG_PATH, "w", encoding="utf-8") as f:

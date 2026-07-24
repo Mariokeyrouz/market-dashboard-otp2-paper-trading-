@@ -27,6 +27,7 @@ import numpy as np
 import pandas as pd
 
 from strategy_deep_test import download, download_tbill
+from event_log import log_event
 
 LEDGER_PATH    = "momentum_ledger.csv"
 STATE_PATH     = "momentum_state.json"
@@ -137,11 +138,18 @@ def main():
         print(f"  Rebalance: selection {state.get('last_selection_asof')} -> {as_of}")
         last_px = {t: float(prices[t].iloc[-1]) for t in tickers}
         old = state["shares"]
+        old_entry = state.get("entry_prices", {}) or {}
         old_px = state.get("last_prices", {})
         stock_val = sum(old[t] * old_px.get(t, last_px.get(t, 0)) for t in old)
         nav_now = stock_val + state["cash_dollars"]
         sell_cost = stock_val * SLIPPAGE_RATE            # liquidate to cash first
         nav_now -= sell_cost
+        # Realized P&L of the full liquidation: sale proceeds vs cost basis, net of slippage.
+        realized = sum(old[t] * (old_px.get(t, last_px.get(t, 0.0))
+                                 - old_entry.get(t, old_px.get(t, last_px.get(t, 0.0))))
+                       for t in old) - sell_cost
+        dropped = [t for t in old if t not in tickers]
+        added = [t for t in tickers if t not in old]
         shares, entry, inv_dollars, cash_dollars, buy_cost = _buy_equal_weight(
             nav_now, tickers, weights, last_px)
         state.update(
@@ -152,6 +160,10 @@ def main():
             last_rebalance_date=str(common_index[-1].date()),
             trading_cost=state.get("trading_cost", 0.0) + sell_cost + buy_cost,
         )
+        log_event("Momentum", "rebalance",
+                  f"Rotated {len(dropped)} out / {len(added)} in ({as_of})",
+                  date=str(common_index[-1].date()), realized_pnl=realized,
+                  tickers=added or list(tickers))
 
     last_date = pd.Timestamp(state["last_date"])
     last_pos = common_index.get_indexer([last_date])[0]
