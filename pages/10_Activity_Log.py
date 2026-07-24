@@ -29,6 +29,42 @@ st.caption(
     "for engine-logged events going forward.)"
 )
 
+with st.expander("ℹ️ What this log tracks — read me", expanded=False):
+    st.markdown("""
+This is a permanent, growing record of every **action** each strategy takes — not day-to-day
+price drift (that's the charts and metrics table), but the **decisions** it makes and the money
+they lock in.
+
+**Events captured**
+
+| Event | Fires when… | Strategies | Realized P&L? |
+|---|---|---|---|
+| 🌱 **Seed** | A strategy is first launched | all | — |
+| 🔄 **Rebalance** | Monthly re-selection changes the holdings | Momentum, FMTS, FMTS AMA | ✅ + tickers |
+| 🟢 **Entry** | Macro signals align → buys GLD | Gold | — |
+| 🚪 **Exit** | Gold's signal turns off → sells GLD | Gold | ✅ |
+| ⛔ **Stop** | 9% trailing stop (FMTS) / 5% (Gold) fires | FMTS, FMTS AMA, Gold | ✅ (Gold) |
+| ↩️ **Re-entry** | FMTS re-enters after a stop calms | FMTS, FMTS AMA | — |
+| 🛑 **Risk-off** / ✅ **Risk-on** | S&P 500 crosses its 10-month average → cash / back in | Momentum | — |
+| ✂️ **Trim** / ➕ **Reload** | A big (>8pp) exposure change in a day | OTP2.0, OTP2.0 AMA | — (cumulative on their page) |
+
+**What each row records:** date · strategy · event · a plain-English detail. Instrumented trades
+(Momentum / FMTS / FMTS AMA rebalances and Gold exits) also carry the **realized P&L** — sale
+proceeds − cost basis, net of slippage — and the **tickers traded**.
+
+**What it does *not* track:** daily NAV / unrealized gains (see the charts), OTP2.0's tiny daily
+vol-target tweaks (only >8pp moves are logged), or individual fills — a rebalance reads
+"rotated 5 out / 5 in" with the realized total, not every share's price. It's an audit trail of
+*decisions*, not a full trade blotter.
+
+**Two sources:** *backfill* reconstructs actions from the ledgers on every daily run (retroactive,
+no realized P&L); *engine-logged* events are the richer live ones with realized P&L, and take
+precedence so nothing double-counts.
+
+**When it fills in:** the realized-P&L column lights up the first time an instrumented strategy
+acts — the monthly rebalance (Momentum / FMTS, ~early each month) or a Gold exit.
+""")
+
 events = load_events()
 if not events:
     st.info("No events recorded yet. Run the strategy engines / daily job to populate the log.")
