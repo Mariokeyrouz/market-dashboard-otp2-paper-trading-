@@ -155,7 +155,7 @@ def _compute_metrics(ledger):
     }
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=21600)   # 6h — a year of daily correlation data barely moves intraday
 def fetch_stock_returns(tickers, period="1y"):
     if not tickers:
         return pd.DataFrame()
@@ -278,13 +278,18 @@ def _ret_color(v):
     return ""
 
 
-def _corr_heatmap(tickers, color_hex, title):
+def _corr_heatmap(tickers, color_hex, title, all_ret=None):
     if not tickers:
         st.info("No holdings data available.")
         return
 
-    with st.spinner(f"Fetching {len(tickers)} stocks ({CORR_PERIOD})…"):
-        ret_df = fetch_stock_returns(tickers, CORR_PERIOD)
+    # Reuse a single batched download when provided (all holdings fetched once,
+    # sliced per tab) instead of one download per strategy tab.
+    if all_ret is not None:
+        ret_df = all_ret
+    else:
+        with st.spinner(f"Fetching {len(tickers)} stocks ({CORR_PERIOD})…"):
+            ret_df = fetch_stock_returns(tickers, CORR_PERIOD)
 
     # Keep only tickers that came back
     available = [t for t in tickers if t in ret_df.columns]
@@ -872,17 +877,25 @@ st.divider()
 st.subheader("🔗 Intra-Portfolio Stock Correlations")
 st.caption("Pairwise correlations of individual holdings within each strategy — 1-year daily returns.")
 
-tabs = st.tabs([f"{cfg['icon']} {name}" for name, cfg in PORTFOLIOS.items()])
-
-for tab, (name, cfg) in zip(tabs, PORTFOLIOS.items()):
-    with tab:
-        tickers = _tickers_for(name, cfg)
-        if not tickers:
-            st.info("No holdings data available — run the screener first.")
-            continue
-
-        st.markdown(f"**{len(tickers)} holdings:** {', '.join(tickers)}")
-        _corr_heatmap(tickers, cfg["color"], name)
+# Loaded on demand — this is the page's heaviest fetch (a year of daily prices
+# for every holding). Off by default keeps the rest of the page fast; when on,
+# all holdings are pulled in ONE batched download and sliced per tab (instead of
+# a separate download per strategy).
+if st.checkbox("📈 Load correlation heatmaps (fetches 1-year price history)", value=False):
+    _all_ctk = sorted({t for name, cfg in PORTFOLIOS.items() for t in _tickers_for(name, cfg)})
+    with st.spinner(f"Fetching 1-year returns for {len(_all_ctk)} holdings…"):
+        _all_ret = fetch_stock_returns(_all_ctk, CORR_PERIOD)
+    tabs = st.tabs([f"{cfg['icon']} {name}" for name, cfg in PORTFOLIOS.items()])
+    for tab, (name, cfg) in zip(tabs, PORTFOLIOS.items()):
+        with tab:
+            tickers = _tickers_for(name, cfg)
+            if not tickers:
+                st.info("No holdings data available — run the screener first.")
+                continue
+            st.markdown(f"**{len(tickers)} holdings:** {', '.join(tickers)}")
+            _corr_heatmap(tickers, cfg["color"], name, all_ret=_all_ret)
+else:
+    st.caption("↑ Tick the box to load the heatmaps on demand (keeps the page fast otherwise).")
 
 st.divider()
 
