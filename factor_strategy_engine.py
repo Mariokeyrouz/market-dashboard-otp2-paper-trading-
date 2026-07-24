@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 
 from strategy_deep_test import download, download_tbill, build_market_features
+from event_log import log_event
 
 LEDGER_PATH    = "factor_ledger.csv"
 STATE_PATH     = "factor_state.json"
@@ -203,6 +204,13 @@ def main():
             entry_prices = {t: float(last_px[t]) * (1 + SLIPPAGE_RATE) for t in tickers}
             shares_new = {t: (per_ticker * weights[t] * len(tickers)) / entry_prices[t]
                          if weights[t] > 0 else 0.0 for t in tickers}
+            # Realized P&L of the outgoing book (sale proceeds vs cost basis, net of slippage).
+            _osh = state["shares"]; _oep = state.get("entry_prices", {}) or {}
+            _olp = state.get("last_prices", {}) or {}
+            _realized = sum(_osh.get(t, 0) * (_olp.get(t, last_px.get(t, 0.0))
+                            - _oep.get(t, _olp.get(t, last_px.get(t, 0.0)))) for t in held_tickers) - cost
+            _dropped = [t for t in held_tickers if t not in tickers]
+            _added = [t for t in tickers if t not in held_tickers]
             state["shares"]         = shares_new
             state["entry_prices"]   = entry_prices
             state["invested_dollars"] = target_stock
@@ -210,6 +218,9 @@ def main():
             state["nav"]            = nav_now
             state["trading_cost"]   = state.get("trading_cost", 0.0) + cost
             state["target_weights"] = weights
+            log_event("FMTS", "rebalance",
+                      f"Rotated {len(_dropped)} out / {len(_added)} in ({selection['as_of']})",
+                      date=str(common_index[-1].date()), realized_pnl=_realized, tickers=_added)
 
         last_date = pd.Timestamp(state["last_date"])
 
