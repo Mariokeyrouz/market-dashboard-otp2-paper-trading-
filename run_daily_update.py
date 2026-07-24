@@ -48,7 +48,7 @@ ENGINES = [
 
 # Files the update touches — used to detect whether a commit is warranted.
 TRACKED_GLOBS = ["*_ledger*.csv", "*_state*.json", "*_selection*.json",
-                 "paper_*.csv", "paper_*.json", "gold_*.csv", "gold_*.json"]
+                 "paper_*.csv", "paper_*.json", "gold_*.csv", "gold_*.json", "events.jsonl"]
 
 
 def run(script, timeout=1200):
@@ -133,6 +133,13 @@ def main():
 
     for e in ENGINES:
         (ok if run(e) else failed).append(e)
+
+    # Refresh the derived event log from the freshly-advanced ledgers.
+    try:
+        import event_log
+        print(f"\nEvent log: refreshed {event_log.backfill_from_ledgers()} derived events.")
+    except Exception as ex:
+        print(f"[WARN] event-log refresh failed: {ex}")
 
     # ── Commit + push if anything changed ────────────────────────────────────
     _, status = git("status", "--porcelain", *TRACKED_GLOBS)
