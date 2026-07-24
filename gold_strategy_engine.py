@@ -22,6 +22,8 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
+from event_log import log_event
+
 LEDGER_PATH    = "gold_ledger.csv"
 STATE_PATH     = "gold_state.json"
 START_NAV      = 10000.0
@@ -144,6 +146,8 @@ def _step(row, state):
             hwm = gld_price
             in_pos = True
             print(f"  -> ENTERED GLD @ {entry_price:.2f}  ({shares:.4f} shares)")
+            log_event("Gold", "entry", f"Entered GLD @ ${entry_price:.2f}",
+                      date=str(row.name.date()), tickers=["GLD"])
 
         state["nav"] = state["cash_dollars"] + state.get("gld_shares", 0.0) * gld_price
 
@@ -154,6 +158,7 @@ def _step(row, state):
 
         if gld_price < hwm * (1 - STOP_PCT):
             # Stop triggered — sell GLD
+            _sh = state["gld_shares"]; _ep = state.get("entry_price") or gld_price
             proceeds    = state["gld_shares"] * gld_price * (1 - SLIPPAGE_FEE)
             cost        = state["gld_shares"] * gld_price * SLIPPAGE_FEE
             state["trading_cost"] = state.get("trading_cost", 0.0) + cost
@@ -167,8 +172,11 @@ def _step(row, state):
             stop_fired = True
             print(f"  -> STOP FIRED @ {gld_price:.2f}  (HWM was {hwm:.2f}, "
                   f"drop {(gld_price/hwm-1)*100:.2f}%)")
+            log_event("Gold", "stop", f"5% trailing stop @ ${gld_price:.2f}",
+                      date=str(row.name.date()), realized_pnl=proceeds - _sh * _ep, tickers=["GLD"])
         elif not row["prev_regime_on"]:
             # Regime turned OFF — exit cleanly
+            _sh = state["gld_shares"]; _ep = state.get("entry_price") or gld_price
             proceeds    = state["gld_shares"] * gld_price * (1 - SLIPPAGE_FEE)
             cost        = state["gld_shares"] * gld_price * SLIPPAGE_FEE
             state["trading_cost"] = state.get("trading_cost", 0.0) + cost
@@ -179,6 +187,8 @@ def _step(row, state):
             state["entry_price"]  = None
             state["entry_date"]   = None
             print(f"  -> EXITED GLD (regime off) @ {gld_price:.2f}")
+            log_event("Gold", "exit", f"Signal off — exited GLD @ ${gld_price:.2f}",
+                      date=str(row.name.date()), realized_pnl=proceeds - _sh * _ep, tickers=["GLD"])
 
         state["nav"] = state["cash_dollars"] + state.get("gld_shares", 0.0) * gld_price
 

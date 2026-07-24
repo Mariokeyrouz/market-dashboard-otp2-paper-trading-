@@ -18,7 +18,7 @@ ICON = {name: icon for name, _, icon in STRATS}
 TYPE_LABEL = {
     "seed": "🌱 Seed", "rebalance": "🔄 Rebalance", "stop": "⛔ Stop",
     "reentry": "↩️ Re-entry", "risk-off": "🛑 Risk-off", "risk-on": "✅ Risk-on",
-    "trim": "✂️ Trim", "reload": "➕ Reload", "exit": "🚪 Exit",
+    "trim": "✂️ Trim", "reload": "➕ Reload", "entry": "🟢 Entry", "exit": "🚪 Exit",
 }
 
 st.title("🧾 Activity Log")
