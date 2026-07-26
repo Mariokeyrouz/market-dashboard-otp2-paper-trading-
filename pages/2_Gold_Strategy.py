@@ -41,9 +41,10 @@ DXY_WIN     = 150
 def fetch_live_gld():
     try:
         h = yf.Ticker("GLD").history(period="5d", interval="1d")
-        if h.empty or len(h) < 2:
+        close = h["Close"].dropna() if not h.empty else pd.Series(dtype=float)
+        if len(close) < 2:
             return None, None
-        return float(h["Close"].iloc[-1]), float(h["Close"].iloc[-2])
+        return float(close.iloc[-1]), float(close.iloc[-2])
     except Exception:
         return None, None
 

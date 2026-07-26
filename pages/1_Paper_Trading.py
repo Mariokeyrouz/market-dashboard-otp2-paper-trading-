@@ -63,11 +63,12 @@ def fetch_live_prices(tickers: list) -> dict:
     for t in tickers:
         try:
             hist = yf.Ticker(t).history(period="5d", interval="1d")
-            if hist.empty:
+            close = hist["Close"].dropna() if not hist.empty else pd.Series(dtype=float)
+            if close.empty:
                 raise ValueError("no data")
             out[t] = {
-                "price": float(hist["Close"].iloc[-1]),
-                "prev_close": float(hist["Close"].iloc[-2]) if len(hist) > 1 else float(hist["Close"].iloc[-1]),
+                "price": float(close.iloc[-1]),
+                "prev_close": float(close.iloc[-2]) if len(close) > 1 else float(close.iloc[-1]),
             }
         except Exception:
             out[t] = {"price": None, "prev_close": None}
@@ -148,8 +149,14 @@ if has_positions:
         shares = state["shares"][t]
         entry = state["entry_prices"][t]
         live = live_prices.get(t, {})
-        last = live["price"] if live.get("price") is not None else state["last_prices"][t]
-        prev = live["prev_close"] if live.get("prev_close") is not None else last
+        last = live.get("price")
+        if last is None or pd.isna(last):
+            last = state.get("last_prices", {}).get(t)
+        if last is None or pd.isna(last):
+            last = entry                               # final fallback: cost basis
+        prev = live.get("prev_close")
+        if prev is None or pd.isna(prev):
+            prev = last
 
         cost_basis = shares * entry
         market_value = shares * last
