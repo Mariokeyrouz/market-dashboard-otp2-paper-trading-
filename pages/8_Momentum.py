@@ -61,11 +61,12 @@ def fetch_live_prices(tickers):
     for t in tickers:
         try:
             h = yf.Ticker(t).history(period="5d", interval="1d")
-            if h.empty:
+            close = h["Close"].dropna() if not h.empty else pd.Series(dtype=float)
+            if close.empty:
                 raise ValueError("no data")
             out[t] = {
-                "price":      float(h["Close"].iloc[-1]),
-                "prev_close": float(h["Close"].iloc[-2]) if len(h) > 1 else float(h["Close"].iloc[-1]),
+                "price":      float(close.iloc[-1]),
+                "prev_close": float(close.iloc[-2]) if len(close) > 1 else float(close.iloc[-1]),
             }
         except Exception:
             out[t] = {"price": None, "prev_close": None}
@@ -144,8 +145,14 @@ for t in tickers:
     shares    = state["shares"][t]
     entry     = state["entry_prices"][t]
     lp        = live_prices.get(t, {})
-    last      = lp["price"]      if lp.get("price")      is not None else state.get("last_prices", {}).get(t, entry)
-    prev      = lp["prev_close"] if lp.get("prev_close") is not None else last
+    last = lp.get("price")
+    if last is None or pd.isna(last):
+        last = state.get("last_prices", {}).get(t)
+    if last is None or pd.isna(last):
+        last = entry                                   # final fallback: cost basis
+    prev = lp.get("prev_close")
+    if prev is None or pd.isna(prev):
+        prev = last
 
     cost_basis   = shares * entry
     market_value = shares * last
@@ -176,8 +183,10 @@ for t in tickers:
     })
 
 pos_df = pd.DataFrame(pos_rows)
-if total_market_value > 0:
-    pos_df["Weight (%)"] = (pos_df["Market Value ($)"] / total_market_value * 100).round(1)
+# Always create Weight (%) (even if total is 0/NaN) so the column selection below
+# can never KeyError.
+_wt_denom = total_market_value if (total_market_value and total_market_value > 0) else float("nan")
+pos_df["Weight (%)"] = (pos_df["Market Value ($)"] / _wt_denom * 100).round(1)
 
 live_nav         = total_market_value + state.get("cash_dollars", 0.0)
 total_return     = (live_nav / first_nav - 1) * 100
