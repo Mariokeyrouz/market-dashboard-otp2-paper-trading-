@@ -389,13 +389,19 @@ def tranche_portfolio(panel, score, hname, top_k=3, mask=None, long_only=False):
 
     r = ret[np.isfinite(ret)]
     if r.size < 30:
-        return dict(n=int(r.size), mean=np.nan, ir=np.nan, t=np.nan, sharpe_per_period=np.nan)
+        return dict(n=int(r.size), mean=np.nan, ir=np.nan, t=np.nan,
+                    sharpe_per_period=np.nan, series=ret)
     per = 52 if panel["freq"] == "W" else 252
     mu, sd = float(r.mean()), float(r.std(ddof=1))
     ir = (mu / sd) * np.sqrt(per) if sd > 0 else np.nan
     _, t, _ = rs.newey_west_t(ret, 2)      # 1-period returns: minimal lag
-    return dict(n=int(r.size), mean=mu, ir=ir, t=t,
-                sharpe_per_period=(mu / sd if sd > 0 else np.nan))
+    dd = np.nan
+    cum = np.cumprod(1.0 + np.nan_to_num(ret, nan=0.0))
+    peak = np.maximum.accumulate(cum)
+    if peak.size:
+        dd = float(np.min(cum / peak - 1.0))
+    return dict(n=int(r.size), mean=mu, ir=ir, t=t, max_dd=dd,
+                sharpe_per_period=(mu / sd if sd > 0 else np.nan), series=ret)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -729,10 +735,25 @@ def main():
                              ("walk-forward HOLDOUT", sc_wf, m_hold)):
             r = tranche_portfolio(panel, sc, hname, top_k=3, mask=msk)
             print(f"\n  {hname}  {tag:<24s} n={r['n']:4d}  "
-                  f"mean/period={r['mean']:+.5f}  IR={r['ir']:+.3f}  t={r['t']:+.2f}")
+                  f"mean/period={r['mean']:+.5f}  IR={r['ir']:+.3f}  t={r['t']:+.2f}"
+                  f"  maxDD={100*r.get('max_dd', float('nan')):+.1f}%")
             rec("portfolio", f"ir_{hname}_{tag}", r["ir"])
             rec("portfolio", f"t_{hname}_{tag}", r["t"])
+            rec("portfolio", f"maxdd_{hname}_{tag}", r.get("max_dd"))
             port[(hname, tag)] = r
+        # export the 1M equity curves so the dashboard can show the collapse
+        if hname == "1M":
+            eq = pd.DataFrame({"date": panel["index"]})
+            for tag, key in (("full-sample-fit (IS)", "in_sample"),
+                             ("walk-forward", "walk_forward")):
+                s = np.nan_to_num(port[(hname, tag)]["series"], nan=0.0)
+                eq[key] = np.cumprod(1.0 + s)
+            # buy-and-hold the equal-weight sector basket vs SPY, same window
+            bh = np.nan_to_num(np.nanmean(panel["fwd_1p"], axis=1), nan=0.0)
+            eq["equal_weight_sectors"] = np.cumprod(1.0 + bh)
+            eq = eq[valid_rows]
+            eq.to_csv("rrg_portfolio_results.csv", index=False)
+            print("\n      Equity curves -> rrg_portfolio_results.csv")
         # IS vs OOS IC decay
         ic_is = rs.cross_sectional_ic(sc_is, panel["fwd"][hname])
         ic_oos = rs.cross_sectional_ic(np.where(m_hold[:, None], sc_wf, np.nan),

@@ -30,12 +30,41 @@ st.set_page_config(page_title="RRG — Relative Rotation", page_icon="🔄", lay
 st.markdown("""
 <style>
     [data-testid="stMetricDelta"] svg { display: none; }
-    .rrg-box { background: #0d1b2a; border-left: 5px solid #4a9eff;
-               padding: 14px 18px; border-radius: 6px; margin-bottom: 14px; }
-    .verdict-fail { background: #2a1a00; border-left: 5px solid #ffa726;
-                    padding: 14px 18px; border-radius: 6px; margin-bottom: 14px; }
-    .verdict-pass { background: #04231a; border-left: 5px solid #00c896;
-                    padding: 14px 18px; border-radius: 6px; margin-bottom: 14px; }
+
+    /* Every box sets its own text colour explicitly — inheriting the theme
+       default puts dark text on these dark backgrounds and it disappears. */
+    .rrg-box, .verdict-fail, .verdict-pass {
+        border-radius: 8px; padding: 20px 26px; margin-bottom: 20px;
+        line-height: 1.7; font-size: 15px; color: #e9eef5;
+    }
+    .rrg-box      { background: #0d1b2a; border-left: 5px solid #4a9eff; }
+    .verdict-fail { background: #2a1a00; border-left: 5px solid #ffa726; }
+    .verdict-pass { background: #04231a; border-left: 5px solid #00c896; }
+
+    .rrg-box b, .verdict-fail b, .verdict-pass b { color: #ffffff; }
+    .rrg-box code, .verdict-fail code, .verdict-pass code {
+        background: #ffffff14; color: #9ad8ff; padding: 2px 7px;
+        border-radius: 4px; font-size: 13.5px;
+    }
+    .rrg-box h4 {
+        margin: 0 0 14px 0; color: #ffffff; font-size: 12px;
+        letter-spacing: 0.09em; text-transform: uppercase; font-weight: 700;
+    }
+    .rrg-box table { width: 100%; border-collapse: collapse; margin: 6px 0 16px 0; }
+    .rrg-box th {
+        text-align: left; padding: 7px 12px 7px 0; color: #8fa6bd;
+        font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase;
+        font-weight: 600; border-bottom: 1px solid #ffffff1f;
+    }
+    .rrg-box td {
+        padding: 9px 12px 9px 0; vertical-align: top;
+        border-bottom: 1px solid #ffffff0f; font-size: 14.5px;
+    }
+    .rrg-box td:first-child { white-space: nowrap; color: #ffffff; font-weight: 600; }
+    .rrg-box .note { color: #b9c7d6; font-size: 14px; margin: 0; }
+    .rrg-box .keyline {
+        color: #ffd479; font-weight: 600; display: block; margin-top: 4px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -45,6 +74,7 @@ CAND_CSV = "rrg_stock_candidates.csv"
 CAL_JSON = "rrg_calibration.json"
 TAILS_JSON = "rrg_tails.json"
 VAL_CSV = "rrg_validation_results.csv"
+PORT_CSV = "rrg_portfolio_results.csv"
 
 QUAD_COLOR = {"Leading": "#00c896", "Weakening": "#ffd166",
               "Lagging": "#ff4b4b", "Improving": "#4a9eff", "—": "#888888"}
@@ -54,7 +84,7 @@ QUAD_COLOR = {"Leading": "#00c896", "Weakening": "#ffd166",
 def load_all():
     out = {}
     for key, path in (("sectors", SECTOR_CSV), ("sizing", STOCK_CSV),
-                      ("cands", CAND_CSV), ("val", VAL_CSV)):
+                      ("cands", CAND_CSV), ("val", VAL_CSV), ("port", PORT_CSV)):
         out[key] = pd.read_csv(path) if os.path.exists(path) else None
     for key, path in (("cal", CAL_JSON), ("tails", TAILS_JSON)):
         if os.path.exists(path):
@@ -194,6 +224,93 @@ def rrg_figure(tail_map, df, title, label_col="ticker", max_names=14):
 
 
 st.divider()
+st.subheader("🧪 The portfolio backtest — does trading this actually work?")
+
+port = D["port"]
+if port is None or not len(port):
+    st.info("No portfolio backtest found — run `py rrg_validate.py`.")
+else:
+    vals = {}
+    if D["val"] is not None:
+        v = D["val"]
+        v = v[v["section"] == "portfolio"].copy()
+        # `value` also carries string fields elsewhere in the file (data
+        # fingerprints), so the column loads as object — coerce before formatting.
+        v["value"] = pd.to_numeric(v["value"], errors="coerce")
+        vals = dict(zip(v["metric"], v["value"]))
+
+    def g(metric):
+        try:
+            return float(vals.get(metric, float("nan")))
+        except (TypeError, ValueError):
+            return float("nan")
+
+    m1, m2, m3 = st.columns(3)
+    m1.metric("In-sample fit (overfit)",
+              f"IR {g('ir_1M_full-sample-fit (IS)'):+.2f}",
+              f"t {g('t_1M_full-sample-fit (IS)'):+.2f} · "
+              f"maxDD {100*g('maxdd_1M_full-sample-fit (IS)'):.0f}%")
+    m2.metric("Walk-forward (honest)",
+              f"IR {g('ir_1M_walk-forward'):+.2f}",
+              f"t {g('t_1M_walk-forward'):+.2f} · "
+              f"maxDD {100*g('maxdd_1M_walk-forward'):.0f}%")
+    m3.metric("Walk-forward, 2020+ holdout",
+              f"IR {g('ir_1M_walk-forward HOLDOUT'):+.2f}",
+              f"t {g('t_1M_walk-forward HOLDOUT'):+.2f} · "
+              f"maxDD {100*g('maxdd_1M_walk-forward HOLDOUT'):.0f}%")
+
+    pf = port.copy()
+    pf["date"] = pd.to_datetime(pf["date"])
+    figp = go.Figure()
+    for col, name, colr, dash in (
+            ("in_sample", "Fit on the whole sample (look-ahead)", "#ffd166", "dash"),
+            ("walk_forward", "Walk-forward (only past data)", "#ff4b4b", "solid"),
+            ("equal_weight_sectors", "Equal-weight sectors vs SPY", "#4a9eff", "dot")):
+        if col in pf.columns:
+            figp.add_trace(go.Scatter(
+                x=pf["date"], y=pf[col], name=name, mode="lines",
+                line=dict(color=colr, width=2, dash=dash),
+                hovertemplate="%{x|%Y-%m-%d}<br>$%{y:.3f}<extra></extra>"))
+    figp.add_hline(y=1.0, line=dict(color="#555", width=1, dash="dot"))
+    figp.update_layout(
+        height=400, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=30, b=0),
+        title="Growth of $1 — long top-3 / short bottom-3 sectors by RRG Score",
+        yaxis=dict(title="Growth of $1 (active return)", gridcolor="#2a2a3e"),
+        xaxis=dict(title="", gridcolor="#2a2a3e"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    st.plotly_chart(figp, width="stretch")
+
+    fin_is = float(pf["in_sample"].iloc[-1]) if "in_sample" in pf else float("nan")
+    fin_wf = float(pf["walk_forward"].iloc[-1]) if "walk_forward" in pf else float("nan")
+    fin_bh = float(pf["equal_weight_sectors"].iloc[-1]) \
+        if "equal_weight_sectors" in pf else float("nan")
+    st.markdown(f"""
+<div class="rrg-box">
+<h4>This is the test that matters</h4>
+<p class="note">The signal is turned into an actual tradeable portfolio:
+rebalance 1/H of capital each week and hold H weeks (Jegadeesh–Titman overlapping
+tranches), long the top 3 sectors by RRG Score and short the bottom 3. Because each
+period's return is a single non-overlapping observation, its t-statistic is honest —
+unlike the IC tests, where sampling a 63-day return every week inflates naive t-stats
+by up to 6.5×.</p>
+<table>
+<tr><th style="width:42%">Variant</th><th>Growth of $1</th><th>Verdict</th></tr>
+<tr><td>Fit on the whole sample</td><td><b>${fin_is:.2f}</b></td>
+    <td>Uses future data to pick its own weights. Not achievable.</td></tr>
+<tr><td>Walk-forward (only past data)</td><td><b>${fin_wf:.2f}</b></td>
+    <td><span class="keyline">The honest number — it loses money, with a
+        {100*g('maxdd_1M_walk-forward'):.0f}% drawdown.</span></td></tr>
+<tr><td>Equal-weight sectors vs SPY</td><td><b>${fin_bh:.2f}</b></td>
+    <td>Doing nothing clever beat the signal.</td></tr>
+</table>
+<p class="note">The gap between the first and second rows <b>is</b> the overfitting.
+Same data, same rules — the only difference is whether the model was allowed to see
+the future when choosing its weights.</p>
+</div>
+""", unsafe_allow_html=True)
+
+st.divider()
 st.subheader("📊 Sector rotation vs SPX")
 sec = D["sectors"]
 fig = rrg_figure(tails.get("sectors", {}), sec,
@@ -315,18 +432,36 @@ else:
         })
     st.markdown(f"""
 <div class="rrg-box">
-<b>Reading the two Kelly columns.</b> <code>Kelly % (as specified)</code> is
-<code>W − (1−W)/R</code> exactly as requested. That expression returns a fraction of a
-<i>bet unit whose loss is 1</i>, not a portfolio weight — dividing by |mean loss| gives
-<code>Kelly % (of wealth)</code>, which routinely exceeds 100%. That it does is itself the
-finding: full Kelly on 1-month equity bets implies leverage no one should run, which is
-why the caps (≤20% per position, ≤35% per sector, leverage ≤1.0) and the fractional
-multiplier bind long before Kelly does.<br><br>
-<b>¼ Kelly, not ½.</b> At 2× Kelly log-growth is <i>exactly zero</i>; ¼ Kelly keeps 44% of
-the growth for 6% of the variance and survives a 2× error in the edge estimate — and the
-estimate here is unstable (in-sample IR 0.60 → walk-forward 0.03). The recommended column
-additionally applies the validation multiplier of
-<b>{cal.get('sizing_multiplier', 0):.2f}</b>.
+<h4>Reading the columns</h4>
+<table>
+<tr><th style="width:30%">Column</th><th>What it means</th></tr>
+<tr><td>Kelly&nbsp;% (as specified)</td>
+    <td><code>W − (1−W)/R</code>, exactly as requested. Returns a fraction of a
+        <i>bet unit whose loss is 1</i> — <b>not</b> a portfolio weight.</td></tr>
+<tr><td>Kelly&nbsp;% (of wealth)</td>
+    <td>The same figure divided by |mean loss|, which is the actual fraction of
+        capital. Routinely exceeds 100%.
+        <span class="keyline">That it does is itself the finding: full Kelly on
+        1-month equity bets implies leverage nobody should run.</span></td></tr>
+<tr><td>½ / ¼ Kelly</td>
+    <td>Fractional Kelly after the correlation divisor, then clipped by the caps.</td></tr>
+<tr><td>Recommended&nbsp;%</td>
+    <td>¼ Kelly × the validation multiplier
+        (<b>{cal.get('sizing_multiplier', 0):.2f}</b>), then capped.</td></tr>
+</table>
+<h4>Why ¼ Kelly, not ½</h4>
+<table>
+<tr><th style="width:30%">Reason</th><th>Evidence</th></tr>
+<tr><td>Edge is unstable</td>
+    <td>In-sample IR 0.60 → walk-forward 0.03. A 2× error in the estimate is
+        entirely plausible.</td></tr>
+<tr><td>Overbetting is ruin</td>
+    <td>At 2× Kelly, log-growth is <b>exactly zero</b> — not merely worse.</td></tr>
+<tr><td>¼ Kelly is cheap insurance</td>
+    <td>Keeps <b>44%</b> of the growth for <b>6%</b> of the variance.</td></tr>
+</table>
+<p class="note">Caps bind long before Kelly does: ≤20% per position, ≤35% per
+sector, leverage ≤1.0.</p>
 </div>
 """, unsafe_allow_html=True)
 
