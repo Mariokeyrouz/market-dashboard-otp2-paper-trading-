@@ -1,0 +1,41 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "macro-dashboard",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "streamlit", "run", "pages/3_Macro_Dashboard.py", "--server.headless", "true", "--server.port", "8514", "--browser.gatherUsageStats", "false"],
+      "port": 8514
+    },
+    {
+      "name": "full-app",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "streamlit", "run", "app.py", "--server.headless", "true", "--server.port", "8515", "--browser.gatherUsageStats", "false"],
+      "port": 8515
+    },
+    {
+      "name": "paper-trading",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "streamlit", "run", "pages/1_Paper_Trading.py", "--server.headless", "true", "--server.port", "8516", "--browser.gatherUsageStats", "false"],
+      "port": 8516
+    },
+    {
+      "name": "gold-strategy",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "streamlit", "run", "pages/2_Gold_Strategy.py", "--server.headless", "true", "--server.port", "8517", "--browser.gatherUsageStats", "false"],
+      "port": 8517
+    },
+    {
+      "name": "rrg",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "streamlit", "run", "pages/7_RRG.py", "--server.headless", "true", "--server.port", "8518", "--browser.gatherUsageStats", "false"],
+      "port": 8518
+    },
+    {
+      "name": "web-app",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["web/node_modules/next/dist/bin/next", "dev", "web"],
+      "port": 3000
+    }
+  ]
+}
