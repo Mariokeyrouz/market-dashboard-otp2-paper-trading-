@@ -40,7 +40,7 @@ they lock in.
 | Event | Fires when… | Strategies | Realized P&L? |
 |---|---|---|---|
 | 🌱 **Seed** | A strategy is first launched | all | — |
-| 🔄 **Rebalance** | Monthly re-selection changes the holdings | Momentum, FMTS, FMTS AMA | ✅ + tickers |
+| 🔄 **Rebalance** | Monthly re-selection changes the holdings | Momentum, FMTS, FMTS AMA, RRG | ✅ + tickers |
 | 🟢 **Entry** | Macro signals align → buys GLD | Gold | — |
 | 🚪 **Exit** | Gold's signal turns off → sells GLD | Gold | ✅ |
 | ⛔ **Stop** | 9% trailing stop (FMTS) / 5% (Gold) fires | FMTS, FMTS AMA, Gold | ✅ (Gold) |
@@ -60,6 +60,11 @@ vol-target tweaks (only >8pp moves are logged), or individual fills — a rebala
 **Two sources:** *backfill* reconstructs actions from the ledgers on every daily run (retroactive,
 no realized P&L); *engine-logged* events are the richer live ones with realized P&L, and take
 precedence so nothing double-counts.
+
+**🔄 RRG is a research book, not a funded strategy.** Its events are logged the same way, but the
+signal failed its pre-registered validation (1/9 criteria — walk-forward turned \$1 into \$0.98
+with a 50% drawdown, and it added nothing over plain 12-1 relative momentum). It is tracked here
+to build genuine out-of-sample evidence. Read its rows as an experiment, not as performance.
 
 **When it fills in:** the realized-P&L column lights up the first time an instrumented strategy
 acts — the monthly rebalance (Momentum / FMTS, ~early each month) or a Gold exit.

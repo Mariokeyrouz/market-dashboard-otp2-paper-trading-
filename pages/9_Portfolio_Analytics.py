@@ -73,7 +73,22 @@ PORTFOLIOS = {
         "color":     "#6a1b9a",
         "icon":      "🚀",
     },
+    # Research book. The RRG signal FAILED its pre-registered validation
+    # (1/9 criteria; walk-forward turned $1 into $0.98 with a 50% drawdown, and
+    # it added nothing over plain 12-1 relative momentum). It is tracked here
+    # to accumulate genuine out-of-sample evidence — not because it is funded.
+    # See RESEARCH_ONLY below, which flags it wherever it is displayed.
+    "RRG": {
+        "ledger":    "rrg_ledger.csv",
+        "state":     "rrg_state.json",
+        "selection": "rrg_selection.json",
+        "color":     "#00838f",
+        "icon":      "🔄",
+    },
 }
+
+# Strategies shown for monitoring but explicitly not treated as funded peers.
+RESEARCH_ONLY = {"RRG"}
 
 CORR_PERIOD = "1y"   # yfinance period for stock correlation data
 
@@ -552,19 +567,36 @@ for name, cfg in PORTFOLIOS.items():
         if os.path.exists(cfg["state"]):
             with open(cfg["state"]) as f:
                 state = json.load(f)
-        m["Strategy"]  = f"{cfg['icon']} {name}"
+        m["Strategy"]  = (f"{cfg['icon']} {name}"
+                          + (" ⚠️ research" if name in RESEARCH_ONLY else ""))
         m["Invested %"] = state.get("invested", float("nan")) * 100
         # Benchmark over THIS portfolio's live window (apples-to-apples)
         spy_ret = _benchmark_return(spy, ledger["date"].iloc[0], ledger["date"].iloc[-1])
         m["SPY %"]  = spy_ret
         m["vs SPY"] = (m["Total Return"] - spy_ret) if pd.notna(spy_ret) else float("nan")
+        m["Last Updated"] = state.get("last_date") or str(ledger["date"].iloc[-1].date())
         metric_rows.append(m)
 
 if metric_rows:
+    _asof = max(r["Last Updated"] for r in metric_rows)
+    st.caption(f"🕒 Page data last refreshed through **{_asof}** "
+               "(most recent close among the strategies below; some may lag if their "
+               "daily update hasn't run — see 🩺 System Health below for per-strategy freshness).")
+    if RESEARCH_ONLY:
+        st.caption(
+            "⚠️ **" + ", ".join(sorted(RESEARCH_ONLY)) + "** is a *research book*, not a "
+            "peer of the strategies above. The RRG signal failed its pre-registered "
+            "validation (1/9 criteria: walk-forward turned $1 into $0.98 with a 50% "
+            "drawdown, and it added nothing over plain 12-1 relative momentum). It is "
+            "tracked to accumulate out-of-sample evidence — treat its numbers as an "
+            "experiment in progress, and don't read its returns as a live strategy's. "
+            "Detail on the 🔄 RRG page."
+        )
+
     cols_order = [
         "Strategy", "NAV", "Total Return", "SPY %", "vs SPY", "Ann. Return", "Ann. Vol",
         "Sharpe", "Sortino", "Calmar", "Max Drawdown",
-        "Win Rate", "Best Day", "Worst Day", "Invested %", "Days Live",
+        "Win Rate", "Best Day", "Worst Day", "Invested %", "Days Live", "Last Updated",
     ]
     df_metrics = pd.DataFrame(metric_rows)[cols_order]
 
