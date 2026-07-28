@@ -26,7 +26,7 @@ import time
 import numpy as np
 import pandas as pd
 
-from strategy_deep_test import download, download_tbill
+from strategy_deep_test import download_many, download_tbill
 from event_log import log_event
 
 LEDGER_PATH    = "momentum_ledger.csv"
@@ -45,13 +45,8 @@ def _load_selection():
 
 
 def _download_prices(tickers):
-    closes = {}
-    for tkr in tickers:
-        try:
-            closes[tkr] = download(tkr)["Close"].squeeze()
-        except Exception as e:
-            print(f"  WARNING: failed to download {tkr}: {e}")
-    return closes
+    raw = download_many(tickers)
+    return {t: raw[t]["Close"].squeeze() for t in tickers if t in raw}
 
 
 def _buy_equal_weight(nav, tickers, weights, px):
@@ -166,14 +161,27 @@ def main():
                   tickers=added or list(tickers))
 
     last_date = pd.Timestamp(state["last_date"])
-    last_pos = common_index.get_indexer([last_date])[0]
-    if last_pos < 0 or last_pos >= len(common_index) - 1:
+    # searchsorted (not get_indexer) so a single day missing from the aligned index — e.g.
+    # one ticker permanently lacking that date upstream — doesn't stall the engine forever:
+    # we resume from the last available date <= last_date instead of requiring an exact match.
+    last_pos = common_index.searchsorted(last_date, side="right") - 1
+    if last_pos < 0:
+        print(f"  [WARN] last recorded date {last_date.date()} predates the entire aligned "
+              f"trading-day index (earliest available: {common_index[0].date()}). Skipping this "
+              f"run — investigate if this persists.")
+        print(f"Runtime: {time.time()-t0:.1f}s")
+        return
+    if last_pos >= len(common_index) - 1:
         state["last_prices"] = {t: float(prices[t].iloc[-1]) for t in tickers}
         with open(STATE_PATH, "w") as f:
             json.dump(state, f, indent=2)
         print("No new trading days since last update. Ledger unchanged.")
         print(f"Runtime: {time.time()-t0:.1f}s")
         return
+    if common_index[last_pos] != last_date:
+        print(f"  [note] {last_date.date()} is absent from today's aligned trading-day index "
+              f"(a source likely lacked that single day) — resuming from "
+              f"{common_index[last_pos].date()} instead.")
 
     # ── Advance day by day (buy & hold the month's picks; cash accrues) ──────
     new_rows = []

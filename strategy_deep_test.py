@@ -80,6 +80,49 @@ def download(ticker, retries=5, wait=20):
     raise RuntimeError(f"Failed to download {ticker}: {last_err}")
 
 
+def download_many(tickers, retries=3, wait=15):
+    """Download several tickers and retry any that lag behind the freshest one
+    in the batch. yfinance intermittently omits the most recent 1-2 trading
+    days for a specific ticker even when its peers already have that data —
+    engines that build a shared trading-day index by intersecting per-ticker
+    series would otherwise silently truncate to the laggard's last date and
+    report "no new trading days" even when one genuinely occurred.
+
+    Returns {ticker: DataFrame}. Tickers that fail to download entirely are
+    omitted (callers already handle that case for their own ticker lists)."""
+    data = {}
+    for t in tickers:
+        try:
+            data[t] = download(t)
+        except Exception as e:
+            print(f"  WARNING: failed to download {t}: {e}")
+
+    if len(data) < 2:
+        return data
+
+    target = max(df.index[-1] for df in data.values())
+    for t in list(data):
+        df = data[t]
+        for attempt in range(1, retries + 1):
+            if df.index[-1] >= target:
+                break
+            print(f"  [WARN] {t}: latest close is {df.index[-1].date()}, other series "
+                  f"already have {target.date()} — retry {attempt}/{retries} in {wait}s "
+                  f"(yfinance lag)...")
+            time.sleep(wait)
+            try:
+                df = download(t)
+                data[t] = df
+            except Exception as e:
+                print(f"  WARNING: retry download of {t} failed: {e}")
+                break
+        if df.index[-1] < target:
+            print(f"  [WARN] {t}: still on {df.index[-1].date()} after {retries} retries "
+                  f"(peers have {target.date()}). Proceeding — the shared trading-day index "
+                  f"will lag by this ticker until it backfills.")
+    return data
+
+
 def download_tbill():
     """3-month T-bill rate as a decimal (e.g. 0.03), daily, forward-filled."""
     if pdr is not None:

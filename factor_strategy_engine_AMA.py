@@ -16,7 +16,7 @@ import time
 import numpy as np
 import pandas as pd
 
-from strategy_deep_test import download, download_tbill, build_market_features
+from strategy_deep_test import download_many, download_tbill, build_market_features
 from event_log import log_event
 
 LEDGER_PATH    = "factor_ledger_AMA.csv"
@@ -116,19 +116,14 @@ def main():
     print(f"Factor AMA selection ({selection['as_of']}): {', '.join(tickers)}")
     print(f"Downloading market data...")
 
-    gspc = download("^GSPC")
-    vix  = download("^VIX")
+    print(f"Downloading {len(tickers)} portfolio tickers...")
+    raw  = download_many(["^GSPC", "^VIX"] + tickers)
+    gspc = raw["^GSPC"]
+    vix  = raw["^VIX"]
     tbill_raw, tbill_src = download_tbill()
     print(f"  T-bill source: {tbill_src}")
 
-    print(f"Downloading {len(tickers)} portfolio tickers...")
-    closes = {}
-    for tkr in tickers:
-        try:
-            df = download(tkr)
-            closes[tkr] = df["Close"].squeeze()
-        except Exception as e:
-            print(f"  WARNING: failed to download {tkr}: {e}")
+    closes = {t: raw[t]["Close"].squeeze() for t in tickers if t in raw}
 
     tickers = [t for t in tickers if t in closes]
 
@@ -233,11 +228,24 @@ def main():
         print(f"Runtime: {time.time()-t0:.1f}s")
         return
 
-    last_pos = common_index.get_indexer([last_date])[0]
-    if last_pos < 0 or last_pos >= len(common_index) - 1:
+    # searchsorted (not get_indexer) so a single day missing from the aligned index — e.g.
+    # one ticker permanently lacking that date upstream — doesn't stall the engine forever:
+    # we resume from the last available date <= last_date instead of requiring an exact match.
+    last_pos = common_index.searchsorted(last_date, side="right") - 1
+    if last_pos < 0:
+        print(f"  [WARN] last recorded date {last_date.date()} predates the entire aligned "
+              f"trading-day index (earliest available: {common_index[0].date()}). Skipping this "
+              f"run — investigate if this persists.")
+        print(f"Runtime: {time.time()-t0:.1f}s")
+        return
+    if last_pos >= len(common_index) - 1:
         print("No new trading days since last update. Ledger unchanged.")
         print(f"Runtime: {time.time()-t0:.1f}s")
         return
+    if common_index[last_pos] != last_date:
+        print(f"  [note] {last_date.date()} is absent from today's aligned trading-day index "
+              f"(a source likely lacked that single day) — resuming from "
+              f"{common_index[last_pos].date()} instead.")
 
     new_rows = []
     for i in range(last_pos + 1, len(common_index)):
