@@ -44,7 +44,16 @@ ENGINES = [
     "factor_strategy_engine_AMA.py",   # FMTS AMA
     "gold_strategy_engine.py",         # Gold timer
     "momentum_strategy_engine.py",     # Momentum (new)
+    "rrg_analysis.py",                 # RRG rankings — must run BEFORE its engine
+    "rrg_portfolio_engine.py",         # RRG — research book, NOT funded (see below)
 ]
+
+# RRG is advanced daily like the others, but it is a research book: the signal
+# failed its pre-registered validation (1/9 criteria; walk-forward turned $1 into
+# $0.98 with a 50% drawdown, and it added nothing over plain 12-1 relative
+# momentum). It runs here only so the ledger accumulates genuine out-of-sample
+# evidence. rrg_calibration.json carries sizing_multiplier 0, and the Portfolio
+# Analytics / Activity Log pages label it accordingly.
 
 # Files the update touches — used to detect whether a commit is warranted.
 TRACKED_GLOBS = ["*_ledger*.csv", "*_state*.json", "*_selection*.json",
