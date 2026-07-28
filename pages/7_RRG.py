@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import yfinance as yf
 
 st.set_page_config(page_title="RRG — Relative Rotation", page_icon="🔄", layout="wide")
 
@@ -75,9 +76,33 @@ CAL_JSON = "rrg_calibration.json"
 TAILS_JSON = "rrg_tails.json"
 VAL_CSV = "rrg_validation_results.csv"
 PORT_CSV = "rrg_portfolio_results.csv"
+STATE_PATH = "rrg_state.json"
+LEDGER_PATH = "rrg_ledger.csv"
+SELECT_JSON = "rrg_selection.json"
 
 QUAD_COLOR = {"Leading": "#00c896", "Weakening": "#ffd166",
               "Lagging": "#ff4b4b", "Improving": "#4a9eff", "—": "#888888"}
+
+
+@st.cache_data(ttl=300)
+def fetch_live_prices(tickers):
+    """Live prices for the paper book. NaN-hardened: a NaN close is still a
+    float and would pass an `is not None` check, poisoning every total."""
+    out = {}
+    for t in tickers:
+        try:
+            h = yf.Ticker(t).history(period="5d", interval="1d")
+            close = h["Close"].dropna() if not h.empty else pd.Series(dtype=float)
+            if close.empty:
+                raise ValueError("no data")
+            out[t] = {
+                "price": float(close.iloc[-1]),
+                "prev_close": float(close.iloc[-2]) if len(close) > 1
+                else float(close.iloc[-1]),
+            }
+        except Exception:
+            out[t] = {"price": None, "prev_close": None}
+    return out
 
 
 @st.cache_data(ttl=900)
@@ -222,6 +247,116 @@ def rrg_figure(tail_map, df, title, label_col="ticker", max_names=14):
                    range=[y0, y1], zeroline=False))
     return fig
 
+
+st.divider()
+st.subheader("💼 Paper portfolio — live positions")
+
+if not (os.path.exists(STATE_PATH) and os.path.exists(LEDGER_PATH)):
+    st.info("No paper portfolio yet. Create one with "
+            "`py rrg_portfolio_engine.py --seed`, then keep it current with "
+            "`py rrg_portfolio_engine.py`.")
+else:
+    with open(STATE_PATH) as f:
+        pstate = json.load(f)
+    pledger = pd.read_csv(LEDGER_PATH)
+    pledger["date"] = pd.to_datetime(pledger["date"])
+    sel = {}
+    if os.path.exists(SELECT_JSON):
+        with open(SELECT_JSON) as f:
+            sel = json.load(f).get("holdings", {})
+
+    live = fetch_live_prices(tuple(sorted(pstate["shares"])))
+
+    rows, tot_mv, tot_cost, tot_day = [], 0.0, 0.0, 0.0
+    for t, n in pstate["shares"].items():
+        entry = float(pstate["entry_prices"][t])
+        lp = live.get(t, {})
+        last = lp.get("price")
+        if last is None or pd.isna(last):
+            last = pstate.get("last_prices", {}).get(t)
+        if last is None or pd.isna(last):
+            last = entry
+        prev = lp.get("prev_close")
+        if prev is None or pd.isna(prev):
+            prev = last
+        mv, cost = n * last, n * entry
+        tot_mv += mv
+        tot_cost += cost
+        tot_day += n * (last - prev)
+        meta = sel.get(t, {})
+        rows.append({
+            "Ticker": t, "Sector": meta.get("sector", ""),
+            "Setup": meta.get("setup", ""), "Shares": n,
+            "Entry Price": entry, "Live Price": float(last),
+            "Market Value": mv, "Unrealized $": mv - cost,
+            "Unrealized %": (last / entry - 1.0) * 100.0,
+            "Day $": n * (last - prev),
+        })
+    pos = pd.DataFrame(rows)
+    denom = tot_mv if tot_mv > 0 else float("nan")
+    pos["Weight %"] = pos["Market Value"] / denom * 100.0
+    pos = pos.sort_values("Market Value", ascending=False)
+
+    cash = float(pstate.get("cash_dollars", 0.0))
+    nav = tot_mv + cash
+    seed_nav = float(pledger["nav"].iloc[0]) if len(pledger) else nav
+    peak = float(pstate.get("peak_nav", nav))
+
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Total portfolio value", f"${nav:,.2f}",
+              f"{(nav/seed_nav - 1)*100:+.2f}% since seed")
+    k2.metric("Unrealized P&L", f"${tot_mv - tot_cost:+,.2f}",
+              f"{((tot_mv/tot_cost - 1)*100 if tot_cost else 0):+.2f}%")
+    k3.metric("Today", f"${tot_day:+,.2f}",
+              f"{(tot_day/(nav - tot_day)*100 if nav != tot_day else 0):+.2f}%")
+    k4.metric("Cash", f"${cash:,.2f}",
+              f"drawdown {(nav/peak - 1)*100:+.2f}%" if peak else "")
+
+    st.dataframe(
+        pos, width="stretch", hide_index=True,
+        column_config={
+            "Shares": st.column_config.NumberColumn(format="%.4f"),
+            "Entry Price": st.column_config.NumberColumn(format="$%.2f"),
+            "Live Price": st.column_config.NumberColumn(format="$%.2f"),
+            "Market Value": st.column_config.NumberColumn(format="$%,.2f"),
+            "Unrealized $": st.column_config.NumberColumn(format="$%+,.2f"),
+            "Unrealized %": st.column_config.NumberColumn(format="%+.2f%%"),
+            "Day $": st.column_config.NumberColumn(format="$%+,.2f"),
+            "Weight %": st.column_config.NumberColumn(format="%.1f%%"),
+        })
+    st.caption(
+        f"Seeded {pledger['date'].iloc[0].date()} with ${seed_nav:,.0f}, equal weight, "
+        f"max {2} per sector · last engine update {pstate.get('last_date','—')} · "
+        f"cumulative trading cost ${float(pstate.get('trading_cost',0)):,.2f} "
+        f"(10 bps slippage on traded dollars) · prices refresh every 5 min."
+    )
+
+    if len(pledger) > 1:
+        fign = go.Figure()
+        fign.add_trace(go.Scatter(
+            x=pledger["date"], y=pledger["nav"], mode="lines", name="NAV",
+            line=dict(color="#4a9eff", width=2)))
+        fign.add_trace(go.Scatter(
+            x=[pledger["date"].iloc[-1]], y=[nav], mode="markers",
+            name="live", marker=dict(color="#00c896", size=11, symbol="star")))
+        fign.update_layout(
+            height=280, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=0, r=0, t=10, b=0), showlegend=False,
+            yaxis=dict(title="NAV ($)", gridcolor="#2a2a3e", tickformat=","),
+            xaxis=dict(gridcolor="#2a2a3e"))
+        st.plotly_chart(fign, width="stretch")
+
+    st.markdown(f"""
+<div class="verdict-fail">
+<b>This is a paper book, not a recommendation.</b> It holds the top {len(pos)} names by
+RRG Score, equal-weighted, so the signal can be tracked forward out of sample — exactly
+how the other strategies in this app are run. The validation says
+<b>do not fund it</b>: the walk-forward backtest lost money with a 50% drawdown and the
+sizing multiplier is {cal.get('sizing_multiplier', 0):.2f}. A failed backtest is a
+statement about the past, so watching it forward is worthwhile — but the burden of proof
+sits with the signal, and it has not met it.
+</div>
+""", unsafe_allow_html=True)
 
 st.divider()
 st.subheader("🧪 The portfolio backtest — does trading this actually work?")

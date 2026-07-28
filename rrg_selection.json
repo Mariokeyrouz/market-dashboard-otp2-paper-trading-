@@ -1,0 +1,47 @@
+{
+  "as_of": "2026-07-29",
+  "n_holdings": 5,
+  "strategy": "RRG top-N by score, equal weight, sector-capped",
+  "holdings": {
+    "WBD": {
+      "ticker": "WBD",
+      "sector": "Communication Services",
+      "sector_etf": "XLC",
+      "rrg_score": 100.0,
+      "quadrant": "Weakening",
+      "setup": "Deteriorating \u2014 avoid"
+    },
+    "HD": {
+      "ticker": "HD",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 100.0,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "IBKR": {
+      "ticker": "IBKR",
+      "sector": "Financials",
+      "sector_etf": "XLF",
+      "rrg_score": 100.0,
+      "quadrant": "Leading",
+      "setup": "Leading"
+    },
+    "ERIE": {
+      "ticker": "ERIE",
+      "sector": "Financials",
+      "sector_etf": "XLF",
+      "rrg_score": 98.59154929577464,
+      "quadrant": "Lagging",
+      "setup": "Lagging"
+    },
+    "EXPE": {
+      "ticker": "EXPE",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 97.67441860465117,
+      "quadrant": "Weakening",
+      "setup": "Deteriorating \u2014 avoid"
+    }
+  }
+}
