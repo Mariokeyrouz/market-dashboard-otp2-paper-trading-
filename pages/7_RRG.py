@@ -83,6 +83,19 @@ SELECT_JSON = "rrg_selection.json"
 QUAD_COLOR = {"Leading": "#00c896", "Weakening": "#ffd166",
               "Lagging": "#ff4b4b", "Improving": "#4a9eff", "—": "#888888"}
 
+ROW_PX, HEAD_PX, PAD_PX = 35, 38, 10   # row / header / border+padding
+
+
+def fit_height(n_rows, max_rows=20):
+    """Height that shows every row without an inner scrollbar.
+
+    st.dataframe defaults to a ~10-row viewport, so an 11-row table scrolls for
+    the sake of one row. PAD_PX covers the grid's border and padding — measured,
+    not guessed: without it every table came up exactly 10px short and still
+    scrolled. Capped so a long table can't run away (those scroll by design).
+    """
+    return HEAD_PX + ROW_PX * max(1, min(n_rows, max_rows)) + PAD_PX
+
 
 @st.cache_data(ttl=300)
 def fetch_live_prices(tickers):
@@ -187,7 +200,12 @@ with st.expander(f"🔬 The {nchk} pre-registered decision rules", expanded=Fals
     if len(chk):
         chk["result"] = np.where(chk["pass"], "✅ PASS", "❌ FAIL")
         st.dataframe(chk[["result", "name", "detail"]], width="stretch",
-                     hide_index=True)
+                     hide_index=True, height=fit_height(len(chk)),
+                     column_config={
+                         "result": st.column_config.TextColumn("Result", width="small"),
+                         "name": st.column_config.TextColumn("Criterion", width="large"),
+                         "detail": st.column_config.TextColumn("Measured", width="small"),
+                     })
     st.caption("Thresholds were frozen and committed before the 2020–2026 holdout "
                "was opened. The deciding rule is the incremental IC over plain 12-1 "
                "relative momentum: the others can all pass on a repackaged "
@@ -313,7 +331,7 @@ else:
               f"drawdown {(nav/peak - 1)*100:+.2f}%" if peak else "")
 
     st.dataframe(
-        pos, width="stretch", hide_index=True,
+        pos, width="stretch", hide_index=True, height=fit_height(len(pos)),
         column_config={
             "Shares": st.column_config.NumberColumn(format="%.4f"),
             "Entry Price": st.column_config.NumberColumn(format="$%.2f"),
@@ -459,27 +477,50 @@ st.caption("Tails run over the last "
            "the mechanical norm — it is not by itself informative.")
 
 st.subheader("🏆 Sector ranking")
+
+QUAD_ICON = {"Leading": "🟢 Leading", "Weakening": "🟡 Weakening",
+             "Lagging": "🔴 Lagging", "Improving": "🔵 Improving"}
+
 show_cols = ["rank", "ticker", "sector", "rrg_score", "quadrant", "heading",
              "angle_deg", "distance", "delta_distance", "straightness",
              "tail_vs_null", "hit_1M_pct", "hit_3M_pct", "n_1M"]
 sec_disp = sec[[c for c in show_cols if c in sec.columns]].copy()
+sec_disp["quadrant"] = sec_disp["quadrant"].map(lambda q: QUAD_ICON.get(q, q))
 sec_disp = sec_disp.rename(columns={
-    "rrg_score": "RRG Score", "angle_deg": "Angle°", "distance": "Distance",
-    "delta_distance": "Δ Dist", "straightness": "Tail", "tail_vs_null": "Tail vs null",
-    "hit_1M_pct": "1M hit %", "hit_3M_pct": "3M hit %", "n_1M": "n"})
+    "rank": "#", "ticker": "ETF", "sector": "Sector", "rrg_score": "RRG Score",
+    "quadrant": "Quadrant", "heading": "Head", "angle_deg": "Angle",
+    "distance": "Dist", "delta_distance": "Δ Dist", "straightness": "Tail",
+    "tail_vs_null": "vs null", "hit_1M_pct": "1M hit", "hit_3M_pct": "3M hit",
+    "n_1M": "n"})
 st.dataframe(
     sec_disp, width="stretch", hide_index=True,
+    height=fit_height(len(sec_disp)),
     column_config={
+        "#": st.column_config.NumberColumn("#", format="%d", width="small"),
+        "ETF": st.column_config.TextColumn("ETF", width="small"),
+        "Sector": st.column_config.TextColumn("Sector", width="medium"),
         "RRG Score": st.column_config.ProgressColumn(
-            "RRG Score", min_value=0, max_value=100, format="%.0f"),
-        "Angle°": st.column_config.NumberColumn(format="%.0f°"),
-        "Distance": st.column_config.NumberColumn(format="%.2f"),
-        "Δ Dist": st.column_config.NumberColumn(format="%+.2f"),
-        "Tail": st.column_config.NumberColumn(format="%.2f"),
-        "Tail vs null": st.column_config.NumberColumn(format="%.2fx"),
-        "1M hit %": st.column_config.NumberColumn(format="%.1f%%"),
-        "3M hit %": st.column_config.NumberColumn(format="%.1f%%"),
-        "n": st.column_config.NumberColumn(format="%.0f"),
+            "RRG Score", min_value=0, max_value=100, format="%.0f", width="small"),
+        "Quadrant": st.column_config.TextColumn("Quadrant", width="small"),
+        "Head": st.column_config.TextColumn("Head", width="small",
+                                            help="Compass octant of travel"),
+        "Angle": st.column_config.NumberColumn(format="%.0f°", width="small"),
+        "Dist": st.column_config.NumberColumn(
+            format="%.2f", width="small",
+            help="Mahalanobis distance from the (100,100) centre"),
+        "Δ Dist": st.column_config.NumberColumn(
+            format="%+.2f", width="small",
+            help="Change in distance over the tail — is it expanding?"),
+        "Tail": st.column_config.NumberColumn(
+            format="%.2f", width="small",
+            help="Straightness: net displacement / path length"),
+        "vs null": st.column_config.NumberColumn(
+            format="%.2fx", width="small",
+            help="Tail straightness relative to the simulated zero-edge null "
+                 "(0.77). Below 1.00x = less persistent than pure noise."),
+        "1M hit": st.column_config.NumberColumn(format="%.1f%%", width="small"),
+        "3M hit": st.column_config.NumberColumn(format="%.1f%%", width="small"),
+        "n": st.column_config.NumberColumn(format="%d", width="small"),
     })
 b1 = 100 * base.get("1M", float("nan"))
 st.caption(f"Hit rates are for the matching (quadrant × distance tercile) bucket. "
@@ -510,21 +551,29 @@ else:
         cols2 = ["ticker", "rrg_score", "quadrant", "heading", "distance",
                  "delta_distance", "straightness", "setup", "hit_1M_pct",
                  "n_bucket", "R"]
-        d2 = sub[[c for c in cols2 if c in sub.columns]].rename(columns={
-            "rrg_score": "RRG Score", "distance": "Distance",
+        d2 = sub[[c for c in cols2 if c in sub.columns]].copy()
+        d2["quadrant"] = d2["quadrant"].map(lambda q: QUAD_ICON.get(q, q))
+        d2 = d2.rename(columns={
+            "ticker": "Ticker", "rrg_score": "RRG Score", "quadrant": "Quadrant",
+            "heading": "Head", "distance": "Dist",
             "delta_distance": "Δ Dist", "straightness": "Tail",
-            "setup": "Setup", "hit_1M_pct": "1M hit %", "n_bucket": "n"})
+            "setup": "Setup", "hit_1M_pct": "1M hit", "n_bucket": "n"})
         st.dataframe(
-            d2, width="stretch", hide_index=True,
+            d2, width="stretch", hide_index=True, height=fit_height(len(d2)),
             column_config={
+                "Ticker": st.column_config.TextColumn("Ticker", width="small"),
                 "RRG Score": st.column_config.ProgressColumn(
-                    "RRG Score", min_value=0, max_value=100, format="%.0f"),
-                "Distance": st.column_config.NumberColumn(format="%.2f"),
-                "Δ Dist": st.column_config.NumberColumn(format="%+.2f"),
-                "Tail": st.column_config.NumberColumn(format="%.2f"),
-                "1M hit %": st.column_config.NumberColumn(format="%.1f%%"),
-                "R": st.column_config.NumberColumn(format="%.2f"),
-                "n": st.column_config.NumberColumn(format="%.0f"),
+                    "RRG Score", min_value=0, max_value=100, format="%.0f",
+                    width="small"),
+                "Quadrant": st.column_config.TextColumn("Quadrant", width="small"),
+                "Head": st.column_config.TextColumn("Head", width="small"),
+                "Dist": st.column_config.NumberColumn(format="%.2f", width="small"),
+                "Δ Dist": st.column_config.NumberColumn(format="%+.2f", width="small"),
+                "Tail": st.column_config.NumberColumn(format="%.2f", width="small"),
+                "Setup": st.column_config.TextColumn("Setup", width="medium"),
+                "1M hit": st.column_config.NumberColumn(format="%.1f%%", width="small"),
+                "R": st.column_config.NumberColumn(format="%.2f", width="small"),
+                "n": st.column_config.NumberColumn(format="%d", width="small"),
             })
         st.caption("**Setup** is rule-based, not an opinion: *Established leader* = "
                    f"Leading quadrant with straightness > {null_straight:.2f}; "
@@ -550,7 +599,7 @@ else:
         "k_quarter_pct": "¼ Kelly", "recommended_pct": "Recommended %",
         "recommended_dollars": "Recommended $"})
     st.dataframe(
-        d3, width="stretch", hide_index=True,
+        d3, width="stretch", hide_index=True, height=fit_height(len(d3)),
         column_config={
             "W %": st.column_config.NumberColumn(format="%.2f%%"),
             "Baseline %": st.column_config.NumberColumn(format="%.2f%%"),
