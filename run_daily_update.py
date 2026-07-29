@@ -34,6 +34,15 @@ import sys
 import time
 from datetime import date, timedelta
 
+# The Windows console is cp1252. Engine stdout is captured with errors="replace",
+# which injects U+FFFD, and printing that here raised UnicodeEncodeError *after*
+# the engine had already run — so run() caught it and reported a healthy engine
+# as failed, hiding the real output. Linux/CI is UTF-8 and never hit this.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 REPO = os.path.dirname(os.path.abspath(__file__))
 
 # Order matters only for readability; engines are independent.
@@ -60,6 +69,17 @@ TRACKED_GLOBS = ["*_ledger*.csv", "*_state*.json", "*_selection*.json",
                  "paper_*.csv", "paper_*.json", "gold_*.csv", "gold_*.json", "events.jsonl"]
 
 
+def _echo(text):
+    """Print captured subprocess output without ever letting an encoding problem
+    take down the run. A logging failure must never be reported as an engine
+    failure — that is what previously masked healthy engines."""
+    try:
+        print(text)
+    except Exception:
+        enc = (getattr(sys.stdout, "encoding", None) or "utf-8")
+        print(text.encode(enc, errors="replace").decode(enc, errors="replace"))
+
+
 def run(script, timeout=1200):
     print(f"\n{'='*70}\n>> {script}\n{'='*70}", flush=True)
     t0 = time.time()
@@ -67,7 +87,7 @@ def run(script, timeout=1200):
         r = subprocess.run([sys.executable, script], cwd=REPO, timeout=timeout,
                            capture_output=True, text=True,
                            encoding="utf-8", errors="replace")
-        print(r.stdout[-2000:] if r.stdout else "(no stdout)")
+        _echo(r.stdout[-2000:] if r.stdout else "(no stdout)")
         if r.returncode != 0:
             print(f"  [WARN] {script} exited {r.returncode}\n{(r.stderr or '')[-1500:]}")
             return False

@@ -1,0 +1,99 @@
+name: Daily paper-trading update
+
+# Runs the whole paper-trading suite in the cloud, so the ledgers advance whether
+# or not the local machine is on. This replaces the Windows Task Scheduler job
+# ("MarketDashboard Daily Update") — DISABLE THAT TASK, or both will race to
+# commit to the same ledgers.
+#
+# The push this job makes is what triggers the Streamlit Cloud redeploy, exactly
+# as the local job did.
+
+on:
+  schedule:
+    # 22:30 UTC on weekdays = 18:30 ET (EDT) / 17:30 ET (EST). Both are after the
+    # 16:00 ET close. GitHub cron is always UTC and does not follow DST, so this
+    # single expression stays valid year-round.
+    # Note: scheduled runs are best-effort and can be delayed under GitHub load.
+    - cron: "30 22 * * 1-5"
+  workflow_dispatch:          # lets you run it on demand from the Actions tab
+
+permissions:
+  contents: write             # the job commits the advanced ledgers back
+
+concurrency:
+  group: daily-update
+  cancel-in-progress: false   # never interrupt a run mid-ledger-write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    # The monthly FMTS re-screen is allowed 2400s inside run_daily_update.py,
+    # so the job ceiling has to clear that comfortably.
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Optional in the code (guarded by try/except) but worth having: it
+          # impersonates a browser TLS fingerprint and materially reduces
+          # yfinance rate-limiting from shared CI egress IPs.
+          pip install curl_cffi
+
+      - name: Compute weekly cache key
+        id: wk
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore cached price panels
+        uses: actions/cache@v4
+        with:
+          # Both are gitignored and regenerable. momentum_daily_prices.csv is
+          # ~47 MB and takes ~500 yfinance calls to rebuild, so it is cached per
+          # ISO week rather than rebuilt daily — only rrg_analysis.py reads it,
+          # and a few days of staleness on a research book is acceptable. The
+          # six funded engines fetch their own data directly and do not touch it.
+          path: |
+            momentum_daily_prices.csv
+            rrg_prices.csv
+          key: price-panels-${{ steps.wk.outputs.week }}
+          restore-keys: price-panels-
+
+      - name: Ensure the stock price panel exists
+        run: |
+          python - <<'PY'
+          import os
+          # load_daily() reuses the file when it is <24h old; after a cache
+          # restore the mtime is fresh, so this is a no-op on a cache hit and a
+          # full rebuild only on the weekly miss.
+          if os.path.exists("momentum_daily_prices.csv"):
+              print("stock panel restored from cache — skipping rebuild")
+          else:
+              print("cache miss — rebuilding the stock panel (this is the slow step)")
+              import momentum_experiments_daily as m
+              px = m.load_daily()
+              print("rebuilt:", px.shape)
+          PY
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run the daily update
+        run: python run_daily_update.py 2>&1 | tee daily-update.log
+
+      - name: Upload run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-update-log-${{ github.run_number }}
+          path: daily-update.log
+          retention-days: 30
