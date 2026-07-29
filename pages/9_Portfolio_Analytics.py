@@ -836,22 +836,28 @@ st.divider()
 
 st.subheader("📈 NAV Comparison (indexed to 10,000)")
 
+# A book seeded today has a single ledger row. You cannot draw a line through one
+# point, but you can plot the point — so single-row books render as a marker and
+# stay visible from day one instead of silently missing from both charts until
+# their second update.
 fig_nav = go.Figure()
 for name, cfg in PORTFOLIOS.items():
     ledger = _load_ledger(cfg["ledger"])
-    if ledger is None or len(ledger) < 2:
+    if ledger is None or len(ledger) < 1:
         continue
+    _multi = len(ledger) >= 2
     fig_nav.add_trace(go.Scatter(
         x=ledger["date"],
         y=ledger["nav"],
-        mode="lines",
-        name=f"{cfg['icon']} {name}",
+        mode="lines" if _multi else "markers",
+        name=f"{cfg['icon']} {name}" + ("" if _multi else " (seeded)"),
         line=dict(color=cfg["color"], width=2),
+        marker=dict(color=cfg["color"], size=9, symbol="circle"),
     ))
 
 # Benchmark overlay: SPY rebased to 10,000 at the earliest inception shown.
 _starts = [l["date"].iloc[0] for cfg in PORTFOLIOS.values()
-           if (l := _load_ledger(cfg["ledger"])) is not None and len(l) >= 2]
+           if (l := _load_ledger(cfg["ledger"])) is not None and len(l) >= 1]
 if _starts and not spy.empty:
     _s = spy[spy.index >= min(_starts)]
     if len(_s) >= 2:
@@ -882,16 +888,18 @@ st.subheader("📉 Drawdown Comparison")
 fig_dd = go.Figure()
 for name, cfg in PORTFOLIOS.items():
     ledger = _load_ledger(cfg["ledger"])
-    if ledger is None or len(ledger) < 2:
+    if ledger is None or len(ledger) < 1:
         continue
     running_max = ledger["nav"].cummax()
     dd = (ledger["nav"] - running_max) / running_max * 100
+    _multi = len(ledger) >= 2
     fig_dd.add_trace(go.Scatter(
         x=ledger["date"],
         y=dd,
-        mode="lines",
-        name=f"{cfg['icon']} {name}",
+        mode="lines" if _multi else "markers",
+        name=f"{cfg['icon']} {name}" + ("" if _multi else " (seeded)"),
         line=dict(color=cfg["color"], width=2),
+        marker=dict(color=cfg["color"], size=9, symbol="circle"),
     ))
 
 fig_dd.add_hline(y=-9.0, line_dash="dot", line_color="#ff8800",
