@@ -600,22 +600,6 @@ if metric_rows:
     ]
     df_metrics = pd.DataFrame(metric_rows)[cols_order]
 
-    def _fmt(col, val):
-        if pd.isna(val):
-            return "—"
-        pct_cols = {"Total Return", "SPY %", "vs SPY", "Ann. Return", "Ann. Vol",
-                    "Max Drawdown", "Win Rate", "Best Day", "Worst Day", "Invested %"}
-        ratio_cols = {"Sharpe", "Sortino", "Calmar"}
-        if col == "NAV":
-            return f"${val:,.2f}"
-        if col in pct_cols:
-            return f"{val:+.2f}%" if col != "Win Rate" and col != "Invested %" else f"{val:.1f}%"
-        if col in ratio_cols:
-            return f"{val:.2f}"
-        if col == "Days Live":
-            return f"{int(val)}d"
-        return str(val)
-
     # Per-cell colour derived from the NUMERIC frame (green/red/amber by sign/threshold).
     _GREEN, _RED, _AMBER = ("color: #00c896; font-weight: 600",
                             "color: #ff4b4b; font-weight: 600",
@@ -632,19 +616,32 @@ if metric_rows:
             if 0 <= v <= 1:  return _AMBER
         return ""
 
-    # Streamlit renders a Styler's NaN cells as "None" regardless of na_rep, so we
-    # hand it a fully pre-formatted STRING table ("—" for NaN via _fmt) and attach
-    # the colours as a same-shaped CSS matrix computed from the numeric values.
-    display_df = df_metrics.copy()
+    # Keep df_metrics NUMERIC end-to-end so Streamlit's column sort compares values, not
+    # formatted text — pre-stringifying (e.g. "-91.00%" vs "-2.00%") made the interactive
+    # sort compare characters, which put deeper negative returns in the wrong order (e.g.
+    # "-91.00%" sorted after "-2.00%" since '9' > '2'). Number display now goes through
+    # column_config instead of Styler.format(): a Styler's .format() renders NaN cells as
+    # the literal string "None" regardless of na_rep, but column_config's NumberColumn
+    # handles NaN natively (blank cell) while still leaving the column numeric for sorting.
     color_df = pd.DataFrame("", index=df_metrics.index, columns=cols_order)
     for col in cols_order[1:]:
         color_df[col] = df_metrics[col].map(lambda v, c=col: _cell_color(c, v))
-        display_df[col] = display_df[col].apply(lambda v, c=col: _fmt(c, v))
+
+    _pct_signed = {"Total Return", "SPY %", "vs SPY", "Ann. Return", "Ann. Vol",
+                   "Max Drawdown", "Best Day", "Worst Day"}
+    _pct_plain = {"Win Rate", "Invested %"}
+    _ratio_cols = {"Sharpe", "Sortino", "Calmar"}
+    column_config = {"NAV": st.column_config.NumberColumn(format="$%.2f"),
+                      "Days Live": st.column_config.NumberColumn(format="%dd")}
+    column_config.update({c: st.column_config.NumberColumn(format="%+.2f%%") for c in _pct_signed})
+    column_config.update({c: st.column_config.NumberColumn(format="%.1f%%") for c in _pct_plain})
+    column_config.update({c: st.column_config.NumberColumn(format="%.2f") for c in _ratio_cols})
 
     st.dataframe(
-        display_df.style.apply(lambda _: color_df, axis=None),
+        df_metrics.style.apply(lambda _: color_df, axis=None),
         width='stretch',
         hide_index=True,
+        column_config=column_config,
     )
 else:
     st.info("No ledger data found. Run the strategy engines to generate data.")
