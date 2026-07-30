@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { REGIONS, REGION_LABELS, type Region } from "@/lib/data/types";
+import { AMBER, GREEN } from "@/lib/derive";
 import { useDashStore } from "@/lib/store";
 import { useClock } from "@/lib/useClock";
 import { useDerived } from "../DataContext";
 import { MONO, SERIF } from "../ui";
+import DensityToggle from "./DensityToggle";
 import ElementLibrary from "./ElementLibrary";
 import ThemeToggle from "./ThemeToggle";
 
@@ -46,7 +49,16 @@ export default function Header({ showControls = true }: { showControls?: boolean
   const edit = useDashStore((s) => s.editMode);
   const setEditMode = useDashStore((s) => s.setEditMode);
   const resetLayout = useDashStore((s) => s.resetLayout);
+  const libraryOpen = useDashStore((s) => s.libraryOpen);
+  const setLibraryOpen = useDashStore((s) => s.setLibraryOpen);
+  const savedViews = useDashStore((s) => s.savedViews);
+  const activeSavedViewId = useDashStore((s) => s.activeSavedViewId);
+  const saveView = useDashStore((s) => s.saveView);
+  const restoreView = useDashStore((s) => s.restoreView);
+  const [savingView, setSavingView] = useState(false);
+  const [newViewName, setNewViewName] = useState("");
   const mktColor = open ? "var(--green)" : "var(--red)";
+  const flagged = v.tripwires.filter((t) => t.tone !== GREEN).length;
 
   const clockBox = (
     <div
@@ -55,6 +67,21 @@ export default function Header({ showControls = true }: { showControls?: boolean
         border: "1px solid var(--tile-border)", borderRadius: 10, padding: "9px 15px",
       }}
     >
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 5 }}
+        title={`${flagged} tripwire${flagged === 1 ? "" : "s"} flagged · Regime: ${v.regime.label} (${v.regime.days}d, since ${v.regime.since})`}
+      >
+        <span
+          style={{
+            width: 7, height: 7, borderRadius: "50%",
+            background: flagged > 0 ? AMBER : GREEN,
+            animation: flagged > 0 ? "mp-pulse 2s ease-in-out infinite" : undefined,
+          }}
+        />
+        <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: flagged > 0 ? AMBER : "var(--muted)" }}>
+          {flagged}
+        </span>
+      </div>
       <div style={{ textAlign: "right" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: mktColor, animation: "mp-pulse 2s ease-in-out infinite" }} />
@@ -132,6 +159,62 @@ export default function Header({ showControls = true }: { showControls?: boolean
               <div style={{ width: 108 }}>
                 <ThemeToggle />
               </div>
+              <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
+                Density
+              </span>
+              <div style={{ width: 168 }}>
+                <DensityToggle />
+              </div>
+              <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
+                Views
+              </span>
+              {savedViews.length > 0 && (
+                <div style={{ position: "relative" }}>
+                  <select
+                    className="mws-select"
+                    value={activeSavedViewId ?? ""}
+                    onChange={(e) => e.target.value && restoreView(e.target.value)}
+                    style={selectStyle}
+                  >
+                    <option value="" disabled>
+                      Restore…
+                    </option>
+                    {savedViews.map((sv) => (
+                      <option key={sv.id} value={sv.id}>
+                        {sv.name}
+                      </option>
+                    ))}
+                  </select>
+                  <span style={{ position: "absolute", right: 11, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--muted)", fontSize: 9 }}>
+                    ▼
+                  </span>
+                </div>
+              )}
+              {savingView ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const trimmed = newViewName.trim();
+                    if (trimmed) saveView(trimmed);
+                    setNewViewName("");
+                    setSavingView(false);
+                  }}
+                >
+                  <input
+                    autoFocus
+                    value={newViewName}
+                    onChange={(e) => setNewViewName(e.target.value)}
+                    onBlur={() => { setSavingView(false); setNewViewName(""); }}
+                    placeholder="View name…"
+                    aria-label="New saved view name"
+                    style={{ fontSize: 12.5, padding: "6px 9px", border: "1px solid var(--control-border)", borderRadius: 7, background: "var(--tile)", color: "var(--ink)", width: 130 }}
+                  />
+                </form>
+              ) : (
+                <button style={btnStyle("var(--gold)")} onClick={() => setSavingView(true)}>
+                  + Save view
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -150,6 +233,16 @@ export default function Header({ showControls = true }: { showControls?: boolean
               ✎ Customize
             </button>
           )}
+          <button
+            style={{
+              ...btnStyle(libraryOpen ? "var(--gold)" : "var(--muted)"),
+              background: libraryOpen ? "color-mix(in srgb, var(--gold) 13%, transparent)" : "var(--tile)",
+            }}
+            aria-expanded={libraryOpen}
+            onClick={() => setLibraryOpen(!libraryOpen)}
+          >
+            ▦ Elements
+          </button>
           {clockBox}
         </div>
       </div>

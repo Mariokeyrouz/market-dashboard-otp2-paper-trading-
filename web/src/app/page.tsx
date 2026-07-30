@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useSyncExternalStore } from "react";
+import ElementLibraryDock from "@/components/chrome/ElementLibraryDock";
+import ElementLibraryPanel from "@/components/chrome/ElementLibraryPanel";
 import Header from "@/components/chrome/Header";
 import LeftRail from "@/components/chrome/LeftRail";
 import LogicPanel from "@/components/chrome/LogicPanel";
@@ -50,8 +52,10 @@ export default function Page() {
           <LeftRail
             collapsed={collapsed}
             onToggleCollapse={mode === "wide" ? () => setRailCollapsed(!railCollapsed) : undefined}
+            libraryDocked={docked}
           />
         )}
+        {docked && <ElementLibraryDock />}
         <div style={{ flex: 1, minWidth: 0, maxWidth: 1820, margin: "0 auto" }}>
           {/* In wide/mid the rail owns brand + controls + clock, so there is no
               header band — the grid starts at the top. Narrow keeps the header. */}
@@ -80,6 +84,9 @@ export default function Page() {
       </div>
       {/* Only one Logic surface at a time: docked when it fits, else the tab. */}
       {!docked && <LogicPanel />}
+      {/* Element Library drawer — its trigger lives in LeftRail (mid) or
+          Header (narrow); this just renders the backdrop + panel. */}
+      {!docked && <ElementLibraryPanel />}
     </DataContext.Provider>
   );
 }

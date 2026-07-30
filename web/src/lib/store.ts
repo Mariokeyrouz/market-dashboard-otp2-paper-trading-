@@ -31,8 +31,23 @@ interface DashState {
   logicOpen: boolean;
   /** Persisted: whether the right-hand Logic dock is expanded (wide screens). */
   dockOpen: boolean;
+  /** Persisted: whether the left-hand Element Library dock is expanded (wide screens). */
+  libraryDockOpen: boolean;
+  /** Transient: the Element Library overlay drawer (mid/narrow screens). Not persisted — same reasoning as `logicOpen`. */
+  libraryOpen: boolean;
   /** Persisted: manual override that collapses the left rail in `wide` mode. */
   railCollapsed: boolean;
+  /**
+   * Persisted: manual override for tile density. "auto" defers to the grid's
+   * own fit-to-height sizing (DashboardGrid); "compact"/"comfortable" force
+   * DensityContext regardless of the fitted row height.
+   */
+  densityOverride: DensityOverride;
+  /** Persisted: named snapshots of region + layout + hidden, switchable in one click. */
+  savedViews: SavedView[];
+  /** Transient: which saved view was last restored — not persisted, since a
+   *  stale marker would misrepresent a since-edited layout on reload. */
+  activeSavedViewId: string | null;
   setRegion: (r: Region) => void;
   setTheme: (t: Theme) => void;
   setLayout: (l: Layout) => void;
@@ -45,6 +60,24 @@ interface DashState {
   setLogicOpen: (b: boolean) => void;
   setDockOpen: (b: boolean) => void;
   setRailCollapsed: (b: boolean) => void;
+  setDensityOverride: (d: DensityOverride) => void;
+  setLibraryDockOpen: (b: boolean) => void;
+  setLibraryOpen: (b: boolean) => void;
+  saveView: (name: string) => void;
+  restoreView: (id: string) => void;
+  deleteView: (id: string) => void;
+  renameView: (id: string, name: string) => void;
+}
+
+export type DensityOverride = "auto" | "compact" | "comfortable";
+
+export interface SavedView {
+  id: string;
+  name: string;
+  region: Region;
+  layout: LayoutItem[];
+  hidden: string[];
+  createdAt: number;
 }
 
 const strip = (l: readonly LayoutItem[]): LayoutItem[] =>
@@ -61,7 +94,12 @@ export const useDashStore = create<DashState>()(
       editMode: false,
       logicOpen: false,
       dockOpen: false,
+      libraryDockOpen: false,
+      libraryOpen: false,
       railCollapsed: false,
+      densityOverride: "auto",
+      savedViews: [],
+      activeSavedViewId: null,
       setRegion: (region) => set({ region }),
       setTheme: (theme) => set({ theme }),
       setLayout: (layout) => set({ layout: strip(layout) }),
@@ -96,10 +134,36 @@ export const useDashStore = create<DashState>()(
       setLogicOpen: (logicOpen) => set({ logicOpen }),
       setDockOpen: (dockOpen) => set({ dockOpen }),
       setRailCollapsed: (railCollapsed) => set({ railCollapsed }),
+      setDensityOverride: (densityOverride) => set({ densityOverride }),
+      setLibraryDockOpen: (libraryDockOpen) => set({ libraryDockOpen }),
+      setLibraryOpen: (libraryOpen) => set({ libraryOpen }),
+      saveView: (name) =>
+        set((s) => ({
+          savedViews: [
+            ...s.savedViews,
+            { id: crypto.randomUUID(), name, region: s.region, layout: strip(s.layout), hidden: [...s.hidden], createdAt: Date.now() },
+          ],
+        })),
+      restoreView: (id) =>
+        set((s) => {
+          const view = s.savedViews.find((v) => v.id === id);
+          if (!view) return s;
+          return {
+            region: view.region, layout: strip(view.layout), hidden: [...view.hidden],
+            editMode: false, activeSavedViewId: id,
+          };
+        }),
+      deleteView: (id) =>
+        set((s) => ({
+          savedViews: s.savedViews.filter((v) => v.id !== id),
+          activeSavedViewId: s.activeSavedViewId === id ? null : s.activeSavedViewId,
+        })),
+      renameView: (id, name) =>
+        set((s) => ({ savedViews: s.savedViews.map((v) => (v.id === id ? { ...v, name } : v)) })),
     }),
     {
       name: "mws_state_v1",
-      version: 1,
+      version: 2,
       // Pre-v1 browsers may have a persisted `theme` from a since-removed
       // third theme option — coerce anything that isn't a known theme to the
       // new default (Black) rather than letting it fall through to a dead
@@ -111,12 +175,15 @@ export const useDashStore = create<DashState>()(
         }
         return persisted;
       },
-      // dockOpen persists (a layout preference) but logicOpen deliberately
-      // does not — the overlay is transient, and persisting it would slide the
-      // drawer open over the dashboard on load after you'd narrowed the window.
+      // dockOpen/libraryDockOpen persist (layout preferences) but logicOpen/
+      // libraryOpen deliberately do not — the overlays are transient, and
+      // persisting them would slide a drawer open over the dashboard on load
+      // after you'd narrowed the window.
       partialize: (s) => ({
         region: s.region, theme: s.theme, layout: s.layout, hidden: s.hidden,
-        pins: s.pins, dockOpen: s.dockOpen, railCollapsed: s.railCollapsed,
+        pins: s.pins, dockOpen: s.dockOpen, libraryDockOpen: s.libraryDockOpen,
+        railCollapsed: s.railCollapsed, densityOverride: s.densityOverride,
+        savedViews: s.savedViews,
       }),
     },
   ),

@@ -34,6 +34,7 @@ export default function DashboardGrid() {
   const hideElement = useDashStore((s) => s.hideElement);
   const setPin = useDashStore((s) => s.setPin);
   const clearPin = useDashStore((s) => s.clearPin);
+  const densityOverride = useDashStore((s) => s.densityOverride);
 
   // deriveAll is pure, so every region can be derived up-front and each tile
   // handed its own slice — which is what makes per-element POV free: no element
@@ -83,10 +84,16 @@ export default function DashboardGrid() {
     return () => window.removeEventListener("resize", compute);
   }, [edit, totalRows]);
 
+  // "auto" defers to the fitted row height; "compact"/"comfortable" force the
+  // density regardless of it (comfortable may crop content on short tiles —
+  // an accepted tradeoff for a manual override rather than a fit change).
+  const autoCompact = rowHeight < 22;
+  const compact = densityOverride === "auto" ? autoCompact : densityOverride === "compact";
+
   return (
     <div ref={containerRef} style={{ marginTop: centerMargin, marginBottom: centerMargin }}>
       {mounted && width > 0 && (
-        <DensityContext.Provider value={rowHeight < 22}>
+        <DensityContext.Provider value={compact}>
         <ReactGridLayout
           // RGL's items memoize their geometry and miss rowHeight-only updates
           // (the container height reacts, tiles don't) — remount on change.
