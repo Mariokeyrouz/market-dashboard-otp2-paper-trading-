@@ -1,3 +1,4 @@
 date,nav,invested_pct,daily_log_ret,risk_on,peak_nav,holdings
 2026-07-29,10000.0,100.0,0.0,True,10000.0,"WBD, HD, IBKR, ERIE, EXPE"
 2026-07-30,9961.91,100.0,-0.00381616,True,10000.0,"WBD, HD, IBKR, ERIE, EXPE"
+2026-07-31,9813.62,100.0,-0.01499733,True,10000.0,"WBD, HD, IBKR, ERIE, EXPE"
