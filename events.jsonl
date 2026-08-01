@@ -1,3 +1,4 @@
+{"date": "2026-07-31", "strategy": "FMTS AMA", "type": "rebalance", "detail": "Rotated 10 out / 10 in (2026-08-01)", "source": "engine", "realized_pnl": -221.02, "tickers": ["GGG", "IEX", "EOG", "NDSN", "UNP", "CHD", "MLI", "EA", "CVX", "XOM"]}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "FMTS", "type": "seed", "detail": "Seeded at $9,990", "source": "backfill"}
