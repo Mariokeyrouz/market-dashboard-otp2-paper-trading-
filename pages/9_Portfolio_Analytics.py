@@ -90,6 +90,12 @@ PORTFOLIOS = {
 # Strategies shown for monitoring but explicitly not treated as funded peers.
 RESEARCH_ONLY = {"RRG"}
 
+# Gold has its own page and is kept out of the equity-only sections (Position
+# Attribution, NAV/Drawdown comparison, stock correlations) below — but it
+# still belongs in the headline Performance Metrics table alongside them.
+GOLD_CFG = {"ledger": "gold_ledger.csv", "state": "gold_state.json", "selection": "",
+            "icon": "🥇", "color": "#c9a227"}
+
 CORR_PERIOD = "1y"   # yfinance period for stock correlation data
 
 
@@ -559,7 +565,7 @@ st.caption(
 spy = fetch_benchmark("SPY")   # total-return benchmark
 
 metric_rows = []
-for name, cfg in PORTFOLIOS.items():
+for name, cfg in {**PORTFOLIOS, "Gold": GOLD_CFG}.items():
     ledger = _load_ledger(cfg["ledger"])
     m = _compute_metrics(ledger)
     if m:
@@ -653,10 +659,10 @@ st.divider()
 st.subheader("🩺 System Health & Diagnostics")
 
 # The system view spans EVERY strategy, including Gold — which has its own page
-# and is deliberately excluded from the equity-only sections above/below.
-SYSTEM_PORTFOLIOS = {**PORTFOLIOS, "Gold": {
-    "ledger": "gold_ledger.csv", "state": "gold_state.json", "selection": "",
-    "icon": "🥇", "color": "#c9a227"}}
+# and is still excluded from the stock-specific equity sections below (Position
+# Attribution, NAV/Drawdown comparison, stock correlations), though it now
+# appears in the headline Performance Metrics table above.
+SYSTEM_PORTFOLIOS = {**PORTFOLIOS, "Gold": GOLD_CFG}
 _hstates, _hsel = _load_all_states(SYSTEM_PORTFOLIOS)
 
 # (a) Combined system totals
