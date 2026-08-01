@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { DASHBOARD_TYPES } from "@/lib/dashboards";
 import { REGION_LABELS, REGIONS } from "@/lib/data/types";
 import { AMBER, GREEN } from "@/lib/derive";
-import { useDashStore } from "@/lib/store";
+import { selectActiveSavedViewId, selectHidden, selectSavedViews, useDashStore } from "@/lib/store";
 import { useClock } from "@/lib/useClock";
+import { useDashboardDef } from "@/lib/useDashboardDef";
 import { RAIL_W, RAIL_W_COLLAPSED } from "@/lib/useShellMode";
 import { useDerived } from "../DataContext";
 import { MICRO, MONO, SERIF } from "../ui";
@@ -36,18 +38,21 @@ export default function LeftRail({
    *  the overlay drawer instead (the dock doesn't fit). */
   libraryDocked: boolean;
 }) {
+  const dashDef = useDashboardDef();
+  const dashboardType = useDashStore((s) => s.dashboardType);
+  const setDashboardType = useDashStore((s) => s.setDashboardType);
   const region = useDashStore((s) => s.region);
   const setRegion = useDashStore((s) => s.setRegion);
   const edit = useDashStore((s) => s.editMode);
   const setEditMode = useDashStore((s) => s.setEditMode);
   const resetLayout = useDashStore((s) => s.resetLayout);
-  const hidden = useDashStore((s) => s.hidden);
+  const hidden = useDashStore(selectHidden);
   const libraryDockOpen = useDashStore((s) => s.libraryDockOpen);
   const setLibraryDockOpen = useDashStore((s) => s.setLibraryDockOpen);
   const libraryOpen = useDashStore((s) => s.libraryOpen);
   const setLibraryOpen = useDashStore((s) => s.setLibraryOpen);
-  const savedViews = useDashStore((s) => s.savedViews);
-  const activeSavedViewId = useDashStore((s) => s.activeSavedViewId);
+  const savedViews = useDashStore(selectSavedViews);
+  const activeSavedViewId = useDashStore(selectActiveSavedViewId);
   const saveView = useDashStore((s) => s.saveView);
   const restoreView = useDashStore((s) => s.restoreView);
   const deleteView = useDashStore((s) => s.deleteView);
@@ -57,6 +62,10 @@ export default function LeftRail({
   const v = useDerived();
   const mktColor = open ? "var(--green)" : "var(--red)";
   const flagged = v.tripwires.filter((t) => t.tone !== GREEN).length;
+  // The region-scoped exchange label only means something on a dashboard
+  // with a region lens — a stale "Euronext" while Equity (US-only) is
+  // active would be actively misleading.
+  const exchangeLabel = dashDef.hasRegionLens ? v.exchange : "NYSE · ET";
 
   return (
     <aside
@@ -92,9 +101,23 @@ export default function LeftRail({
           </div>
           {!collapsed && (
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, letterSpacing: "-.01em", lineHeight: 1.2 }}>
-                Macro Signal Dashboard
-              </div>
+              <select
+                className="mws-select"
+                aria-label="Dashboard type"
+                value={dashboardType}
+                onChange={(e) => setDashboardType(e.target.value as typeof dashboardType)}
+                style={{
+                  fontFamily: SERIF, fontSize: 15, fontWeight: 600, letterSpacing: "-.01em",
+                  color: "var(--ink)", background: "transparent", border: "none", padding: 0,
+                  cursor: "pointer", width: "100%",
+                }}
+              >
+                {DASHBOARD_TYPES.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
               <span
                 style={{
                   display: "inline-block", marginTop: 4,
@@ -124,44 +147,48 @@ export default function LeftRail({
           )}
         </div>
 
-        <div style={divider} />
+        {dashDef.hasRegionLens && (
+          <>
+            <div style={divider} />
 
-        {/* Point of view */}
-        {!collapsed && <div style={{ ...MICRO, marginBottom: 2 }}>Point of view</div>}
+            {/* Point of view */}
+            {!collapsed && <div style={{ ...MICRO, marginBottom: 2 }}>Point of view</div>}
 
-        {REGIONS.map((r) => {
-          const active = r === region;
-          return (
-            <button
-              key={r}
-              onClick={() => setRegion(r)}
-              aria-current={active}
-              // Collapsed, the only visible text is the "US"/"EU" code, so the
-              // full name has to come from the label rather than the content.
-              aria-label={`Set the region lens to ${REGION_LABELS[r]}`}
-              title={collapsed ? REGION_LABELS[r] : undefined}
-              style={{
-                display: "flex", alignItems: "center", gap: 8,
-                justifyContent: collapsed ? "center" : "flex-start",
-                width: "100%", textAlign: "left", cursor: "pointer",
-                background: active ? "color-mix(in srgb, var(--gold) 13%, transparent)" : "transparent",
-                border: "1px solid transparent",
-                boxShadow: active ? "inset 3px 0 0 var(--gold)" : undefined,
-                borderRadius: 7, padding: collapsed ? "6px 0" : "6px 8px",
-                color: active ? "var(--ink)" : "var(--body)",
-              }}
-            >
-              <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, color: active ? "var(--gold)" : "var(--faint)" }}>
-                {r}
-              </span>
-              {!collapsed && (
-                <span style={{ fontSize: 12.5, fontWeight: active ? 600 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {REGION_LABELS[r]}
-                </span>
-              )}
-            </button>
-          );
-        })}
+            {REGIONS.map((r) => {
+              const active = r === region;
+              return (
+                <button
+                  key={r}
+                  onClick={() => setRegion(r)}
+                  aria-current={active}
+                  // Collapsed, the only visible text is the "US"/"EU" code, so the
+                  // full name has to come from the label rather than the content.
+                  aria-label={`Set the region lens to ${REGION_LABELS[r]}`}
+                  title={collapsed ? REGION_LABELS[r] : undefined}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    justifyContent: collapsed ? "center" : "flex-start",
+                    width: "100%", textAlign: "left", cursor: "pointer",
+                    background: active ? "color-mix(in srgb, var(--gold) 13%, transparent)" : "transparent",
+                    border: "1px solid transparent",
+                    boxShadow: active ? "inset 3px 0 0 var(--gold)" : undefined,
+                    borderRadius: 7, padding: collapsed ? "6px 0" : "6px 8px",
+                    color: active ? "var(--ink)" : "var(--body)",
+                  }}
+                >
+                  <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, color: active ? "var(--gold)" : "var(--faint)" }}>
+                    {r}
+                  </span>
+                  {!collapsed && (
+                    <span style={{ fontSize: 12.5, fontWeight: active ? 600 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {REGION_LABELS[r]}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </>
+        )}
       </div>
 
       {/* Market clock + session status — relocated from the old header band.
@@ -174,7 +201,7 @@ export default function LeftRail({
           gap: 8, padding: collapsed ? "6px 0" : "8px 4px",
           borderTop: "1px solid var(--hairline)", borderBottom: "1px solid var(--hairline)",
         }}
-        title={`${v.exchange} · ${open ? "OPEN" : "CLOSED"}`}
+        title={`${exchangeLabel} · ${open ? "OPEN" : "CLOSED"}`}
       >
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: mktColor, animation: "mp-pulse 2s ease-in-out infinite", flexShrink: 0 }} />
         {collapsed ? (
@@ -184,7 +211,7 @@ export default function LeftRail({
         ) : (
           <>
             <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
-              <span style={{ ...MICRO, marginBottom: 1 }}>{v.exchange}</span>
+              <span style={{ ...MICRO, marginBottom: 1 }}>{exchangeLabel}</span>
               <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 500, letterSpacing: ".02em", color: "var(--ink)" }}>{clock}</span>
             </div>
             <span style={{ marginLeft: "auto", fontFamily: MONO, fontSize: 11, fontWeight: 600, letterSpacing: ".06em", color: mktColor }}>
@@ -195,38 +222,41 @@ export default function LeftRail({
       </div>
 
       {/* Status pulse — tripwire flag count + current regime, glanceable
-          without opening either tile. Passive display only. */}
-      <div
-        style={{
-          display: "flex", alignItems: "center", gap: collapsed ? 4 : 9,
-          justifyContent: collapsed ? "center" : "flex-start",
-          padding: collapsed ? "3px 0" : "5px 4px",
-        }}
-        title={`${flagged} tripwire${flagged === 1 ? "" : "s"} flagged · Regime: ${v.regime.label} (${v.regime.days}d, since ${v.regime.since})`}
-      >
-        <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-          <span
-            style={{
-              width: 7, height: 7, borderRadius: "50%",
-              background: flagged > 0 ? AMBER : GREEN,
-              animation: flagged > 0 ? "mp-pulse 2s ease-in-out infinite" : undefined,
-            }}
-          />
-          <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: flagged > 0 ? AMBER : "var(--muted)" }}>
-            {flagged}
+          without opening either tile. Passive display only. Macro-only —
+          no equity equivalent in v1. */}
+      {dashDef.hasRegionLens && (
+        <div
+          style={{
+            display: "flex", alignItems: "center", gap: collapsed ? 4 : 9,
+            justifyContent: collapsed ? "center" : "flex-start",
+            padding: collapsed ? "3px 0" : "5px 4px",
+          }}
+          title={`${flagged} tripwire${flagged === 1 ? "" : "s"} flagged · Regime: ${v.regime.label} (${v.regime.days}d, since ${v.regime.since})`}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+            <span
+              style={{
+                width: 7, height: 7, borderRadius: "50%",
+                background: flagged > 0 ? AMBER : GREEN,
+                animation: flagged > 0 ? "mp-pulse 2s ease-in-out infinite" : undefined,
+              }}
+            />
+            <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: flagged > 0 ? AMBER : "var(--muted)" }}>
+              {flagged}
+            </span>
           </span>
-        </span>
-        {!collapsed && (
-          <span
-            style={{
-              fontSize: 11.5, fontWeight: 600, color: v.regime.color,
-              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-            }}
-          >
-            {v.regime.label}
-          </span>
-        )}
-      </div>
+          {!collapsed && (
+            <span
+              style={{
+                fontSize: 11.5, fontWeight: 600, color: v.regime.color,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              }}
+            >
+              {v.regime.label}
+            </span>
+          )}
+        </div>
+      )}
 
       <div style={divider} />
 
@@ -321,7 +351,8 @@ export default function LeftRail({
 
       {edit && !collapsed && (
         <div style={{ fontSize: 10.5, lineHeight: 1.45, color: "var(--muted)", marginTop: 7 }}>
-          Drag to move · corner to resize · × to hide · set each tile&apos;s POV from its own dropdown.
+          Drag to move · corner to resize · × to hide
+          {dashDef.hasRegionLens && " · set each tile's POV from its own dropdown"}.
         </div>
       )}
 

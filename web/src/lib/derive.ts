@@ -3,9 +3,14 @@
  * dashboard, ported from the validated design handoff's renderVals().
  * No React, no side effects: unit-testable and swappable to real data.
  */
+import { buildPath, buildTicks } from "./chart-geometry";
+import type { Tick, XTick } from "./chart-geometry";
 import { getRegionData } from "./data/mock";
 import { REGION_LABELS, REGIONS } from "./data/types";
 import type { PlaybookRow, Region, RegimeSeg } from "./data/types";
+
+export type { Tick, XTick } from "./chart-geometry";
+export { buildPath, buildTicks } from "./chart-geometry";
 
 // ---------- formatting / color helpers ----------
 export const GREEN = "var(--green)";
@@ -54,13 +59,7 @@ export function sparkPath(arr: number[], w: number, h: number, pad = 2): string 
     )
     .join(" ");
 }
-function buildPath(arr: number[], x: (i: number) => number, yfn: (v: number) => number): string {
-  return arr.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + yfn(v).toFixed(1)).join(" ");
-}
-
 // ---------- derived shapes ----------
-export interface Tick { y: string; ty: string; label: string }
-export interface XTick { x: string; label: string; anchor: "start" | "middle" | "end" }
 export interface LegendEntry { name: string; color: string; val: string; delta: string; dColor: string }
 export interface MidLabel { x: string; y: string; v: string }
 export interface EndDot { x: string; y: string; lx: string; ly: string; v: string; color: string }
@@ -198,12 +197,7 @@ export function deriveAll(region: Region): Derived {
   hi += pad;
   const hx = (i: number) => HL + (i / (n - 1)) * (HW - HL - HR);
   const hy = (v: number) => HT + ((hi - v) / (hi - lo)) * (HH - HT - HB);
-  const ticks: Tick[] = [];
-  for (let k = 0; k < 5; k++) {
-    const v = lo + ((hi - lo) * k) / 4;
-    const y = hy(v);
-    ticks.push({ y: y.toFixed(1), ty: (y + 3.5).toFixed(1), label: v.toFixed(2) });
-  }
+  const ticks: Tick[] = buildTicks(lo, hi, 5, hy);
   const dates = ["Jun 23", "Jun 27", "Jul 1"]; // mock window labels (real index later)
   const xTicks: XTick[] = [
     { x: hx(0).toFixed(1), label: dates[0], anchor: "start" },
@@ -248,12 +242,7 @@ export function deriveAll(region: Region): Derived {
     const py = cy(p[1]);
     return { x: cx(i).toFixed(1), y: py.toFixed(1), t: p[0], v: p[1].toFixed(2), vy: (py > CT + 16 ? py - 8 : py + 16).toFixed(1) };
   });
-  const cticks: Tick[] = [];
-  for (let k = 0; k < 4; k++) {
-    const v = clo + ((chi - clo) * k) / 3;
-    const y = cy(v);
-    cticks.push({ y: y.toFixed(1), ty: (y + 3.5).toFixed(1), label: v.toFixed(2) });
-  }
+  const cticks: Tick[] = buildTicks(clo, chi, 4, cy);
   const at = (t: string) => cv.find((p) => p[0] === t)![1];
   const y3m = at("3M"), y2 = at("2Y"), y5 = at("5Y"), y10 = at("10Y"), y30 = at("30Y");
   const spread = y10 - y2, spread2 = y10 - y3m, spread3 = y30 - y5;

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { DASHBOARD_TYPES } from "@/lib/dashboards";
 import { REGIONS, REGION_LABELS, type Region } from "@/lib/data/types";
 import { AMBER, GREEN } from "@/lib/derive";
-import { useDashStore } from "@/lib/store";
+import { selectActiveSavedViewId, selectSavedViews, useDashStore } from "@/lib/store";
 import { useClock } from "@/lib/useClock";
+import { useDashboardDef } from "@/lib/useDashboardDef";
 import { useDerived } from "../DataContext";
 import { MONO, SERIF } from "../ui";
 import DensityToggle from "./DensityToggle";
@@ -44,6 +46,9 @@ const btnStyle = (accent: string): React.CSSProperties => ({
 export default function Header({ showControls = true }: { showControls?: boolean }) {
   const v = useDerived();
   const { clock, open } = useClock();
+  const dashDef = useDashboardDef();
+  const dashboardType = useDashStore((s) => s.dashboardType);
+  const setDashboardType = useDashStore((s) => s.setDashboardType);
   const region = useDashStore((s) => s.region);
   const setRegion = useDashStore((s) => s.setRegion);
   const edit = useDashStore((s) => s.editMode);
@@ -51,14 +56,15 @@ export default function Header({ showControls = true }: { showControls?: boolean
   const resetLayout = useDashStore((s) => s.resetLayout);
   const libraryOpen = useDashStore((s) => s.libraryOpen);
   const setLibraryOpen = useDashStore((s) => s.setLibraryOpen);
-  const savedViews = useDashStore((s) => s.savedViews);
-  const activeSavedViewId = useDashStore((s) => s.activeSavedViewId);
+  const savedViews = useDashStore(selectSavedViews);
+  const activeSavedViewId = useDashStore(selectActiveSavedViewId);
   const saveView = useDashStore((s) => s.saveView);
   const restoreView = useDashStore((s) => s.restoreView);
   const [savingView, setSavingView] = useState(false);
   const [newViewName, setNewViewName] = useState("");
   const mktColor = open ? "var(--green)" : "var(--red)";
   const flagged = v.tripwires.filter((t) => t.tone !== GREEN).length;
+  const exchangeLabel = dashDef.hasRegionLens ? v.exchange : "NYSE · ET";
 
   const clockBox = (
     <div
@@ -67,26 +73,28 @@ export default function Header({ showControls = true }: { showControls?: boolean
         border: "1px solid var(--tile-border)", borderRadius: 10, padding: "9px 15px",
       }}
     >
-      <div
-        style={{ display: "flex", alignItems: "center", gap: 5 }}
-        title={`${flagged} tripwire${flagged === 1 ? "" : "s"} flagged · Regime: ${v.regime.label} (${v.regime.days}d, since ${v.regime.since})`}
-      >
-        <span
-          style={{
-            width: 7, height: 7, borderRadius: "50%",
-            background: flagged > 0 ? AMBER : GREEN,
-            animation: flagged > 0 ? "mp-pulse 2s ease-in-out infinite" : undefined,
-          }}
-        />
-        <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: flagged > 0 ? AMBER : "var(--muted)" }}>
-          {flagged}
-        </span>
-      </div>
+      {dashDef.hasRegionLens && (
+        <div
+          style={{ display: "flex", alignItems: "center", gap: 5 }}
+          title={`${flagged} tripwire${flagged === 1 ? "" : "s"} flagged · Regime: ${v.regime.label} (${v.regime.days}d, since ${v.regime.since})`}
+        >
+          <span
+            style={{
+              width: 7, height: 7, borderRadius: "50%",
+              background: flagged > 0 ? AMBER : GREEN,
+              animation: flagged > 0 ? "mp-pulse 2s ease-in-out infinite" : undefined,
+            }}
+          />
+          <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: flagged > 0 ? AMBER : "var(--muted)" }}>
+            {flagged}
+          </span>
+        </div>
+      )}
       <div style={{ textAlign: "right" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: mktColor, animation: "mp-pulse 2s ease-in-out infinite" }} />
           <span style={{ fontSize: 10, letterSpacing: ".12em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
-            {v.exchange}
+            {exchangeLabel}
           </span>
         </div>
         <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 500, letterSpacing: ".02em", marginTop: 2 }}>{clock}</div>
@@ -120,8 +128,20 @@ export default function Header({ showControls = true }: { showControls?: boolean
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, letterSpacing: "-.01em", lineHeight: 1 }}>
-                Macro Signal Dashboard
+              <div style={{ position: "relative" }}>
+                <select
+                  className="mws-select"
+                  aria-label="Dashboard type"
+                  value={dashboardType}
+                  onChange={(e) => setDashboardType(e.target.value as typeof dashboardType)}
+                  style={{ ...selectStyle, fontFamily: SERIF, fontSize: 22, padding: "4px 30px 4px 4px" }}
+                >
+                  {DASHBOARD_TYPES.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <span
                 style={{
@@ -132,27 +152,31 @@ export default function Header({ showControls = true }: { showControls?: boolean
                 OTP2.0
               </span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
-              <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
-                Region
-              </span>
-              <div style={{ position: "relative" }}>
-                <select
-                  className="mws-select"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value as Region)}
-                  style={selectStyle}
-                >
-                  {REGIONS.map((r) => (
-                    <option key={r} value={r}>
-                      {REGION_LABELS[r]}
-                    </option>
-                  ))}
-                </select>
-                <span style={{ position: "absolute", right: 11, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--muted)", fontSize: 9 }}>
-                  ▼
-                </span>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
+              {dashDef.hasRegionLens && (
+                <>
+                  <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
+                    Region
+                  </span>
+                  <div style={{ position: "relative" }}>
+                    <select
+                      className="mws-select"
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value as Region)}
+                      style={selectStyle}
+                    >
+                      {REGIONS.map((r) => (
+                        <option key={r} value={r}>
+                          {REGION_LABELS[r]}
+                        </option>
+                      ))}
+                    </select>
+                    <span style={{ position: "absolute", right: 11, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--muted)", fontSize: 9 }}>
+                      ▼
+                    </span>
+                  </div>
+                </>
+              )}
               <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
                 Theme
               </span>

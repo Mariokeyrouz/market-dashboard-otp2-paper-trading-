@@ -1,8 +1,9 @@
 "use client";
 
 import { REGION_LABELS } from "@/lib/data/types";
-import { ELEMENT_MAP, Z_ROLE_LABELS, type ZRole } from "@/lib/elements/registry";
-import { useDashStore } from "@/lib/store";
+import { Z_ROLE_LABELS, type ZRole } from "@/lib/elements/registry";
+import { selectHidden, selectLayout, useDashStore } from "@/lib/store";
+import { useDashboardDef } from "@/lib/useDashboardDef";
 import { MONO, SERIF } from "../ui";
 
 const ROLE_COLORS: Record<ZRole, string> = {
@@ -13,8 +14,8 @@ const ROLE_COLORS: Record<ZRole, string> = {
   support: "var(--muted)",
 };
 
-/** Small Z diagram showing the reading order. */
-function ZDiagram() {
+/** Small Z diagram showing the reading order — labels come from the active dashboard type. */
+function ZDiagram({ zSteps }: { zSteps: string[] }) {
   const lbl = (x: number, y: number, t: string, anchor: "start" | "end" | "middle" = "start") => (
     <text x={x} y={y} fontSize={9.5} fill="var(--muted)" textAnchor={anchor} fontFamily="var(--font-plex-sans), sans-serif">
       {t}
@@ -28,11 +29,11 @@ function ZDiagram() {
       <circle cx={280} cy={36} r={5} fill="var(--amber)" />
       <circle cx={40} cy={114} r={5} fill="var(--ink)" />
       <circle cx={280} cy={114} r={5} fill="var(--green)" />
-      {lbl(52, 30, "1 · Regime — where are we?")}
-      {lbl(268, 30, "2 · Classification — the signal", "end")}
-      {lbl(120, 72, "3 · The Hinge — why it's moving")}
-      {lbl(52, 132, "4 · Tripwires — confirm / deny")}
-      {lbl(268, 132, "5 · Calendar — what's next", "end")}
+      {lbl(52, 30, zSteps[0])}
+      {lbl(268, 30, zSteps[1], "end")}
+      {lbl(120, 72, zSteps[2])}
+      {lbl(52, 132, zSteps[3])}
+      {lbl(268, 132, zSteps[4], "end")}
     </svg>
   );
 }
@@ -43,15 +44,16 @@ function ZDiagram() {
  * overlay drawer when there's no room to dock it.
  */
 export default function LogicContent() {
-  const layout = useDashStore((s) => s.layout);
-  const hidden = useDashStore((s) => s.hidden);
+  const dashDef = useDashboardDef();
+  const layout = useDashStore(selectLayout);
+  const hidden = useDashStore(selectHidden);
   const pins = useDashStore((s) => s.pins);
 
   // Narrate elements in their *current* visual order (top-left → bottom-right).
   const ordered = [...layout]
     .filter((l) => !hidden.includes(l.i))
     .sort((a, b) => a.y - b.y || a.x - b.x)
-    .map((l) => ELEMENT_MAP.get(l.i))
+    .map((l) => dashDef.elementMap.get(l.i))
     .filter((d) => d !== undefined);
 
   return (
@@ -59,14 +61,11 @@ export default function LogicContent() {
       <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--body)", margin: "0 0 12px" }}>
         The default arrangement follows a <strong>Z-pattern</strong> — the natural path a reader&apos;s eye takes across a
         page: enter top-left, sweep right, cut diagonally down, sweep right again.
-        Each stop on that path answers the next question a macro investor asks.
+        Each stop on that path answers the next question this dashboard is built to answer.
       </p>
-      <ZDiagram />
+      <ZDiagram zSteps={dashDef.logicIntro.zSteps} />
       <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--body)", margin: "12px 0 6px" }}>
-        <strong>1 · Where are we?</strong> (regime, top-left) → <strong>2 · What&apos;s the signal?</strong> (classification,
-        top-right) → <strong>3 · Why?</strong> (the Hinge decomposition on the diagonal) →{" "}
-        <strong>4 · Is it confirmed?</strong> (tripwires, the bottom stroke) → <strong>5 · What&apos;s next?</strong>{" "}
-        (calendar, bottom-right exit). Everything else is supporting evidence you consult on demand.
+        {dashDef.logicIntro.blurb}
       </p>
 
       <div style={{ fontSize: 10, letterSpacing: ".13em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600, margin: "18px 0 8px" }}>
@@ -89,7 +88,7 @@ export default function LogicContent() {
               </span>
               {/* This panel claims to describe what's actually on screen, so a
                   pinned tile has to be called out or the narration is wrong. */}
-              {pins[d.id] && !d.crossRegion && (
+              {dashDef.hasRegionLens && pins[d.id] && !d.crossRegion && (
                 <span
                   style={{
                     fontFamily: MONO, fontSize: 9.5, fontWeight: 600, letterSpacing: ".04em",
@@ -113,10 +112,15 @@ export default function LogicContent() {
           border: "1px solid rgba(160,123,29,.35)", borderRadius: 8, padding: "9px 12px", background: "rgba(160,123,29,.06)",
         }}
       >
-        This hierarchy is opinionated and style-dependent — calibrated to a macro-positional lens, not objective fact.
+        This hierarchy is opinionated and style-dependent, not objective fact.
         Rearrange it: your layout is saved automatically, and <em>Reset layout</em> restores this default.
-        In <em>Customize</em>, any tile can be pinned to its own region — pinned tiles ignore the header lens and
-        carry a <span style={{ fontFamily: MONO, color: "var(--gold)" }}>POV</span> chip so you can tell at a glance.
+        {dashDef.logicIntro.pinFooter && (
+          <>
+            {" "}
+            In <em>Customize</em>, any tile can be pinned to its own region — pinned tiles ignore the header lens and
+            carry a <span style={{ fontFamily: MONO, color: "var(--gold)" }}>POV</span> chip so you can tell at a glance.
+          </>
+        )}
       </div>
     </>
   );

@@ -1,12 +1,12 @@
 "use client";
 
-import { useDashStore } from "@/lib/store";
+import { selectHidden, useDashStore } from "@/lib/store";
 import { Micro } from "../ui";
 import HiddenElementButtons from "./HiddenElementButtons";
 
 /** Edit-mode tray: re-add hidden elements with one click. */
 export default function ElementLibrary() {
-  const hidden = useDashStore((s) => s.hidden);
+  const hidden = useDashStore(selectHidden);
 
   return (
     <div

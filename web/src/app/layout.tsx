@@ -22,9 +22,11 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Macro Signal Dashboard",
+  // Pre-hydration SSR fallback only — overwritten client-side the moment the
+  // active dashboard type is known (see page.tsx's document.title effect).
+  title: "OTP2.0 — Dashboard",
   description:
-    "A top-down macro dashboard for portfolio managers — regime, the real-yield/breakeven hinge, and cross-asset confirming signals.",
+    "Multi-dashboard market analysis — macro regime signals and equity-market context, switchable from one shell.",
 };
 
 export default function RootLayout({

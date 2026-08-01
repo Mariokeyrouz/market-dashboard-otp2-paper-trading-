@@ -13,6 +13,7 @@ export default function ElementFrame({
   def,
   edit,
   pin,
+  hasRegionLens,
   onPin,
   onHide,
   children,
@@ -21,6 +22,9 @@ export default function ElementFrame({
   edit: boolean;
   /** Region this element is pinned to; undefined = follows the global lens. */
   pin?: Region;
+  /** Whether the active dashboard type has a region lens at all — dashboard
+   *  types without one (e.g. equity) get no POV chip and no POV selector. */
+  hasRegionLens: boolean;
   onPin: (r: Region | null) => void;
   onHide: () => void;
   children: React.ReactNode;
@@ -33,7 +37,7 @@ export default function ElementFrame({
           is not optional — an unlabelled tile quietly displaying Japan while the
           header reads US is a data-integrity trap. Rides the tile's top border,
           where no element's own content can collide with it. */}
-      {pin && !edit && (
+      {hasRegionLens && pin && !edit && (
         <span
           title={`Pinned to ${REGION_LABELS[pin]} — this tile ignores the global region lens`}
           style={{
@@ -75,8 +79,9 @@ export default function ElementFrame({
             {def.title}
           </span>
           {/* Cross-region elements read every region, so a POV pin would be a
-              control that does nothing — omit it rather than lie. */}
-          {!def.crossRegion && (
+              control that does nothing — omit it rather than lie. Dashboard
+              types with no region lens at all (e.g. equity) never show it. */}
+          {hasRegionLens && !def.crossRegion && (
             <select
               className="mws-select"
               aria-label={`Point of view for ${def.title}`}

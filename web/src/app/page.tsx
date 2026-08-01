@@ -12,6 +12,7 @@ import { DataContext } from "@/components/DataContext";
 import { MONO } from "@/components/ui";
 import { deriveAll } from "@/lib/derive";
 import { useDashStore } from "@/lib/store";
+import { useDashboardDef } from "@/lib/useDashboardDef";
 import { useShellMode } from "@/lib/useShellMode";
 
 export default function Page() {
@@ -23,10 +24,15 @@ export default function Page() {
   const setRailCollapsed = useDashStore((s) => s.setRailCollapsed);
   const derived = useMemo(() => deriveAll(region), [region]);
   const mode = useShellMode();
+  const dashDef = useDashboardDef();
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    document.title = dashDef.label;
+  }, [dashDef]);
 
   // Render after hydration so persisted state (region/layout) never mismatches SSR.
   const ready = useSyncExternalStore(

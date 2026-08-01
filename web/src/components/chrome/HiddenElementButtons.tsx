@@ -1,7 +1,7 @@
 "use client";
 
-import { ELEMENT_MAP } from "@/lib/elements/registry";
-import { useDashStore } from "@/lib/store";
+import { selectHidden, useDashStore } from "@/lib/store";
+import { useDashboardDef } from "@/lib/useDashboardDef";
 
 /**
  * The re-add-a-hidden-element button list, shared by every place that offers
@@ -16,7 +16,8 @@ export default function HiddenElementButtons({
   /** Shown in place of the (otherwise empty) list when nothing is hidden. */
   emptyLabel?: string;
 }) {
-  const hidden = useDashStore((s) => s.hidden);
+  const dashDef = useDashboardDef();
+  const hidden = useDashStore(selectHidden);
   const showElement = useDashStore((s) => s.showElement);
 
   if (hidden.length === 0) {
@@ -33,7 +34,7 @@ export default function HiddenElementButtons({
       }}
     >
       {hidden.map((id) => {
-        const def = ELEMENT_MAP.get(id);
+        const def = dashDef.elementMap.get(id);
         if (!def) return null;
         return (
           <button

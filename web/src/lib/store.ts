@@ -1,13 +1,9 @@
 import type { Layout, LayoutItem } from "react-grid-layout";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { DEFAULT_DASHBOARD_TYPE, DASHBOARD_TYPES, getDashboardDef, type DashboardType } from "./dashboards";
 import type { Region } from "./data/types";
-import { DEFAULT_HIDDEN, ELEMENT_MAP } from "./elements/registry";
 import { defaultLayout } from "./layout/defaults";
-
-/** The default grid: every element that isn't hidden out of the box. */
-const visibleDefaultLayout = (): LayoutItem[] =>
-  defaultLayout().filter((l) => !DEFAULT_HIDDEN.includes(l.i));
 
 export type Theme = "dark" | "light";
 
@@ -16,14 +12,54 @@ export const THEME_LABELS: Record<Theme, string> = {
   light: "White",
 };
 
+export type DensityOverride = "auto" | "compact" | "comfortable";
+
+export interface SavedView {
+  id: string;
+  name: string;
+  /** Inert for dashboard types with no region lens (e.g. equity) — always set for schema uniformity, simply unused there. */
+  region: Region;
+  layout: LayoutItem[];
+  hidden: string[];
+  createdAt: number;
+}
+
+/** Everything that's scoped to ONE dashboard type — a different grid arrangement per type. */
+export interface PerDashboardState {
+  layout: LayoutItem[];
+  hidden: string[];
+  savedViews: SavedView[];
+  /** Transient: not persisted (see partialize) — a stale marker would misrepresent a since-edited layout on reload. */
+  activeSavedViewId: string | null;
+}
+
+const strip = (l: readonly LayoutItem[]): LayoutItem[] =>
+  l.map(({ i, x, y, w, h, minW, minH }) => ({ i, x, y, w, h, minW, minH }));
+
+/** The default grid for one dashboard type: every element that isn't hidden out of the box. */
+const freshDashboardState = (type: DashboardType): PerDashboardState => {
+  const def = getDashboardDef(type);
+  return {
+    layout: defaultLayout(def.elements).filter((l) => !def.defaultHidden.includes(l.i)),
+    hidden: [...def.defaultHidden],
+    savedViews: [],
+    activeSavedViewId: null,
+  };
+};
+
+const freshAllDashboards = (): Record<DashboardType, PerDashboardState> =>
+  Object.fromEntries(DASHBOARD_TYPES.map((d) => [d.id, freshDashboardState(d.id)])) as Record<DashboardType, PerDashboardState>;
+
 interface DashState {
   region: Region;
   theme: Theme;
-  layout: LayoutItem[];
-  hidden: string[];
+  /** Which dashboard is on screen — Macro, Equity, or a future type. */
+  dashboardType: DashboardType;
+  /** Per-dashboard-type layout/hidden/savedViews, keyed by DashboardType. */
+  dashboards: Record<DashboardType, PerDashboardState>;
   /**
-   * Per-element POV override: elementId → region. An element not listed here
-   * follows the global `region` lens.
+   * Per-element POV override: elementId → region. Only meaningful on
+   * dashboard types with a region lens; harmlessly unused otherwise.
    */
   pins: Record<string, Region>;
   editMode: boolean;
@@ -43,13 +79,9 @@ interface DashState {
    * DensityContext regardless of the fitted row height.
    */
   densityOverride: DensityOverride;
-  /** Persisted: named snapshots of region + layout + hidden, switchable in one click. */
-  savedViews: SavedView[];
-  /** Transient: which saved view was last restored — not persisted, since a
-   *  stale marker would misrepresent a since-edited layout on reload. */
-  activeSavedViewId: string | null;
   setRegion: (r: Region) => void;
   setTheme: (t: Theme) => void;
+  setDashboardType: (t: DashboardType) => void;
   setLayout: (l: Layout) => void;
   hideElement: (id: string) => void;
   showElement: (id: string) => void;
@@ -69,27 +101,29 @@ interface DashState {
   renameView: (id: string, name: string) => void;
 }
 
-export type DensityOverride = "auto" | "compact" | "comfortable";
+// Centralizes `dashboards[dashboardType]` indexing in one place instead of
+// repeating it at every call site (DashboardGrid, LeftRail, Header, etc).
+export const selectLayout = (s: DashState) => s.dashboards[s.dashboardType].layout;
+export const selectHidden = (s: DashState) => s.dashboards[s.dashboardType].hidden;
+export const selectSavedViews = (s: DashState) => s.dashboards[s.dashboardType].savedViews;
+export const selectActiveSavedViewId = (s: DashState) => s.dashboards[s.dashboardType].activeSavedViewId;
 
-export interface SavedView {
-  id: string;
-  name: string;
-  region: Region;
-  layout: LayoutItem[];
-  hidden: string[];
-  createdAt: number;
-}
-
-const strip = (l: readonly LayoutItem[]): LayoutItem[] =>
-  l.map(({ i, x, y, w, h, minW, minH }) => ({ i, x, y, w, h, minW, minH }));
+/** Update just the active dashboard type's slice, leaving the others untouched. */
+const setCurrent = (
+  set: (fn: (s: DashState) => Partial<DashState>) => void,
+  patch: (cur: PerDashboardState, s: DashState) => Partial<PerDashboardState>,
+) =>
+  set((s) => ({
+    dashboards: { ...s.dashboards, [s.dashboardType]: { ...s.dashboards[s.dashboardType], ...patch(s.dashboards[s.dashboardType], s) } },
+  }));
 
 export const useDashStore = create<DashState>()(
   persist(
     (set) => ({
       region: "US",
       theme: "dark",
-      layout: visibleDefaultLayout(),
-      hidden: [...DEFAULT_HIDDEN],
+      dashboardType: DEFAULT_DASHBOARD_TYPE,
+      dashboards: freshAllDashboards(),
       pins: {},
       editMode: false,
       logicOpen: false,
@@ -98,25 +132,26 @@ export const useDashStore = create<DashState>()(
       libraryOpen: false,
       railCollapsed: false,
       densityOverride: "auto",
-      savedViews: [],
-      activeSavedViewId: null,
       setRegion: (region) => set({ region }),
       setTheme: (theme) => set({ theme }),
-      setLayout: (layout) => set({ layout: strip(layout) }),
+      // Never carry a drag/resize gesture from one dashboard's grid into an
+      // entirely different element set.
+      setDashboardType: (dashboardType) => set({ dashboardType, editMode: false }),
+      setLayout: (layout) => setCurrent(set, () => ({ layout: strip(layout) })),
       hideElement: (id) =>
-        set((s) => ({
-          hidden: [...s.hidden.filter((x) => x !== id), id],
-          layout: s.layout.filter((l) => l.i !== id),
+        setCurrent(set, (cur) => ({
+          hidden: [...cur.hidden.filter((x) => x !== id), id],
+          layout: cur.layout.filter((l) => l.i !== id),
         })),
       showElement: (id) =>
-        set((s) => {
-          const def = ELEMENT_MAP.get(id);
-          if (!def) return s;
-          const bottom = s.layout.reduce((m, l) => Math.max(m, l.y + l.h), 0);
+        setCurrent(set, (cur, s) => {
+          const def = getDashboardDef(s.dashboardType).elementMap.get(id);
+          if (!def) return cur;
+          const bottom = cur.layout.reduce((m, l) => Math.max(m, l.y + l.h), 0);
           return {
-            hidden: s.hidden.filter((x) => x !== id),
+            hidden: cur.hidden.filter((x) => x !== id),
             // Drop any stale entry for this id first — a duplicate key breaks the grid.
-            layout: [...s.layout.filter((l) => l.i !== id), { i: id, ...def.defaultLayout, x: 0, y: bottom }],
+            layout: [...cur.layout.filter((l) => l.i !== id), { i: id, ...def.defaultLayout, x: 0, y: bottom }],
           };
         }),
       setPin: (id, r) => set((s) => ({ pins: { ...s.pins, [id]: r } })),
@@ -129,7 +164,11 @@ export const useDashStore = create<DashState>()(
       // Restores the default arrangement — including the default hidden set,
       // since the one-screen default IS the arrangement. POV pins are
       // bindings, not layout, so they deliberately survive a reset.
-      resetLayout: () => set({ layout: visibleDefaultLayout(), hidden: [...DEFAULT_HIDDEN] }),
+      resetLayout: () =>
+        setCurrent(set, (_cur, s) => {
+          const fresh = freshDashboardState(s.dashboardType);
+          return { layout: fresh.layout, hidden: fresh.hidden };
+        }),
       setEditMode: (editMode) => set({ editMode }),
       setLogicOpen: (logicOpen) => set({ logicOpen }),
       setDockOpen: (dockOpen) => set({ dockOpen }),
@@ -138,52 +177,81 @@ export const useDashStore = create<DashState>()(
       setLibraryDockOpen: (libraryDockOpen) => set({ libraryDockOpen }),
       setLibraryOpen: (libraryOpen) => set({ libraryOpen }),
       saveView: (name) =>
-        set((s) => ({
+        setCurrent(set, (cur, s) => ({
           savedViews: [
-            ...s.savedViews,
-            { id: crypto.randomUUID(), name, region: s.region, layout: strip(s.layout), hidden: [...s.hidden], createdAt: Date.now() },
+            ...cur.savedViews,
+            { id: crypto.randomUUID(), name, region: s.region, layout: strip(cur.layout), hidden: [...cur.hidden], createdAt: Date.now() },
           ],
         })),
       restoreView: (id) =>
-        set((s) => {
-          const view = s.savedViews.find((v) => v.id === id);
-          if (!view) return s;
-          return {
-            region: view.region, layout: strip(view.layout), hidden: [...view.hidden],
-            editMode: false, activeSavedViewId: id,
-          };
+        setCurrent(set, (cur) => {
+          const view = cur.savedViews.find((v) => v.id === id);
+          if (!view) return cur;
+          return { layout: strip(view.layout), hidden: [...view.hidden], activeSavedViewId: id };
         }),
       deleteView: (id) =>
-        set((s) => ({
-          savedViews: s.savedViews.filter((v) => v.id !== id),
-          activeSavedViewId: s.activeSavedViewId === id ? null : s.activeSavedViewId,
+        setCurrent(set, (cur) => ({
+          savedViews: cur.savedViews.filter((v) => v.id !== id),
+          activeSavedViewId: cur.activeSavedViewId === id ? null : cur.activeSavedViewId,
         })),
       renameView: (id, name) =>
-        set((s) => ({ savedViews: s.savedViews.map((v) => (v.id === id ? { ...v, name } : v)) })),
+        setCurrent(set, (cur) => ({ savedViews: cur.savedViews.map((v) => (v.id === id ? { ...v, name } : v)) })),
     }),
     {
       name: "mws_state_v1",
-      version: 2,
+      version: 3,
       // Pre-v1 browsers may have a persisted `theme` from a since-removed
       // third theme option — coerce anything that isn't a known theme to the
       // new default (Black) rather than letting it fall through to a dead
       // `data-theme` value with no CSS rule.
       migrate: (persisted, version) => {
-        const state = persisted as { theme?: string } | undefined;
+        const state = persisted as (Record<string, unknown> & { theme?: string }) | undefined;
         if (version < 1 && state && state.theme !== "dark" && state.theme !== "light") {
           state.theme = "dark";
         }
-        return persisted;
+        // v2 -> v3: layout/hidden/savedViews used to be flat, global fields —
+        // one dashboard, one arrangement. Now every dashboard type gets its
+        // own slice. Fold the old flat fields into "macro" (the only type
+        // that existed pre-v3) and seed a fresh default for every other type.
+        if (version < 3 && state) {
+          const old = state as { layout?: LayoutItem[]; hidden?: string[]; savedViews?: SavedView[] };
+          const dashboards = freshAllDashboards();
+          if (old.layout) dashboards.macro.layout = old.layout;
+          if (old.hidden) dashboards.macro.hidden = old.hidden;
+          if (old.savedViews) dashboards.macro.savedViews = old.savedViews;
+          state.dashboardType = DEFAULT_DASHBOARD_TYPE;
+          state.dashboards = dashboards;
+          delete state.layout;
+          delete state.hidden;
+          delete state.savedViews;
+          delete state.activeSavedViewId;
+        }
+        return state;
+      },
+      // A plain shallow merge would replace `dashboards` wholesale from
+      // storage, leaving `activeSavedViewId` `undefined` instead of `null`
+      // and crashing if a future dashboard type is missing from old storage.
+      // Reconcile per-type instead, always resetting the transient field.
+      merge: (persisted, current) => {
+        const p = persisted as Partial<DashState> | undefined;
+        if (!p) return current;
+        const dashboards = { ...current.dashboards };
+        for (const type of Object.keys(dashboards) as DashboardType[]) {
+          dashboards[type] = { ...dashboards[type], ...(p.dashboards?.[type] ?? {}), activeSavedViewId: null };
+        }
+        return { ...current, ...p, dashboards };
       },
       // dockOpen/libraryDockOpen persist (layout preferences) but logicOpen/
       // libraryOpen deliberately do not — the overlays are transient, and
       // persisting them would slide a drawer open over the dashboard on load
       // after you'd narrowed the window.
       partialize: (s) => ({
-        region: s.region, theme: s.theme, layout: s.layout, hidden: s.hidden,
+        region: s.region, theme: s.theme, dashboardType: s.dashboardType,
+        dashboards: Object.fromEntries(
+          Object.entries(s.dashboards).map(([k, v]) => [k, { layout: v.layout, hidden: v.hidden, savedViews: v.savedViews }]),
+        ),
         pins: s.pins, dockOpen: s.dockOpen, libraryDockOpen: s.libraryDockOpen,
         railCollapsed: s.railCollapsed, densityOverride: s.densityOverride,
-        savedViews: s.savedViews,
       }),
     },
   ),

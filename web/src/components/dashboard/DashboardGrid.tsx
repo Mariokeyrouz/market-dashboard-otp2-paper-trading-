@@ -7,11 +7,13 @@ import "react-resizable/css/styles.css";
 
 import { DataContext } from "@/components/DataContext";
 import { DensityContext } from "@/components/DensityContext";
+import { EquityDataContext } from "@/components/EquityDataContext";
 import { REGIONS, type Region } from "@/lib/data/types";
 import { deriveAll, type Derived } from "@/lib/derive";
-import { ELEMENTS } from "@/lib/elements/registry";
+import { deriveEquity } from "@/lib/derive-equity";
 import { GRID_COLS, GRID_MARGIN, GRID_ROW_HEIGHT } from "@/lib/layout/defaults";
-import { useDashStore } from "@/lib/store";
+import { selectHidden, selectLayout, useDashStore } from "@/lib/store";
+import { useDashboardDef } from "@/lib/useDashboardDef";
 import ElementFrame from "./ElementFrame";
 
 /** Space reserved below the grid for the footer badges (measured ~52px incl. margins). */
@@ -25,8 +27,9 @@ const ROW_H_MAX = 21;
 
 export default function DashboardGrid() {
   const { width, containerRef, mounted } = useContainerWidth();
-  const layout = useDashStore((s) => s.layout);
-  const hidden = useDashStore((s) => s.hidden);
+  const dashDef = useDashboardDef();
+  const layout = useDashStore(selectLayout);
+  const hidden = useDashStore(selectHidden);
   const edit = useDashStore((s) => s.editMode);
   const region = useDashStore((s) => s.region);
   const pins = useDashStore((s) => s.pins);
@@ -41,12 +44,14 @@ export default function DashboardGrid() {
   // component knows or cares that its context isn't the global one.
   // NOTE: cheap over static mock data; once real feeds land this becomes five
   // fetches and should go lazy (derive only the regions actually on screen).
+  // Only computed for dashboard types that actually have a region lens.
   const byRegion = useMemo(
-    () => Object.fromEntries(REGIONS.map((r) => [r, deriveAll(r)])) as Record<Region, Derived>,
-    [],
+    () => (dashDef.hasRegionLens ? (Object.fromEntries(REGIONS.map((r) => [r, deriveAll(r)])) as Record<Region, Derived>) : null),
+    [dashDef.hasRegionLens],
   );
+  const equityData = useMemo(() => (dashDef.hasRegionLens ? null : deriveEquity()), [dashDef.hasRegionLens]);
 
-  const visible = ELEMENTS.filter((e) => !hidden.includes(e.id));
+  const visible = dashDef.elements.filter((e) => !hidden.includes(e.id));
   // Guarantee every visible element has a layout entry (covers stale persisted
   // state after new elements ship); drop entries for hidden/unknown ids.
   const bottom = layout.reduce((m, l) => Math.max(m, l.y + l.h), 0);
@@ -110,20 +115,26 @@ export default function DashboardGrid() {
         >
           {visible.map((e) => {
             const C = e.component;
-            const pin = e.crossRegion ? undefined : pins[e.id];
+            const pin = dashDef.hasRegionLens && !e.crossRegion ? pins[e.id] : undefined;
+            const frame = (
+              <ElementFrame
+                def={e}
+                edit={edit}
+                pin={pin}
+                hasRegionLens={dashDef.hasRegionLens}
+                onPin={(r) => (r ? setPin(e.id, r) : clearPin(e.id))}
+                onHide={() => hideElement(e.id)}
+              >
+                <C />
+              </ElementFrame>
+            );
             return (
               <div key={e.id} style={{ height: "100%" }}>
-                <DataContext.Provider value={byRegion[pin ?? region]}>
-                  <ElementFrame
-                    def={e}
-                    edit={edit}
-                    pin={pin}
-                    onPin={(r) => (r ? setPin(e.id, r) : clearPin(e.id))}
-                    onHide={() => hideElement(e.id)}
-                  >
-                    <C />
-                  </ElementFrame>
-                </DataContext.Provider>
+                {dashDef.hasRegionLens && byRegion ? (
+                  <DataContext.Provider value={byRegion[pin ?? region]}>{frame}</DataContext.Provider>
+                ) : (
+                  <EquityDataContext.Provider value={equityData}>{frame}</EquityDataContext.Provider>
+                )}
               </div>
             );
           })}
