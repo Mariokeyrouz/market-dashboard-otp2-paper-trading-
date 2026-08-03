@@ -73,6 +73,31 @@ def fetch_live_prices(tickers):
     return out
 
 
+@st.cache_data(ttl=3600)
+def load_sector_fallback():
+    """Ticker -> GICS sector, for holdings that rotated out of the current
+    monthly selection (state can lag a rebalance by a few days) so the
+    positions table never shows a blank Sector cell."""
+    path = "sp500_sectors.csv"
+    if not os.path.exists(path):
+        return {}
+    df = pd.read_csv(path)
+    return dict(zip(df["Symbol"], df["GICS Sector"]))
+
+
+@st.cache_data(ttl=21600)
+def fetch_sector_via_yfinance(tickers):
+    """Last-resort sector lookup for holdings outside the S&P 500 (e.g. S&P
+    400 names) that the static CSV fallback doesn't cover."""
+    out = {}
+    for t in tickers:
+        try:
+            out[t] = str(yf.Ticker(t).info.get("sector") or "")
+        except Exception:
+            out[t] = ""
+    return out
+
+
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.title("🚀 Momentum: Single-Stock Cross-Sectional")
 
@@ -132,9 +157,14 @@ st.caption(f"📅 Ledger last advanced: **{state['last_date']}**  ·  "
            f"Prices delayed ~15 min, refreshed every 5 min")
 
 # ── Compute metrics ────────────────────────────────────────────────────────────
-tickers      = list(state["shares"].keys())
-live_prices  = fetch_live_prices(tickers) if tickers else {}
-first_nav    = ledger["nav"].iloc[0]
+tickers        = list(state["shares"].keys())
+live_prices    = fetch_live_prices(tickers) if tickers else {}
+sector_fallback = load_sector_fallback()
+holdings_meta  = selection.get("holdings", {})
+_unresolved    = [t for t in tickers
+                  if not (holdings_meta.get(t, {}).get("sector") or sector_fallback.get(t))]
+yf_sector_fallback = fetch_sector_via_yfinance(tuple(sorted(_unresolved))) if _unresolved else {}
+first_nav      = ledger["nav"].iloc[0]
 
 total_market_value = 0.0
 total_cost_basis   = 0.0
@@ -168,7 +198,7 @@ for t in tickers:
     sd = selection.get("holdings", {}).get(t, {})
     pos_rows.append({
         "Ticker":              t,
-        "Sector":              sd.get("sector", ""),
+        "Sector":              sd.get("sector") or sector_fallback.get(t) or yf_sector_fallback.get(t, ""),
         "Shares":              round(shares, 3),
         "Entry Price":         round(entry, 2),
         "Live Price":          round(last, 2),

@@ -118,6 +118,31 @@ def _load_ledger(path):
     return pd.read_csv(path, parse_dates=["date"]).sort_values("date")
 
 
+@st.cache_data(ttl=3600)
+def _load_sector_fallback():
+    """Ticker -> GICS sector, for holdings that rotated out of a strategy's
+    current monthly selection (state can lag a rebalance by a few days) so
+    the attribution table never shows a blank Sector cell."""
+    path = "sp500_sectors.csv"
+    if not os.path.exists(path):
+        return {}
+    df = pd.read_csv(path)
+    return dict(zip(df["Symbol"], df["GICS Sector"]))
+
+
+@st.cache_data(ttl=21600)
+def _fetch_sector_via_yfinance(tickers):
+    """Last-resort sector lookup for holdings outside the S&P 500 (e.g. S&P
+    400 names) that the static CSV fallback doesn't cover."""
+    out = {}
+    for t in tickers:
+        try:
+            out[t] = str(yf.Ticker(t).info.get("sector") or "")
+        except Exception:
+            out[t] = ""
+    return out
+
+
 def _compute_metrics(ledger):
     # A freshly-seeded strategy has a single ledger row (no return history yet).
     # Still surface it as a row — NAV / Total Return / Days Live are meaningful;
@@ -259,6 +284,10 @@ def _position_rows(name, cfg, state, current_prices, selection):
     lasts   = state.get("last_prices", {}) or {}
     invested = state.get("invested_dollars", 0.0) or 0.0
     holdings = selection.get("holdings", {}) if selection else {}
+    sector_fallback = _load_sector_fallback()
+    _unresolved = [t for t in shares
+                   if not (holdings.get(t, {}).get("sector") or sector_fallback.get(t))]
+    yf_sector_fallback = _fetch_sector_via_yfinance(tuple(sorted(_unresolved))) if _unresolved else {}
 
     rows = []
     for t, sh in shares.items():
@@ -280,8 +309,10 @@ def _position_rows(name, cfg, state, current_prices, selection):
             "Entry": entry, "Now": cur,
         }
         h = holdings.get(t, {})   # factor context (FMTS strategies only)
+        sector = h.get("sector") or sector_fallback.get(t) or yf_sector_fallback.get(t)
+        if sector:
+            row["Sector"] = sector
         if h:
-            row["Sector"]   = h.get("sector", "—")
             row["Momentum"] = h.get("score_momentum")
             row["Quality"]  = h.get("score_quality")
             row["Value"]    = h.get("score_value")

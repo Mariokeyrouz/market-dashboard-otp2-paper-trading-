@@ -118,6 +118,31 @@ def fetch_live_prices(tickers):
     return out
 
 
+@st.cache_data(ttl=3600)
+def load_gics_sector_fallback():
+    """Ticker -> GICS sector, for holdings that rotated out of the current
+    selection (state can lag a rebalance) so the positions table never
+    shows a blank Sector cell."""
+    path = "sp500_sectors.csv"
+    if not os.path.exists(path):
+        return {}
+    df = pd.read_csv(path)
+    return dict(zip(df["Symbol"], df["GICS Sector"]))
+
+
+@st.cache_data(ttl=21600)
+def fetch_sector_via_yfinance(tickers):
+    """Last-resort sector lookup for holdings outside the S&P 500 that the
+    static CSV fallback doesn't cover."""
+    out = {}
+    for t in tickers:
+        try:
+            out[t] = str(yf.Ticker(t).info.get("sector") or "")
+        except Exception:
+            out[t] = ""
+    return out
+
+
 @st.cache_data(ttl=900)
 def load_all():
     out = {}
@@ -284,6 +309,10 @@ else:
             sel = json.load(f).get("holdings", {})
 
     live = fetch_live_prices(tuple(sorted(pstate["shares"])))
+    gics_fallback = load_gics_sector_fallback()
+    _unresolved = [t for t in pstate["shares"]
+                   if not (sel.get(t, {}).get("sector") or gics_fallback.get(t))]
+    yf_sector_fallback = fetch_sector_via_yfinance(tuple(sorted(_unresolved))) if _unresolved else {}
 
     rows, tot_mv, tot_cost, tot_day = [], 0.0, 0.0, 0.0
     for t, n in pstate["shares"].items():
@@ -303,7 +332,7 @@ else:
         tot_day += n * (last - prev)
         meta = sel.get(t, {})
         rows.append({
-            "Ticker": t, "Sector": meta.get("sector", ""),
+            "Ticker": t, "Sector": meta.get("sector") or gics_fallback.get(t) or yf_sector_fallback.get(t, ""),
             "Setup": meta.get("setup", ""), "Shares": n,
             "Entry Price": entry, "Live Price": float(last),
             "Market Value": mv, "Unrealized $": mv - cost,
