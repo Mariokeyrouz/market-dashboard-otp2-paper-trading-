@@ -89,11 +89,9 @@ export default function EquityIndices() {
         {idx.ticks.map((t, i) => (
           <g key={i}>
             <line x1={44} y1={t.y} x2={680} y2={t.y} stroke="var(--hairline)" strokeWidth={1} />
-            {!compact && (
-              <text x={688} y={t.ty} fontFamily="var(--font-plex-mono), monospace" fontSize={10} fill="var(--faint)">
-                {t.label}
-              </text>
-            )}
+            <text x={696} y={t.ty} fontFamily="var(--font-plex-mono), monospace" fontSize={9.5} fill="var(--faint)" textAnchor="end">
+              {t.label}
+            </text>
           </g>
         ))}
         {idx.series.map((s) => (
@@ -107,18 +105,15 @@ export default function EquityIndices() {
             ))}
           </>
         )}
-        {!compact &&
-          idx.xTicks.map((x, i) => (
-            <text key={i} x={x.x} y={214} fontFamily="var(--font-plex-mono), monospace" fontSize={10.5} fill="var(--faint)" textAnchor={x.anchor}>
-              {x.label}
-            </text>
-          ))}
+        {idx.xTicks.map((x, i) => (
+          <text key={i} x={x.x} y={214} fontFamily="var(--font-plex-mono), monospace" fontSize={10} fill="var(--faint)" textAnchor={x.anchor}>
+            {x.label}
+          </text>
+        ))}
       </svg>
-      {!compact && (
-        <div style={{ fontFamily: MONO, fontSize: 10.5, color: "var(--muted)", textAlign: "right", marginTop: 2, height: 14 }}>
-          {hoverI !== null ? idx.dates[hoverI] : ""}
-        </div>
-      )}
+      <div style={{ fontFamily: MONO, fontSize: 10.5, color: "var(--muted)", textAlign: "right", marginTop: 2, height: 14 }}>
+        {hoverI !== null ? idx.dates[hoverI] : ""}
+      </div>
     </div>
   );
 }

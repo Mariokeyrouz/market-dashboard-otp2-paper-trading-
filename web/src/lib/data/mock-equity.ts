@@ -44,8 +44,13 @@ const EQUITY_DATA: EquityCoreData = {
     })(),
   },
   curve: [["1M", 4.32], ["3M", 4.28], ["6M", 4.15], ["1Y", 3.98], ["2Y", 3.86], ["5Y", 3.94], ["10Y", 4.20], ["30Y", 4.45]],
-  oilName: "WTI Crude", oilVal: "70.94", oilChg: 2.47,
-  oilSpark: [68, 67.5, 68.2, 69, 69.4, 70.1, 70.94],
+  commods: [
+    ["WTI Crude", "70.94", 2.47],
+    ["Brent", "74.20", 1.80],
+    ["Gold", "2,412", 0.85],
+    ["Copper", "4.28", -0.90],
+    ["Nat Gas", "2.68", -1.20],
+  ],
   concentration: [
     { name: "AAPL", weightPct: 7.1 }, { name: "MSFT", weightPct: 6.8 }, { name: "NVDA", weightPct: 6.4 },
     { name: "AMZN", weightPct: 3.9 }, { name: "META", weightPct: 2.6 }, { name: "GOOGL", weightPct: 2.1 },
@@ -90,6 +95,8 @@ const EQUITY_DATA: EquityCoreData = {
     { daysFromNow: 6, kind: "macro", label: "Nonfarm Payrolls", detail: "Consensus +170k, prior +206k" },
     { daysFromNow: 8, kind: "earnings", label: "NVDA — Nvidia", detail: "EPS est. $0.89 · after market close" },
     { daysFromNow: 10, kind: "macro", label: "CPI (Headline & Core)", detail: "Consensus +0.2% m/m core" },
+    { daysFromNow: 12, kind: "macro", label: "Retail Sales", detail: "Consensus +0.3% m/m" },
+    { daysFromNow: 14, kind: "earnings", label: "META — Meta Platforms", detail: "EPS est. $5.25 · after market close" },
   ],
 };
 

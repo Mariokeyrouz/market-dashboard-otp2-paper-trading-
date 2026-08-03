@@ -10,7 +10,7 @@ function MoverRow({ ticker, name, price, chgPct, chgColor, compact }: MoverFmt &
     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 6 }}>
       <div style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         <span style={{ fontFamily: MONO, fontSize: compact ? 11 : 12.5, fontWeight: 600 }}>{ticker}</span>
-        {!compact && <span style={{ fontSize: 10.5, color: "var(--muted)", marginLeft: 6 }}>{name}</span>}
+        <span style={{ fontSize: compact ? 9.5 : 10.5, color: "var(--muted)", marginLeft: 6 }}>{name}</span>
       </div>
       <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
         <span style={{ fontFamily: MONO, fontSize: compact ? 10.5 : 11.5, color: "var(--muted)" }}>{price}</span>

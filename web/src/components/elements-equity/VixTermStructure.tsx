@@ -46,20 +46,14 @@ export default function VixTermStructure() {
       <svg viewBox="0 0 300 100" style={{ width: "100%", flex: 1, minHeight: 0, display: "block" }} preserveAspectRatio="none">
         <line x1={6} y1={y25} x2={294} y2={y25} stroke="var(--red)" strokeWidth={1} strokeDasharray="2 3" opacity={0.55} />
         <line x1={6} y1={y18} x2={294} y2={y18} stroke="var(--amber)" strokeWidth={1} strokeDasharray="2 3" opacity={0.55} />
-        {!compact && (
-          <>
-            <text x={296} y={y25 - 2} fontFamily="var(--font-plex-mono), monospace" fontSize={8} fill="var(--red)" textAnchor="end">25</text>
-            <text x={296} y={y18 - 2} fontFamily="var(--font-plex-mono), monospace" fontSize={8} fill="var(--amber)" textAnchor="end">18</text>
-          </>
-        )}
+        <text x={296} y={y25 - 2} fontFamily="var(--font-plex-mono), monospace" fontSize={8} fill="var(--red)" textAnchor="end">25</text>
+        <text x={296} y={y18 - 2} fontFamily="var(--font-plex-mono), monospace" fontSize={8} fill="var(--amber)" textAnchor="end">18</text>
         <path d={x.historyPath} fill="none" stroke={x.levelColor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
       </svg>
-      {!compact && (
-        <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 9.5, color: "var(--faint)", marginTop: 2 }}>
-          <span>{x.historyStartLabel}</span>
-          <span>Today</span>
-        </div>
-      )}
+      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 9.5, color: "var(--faint)", marginTop: 2 }}>
+        <span>{x.historyStartLabel}</span>
+        <span>Today</span>
+      </div>
       {!compact && (
         <div style={{ fontFamily: "var(--font-newsreader), serif", fontStyle: "italic", fontSize: 12, color: "var(--muted)", marginTop: 6 }}>
           {x.termLabel === "Backwardation"

@@ -34,10 +34,8 @@ export interface EquityCoreData {
   vix: { spot: number; vix3m: number; vix9d: number; history: number[] };
   /** Same [tenor, yield%] tuple shape as the macro dashboard's yield curve. */
   curve: [string, number][];
-  oilName: string;
-  oilVal: string;
-  oilChg: number;
-  oilSpark: number[];
+  /** [name, priceStr, chgPct][] — same tuple shape as the macro dashboard's commodities. */
+  commods: [string, string, number][];
   /** Top-10 S&P 500 constituents by index weight, descending. */
   concentration: { name: string; weightPct: number }[];
   /** 11 GICS sectors. */

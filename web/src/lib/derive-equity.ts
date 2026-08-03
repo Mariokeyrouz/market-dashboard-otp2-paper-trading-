@@ -5,7 +5,7 @@
  */
 import { buildPath, buildTicks } from "./chart-geometry";
 import type { Tick, XTick } from "./chart-geometry";
-import { AMBER, GREEN, RED, bpSign, curveShapeWord, sign, sparkPath, toneUpDown } from "./derive";
+import { AMBER, GREEN, RED, bpSign, curveShapeWord, makeSpark, sign, sparkPath, toneUpDown } from "./derive";
 import type { LegendEntry } from "./derive";
 import { getEquityData } from "./data/mock-equity";
 import type { EquityCoreData, MoverRow } from "./data/types-equity";
@@ -46,7 +46,7 @@ export interface EquityDerived {
     spread3: string; spread3Color: string;
     shape: string;
   };
-  oil: { name: string; val: string; chg: string; chgColor: string; spark: string };
+  commods: { name: string; price: string; chg: string; chgColor: string; spark: string }[];
   concentration: { totalWeightPct: string; rows: { name: string; weightPct: string; barW: string }[] };
   sectors: {
     name: string;
@@ -215,10 +215,10 @@ export function deriveEquity(): EquityDerived {
       spread3: sign(spread3, 2), spread3Color: toneUpDown(spread3),
       shape: curveShapeWord(spread),
     },
-    oil: {
-      name: d.oilName, val: d.oilVal, chg: sign(d.oilChg, 2, true), chgColor: toneUpDown(d.oilChg),
-      spark: sparkPath(d.oilSpark, 70, 24),
-    },
+    commods: d.commods.map(([name, priceStr, chg]) => {
+      const price = parseFloat(priceStr.replace(/,/g, ""));
+      return { name, price: priceStr, chg: sign(chg, 2, true), chgColor: toneUpDown(chg), spark: sparkPath(makeSpark(price, chg), 70, 24) };
+    }),
     concentration: (() => {
       const sorted = [...d.concentration].sort((a, b) => b.weightPct - a.weightPct);
       const maxW = Math.max(...sorted.map((r) => r.weightPct));

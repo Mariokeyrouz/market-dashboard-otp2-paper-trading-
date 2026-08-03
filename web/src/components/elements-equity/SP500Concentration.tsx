@@ -31,7 +31,7 @@ export default function SP500Concentration() {
       <div style={{ fontFamily: MONO, fontSize: compact ? 20 : 26, fontWeight: 600, marginBottom: compact ? 6 : 10 }}>
         {c.totalWeightPct}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: compact ? 3 : 6, flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: compact ? 3 : 4, flex: 1, minHeight: 0, overflow: "hidden" }}>
         {c.rows.map((r) => (
           <div key={r.name} style={{ display: "grid", gridTemplateColumns: "56px 1fr 44px", gap: 8, alignItems: "center" }}>
             <span style={{ fontSize: compact ? 11 : 12.5, fontWeight: 600, color: "var(--ink)" }}>{r.name}</span>
