@@ -1,5 +1,5 @@
 /**
- * MOCK dataset — Equity Dashboard, ported by hand for the v1 element set.
+ * MOCK dataset — Equity Dashboard, ported by hand for the v1/v1.1 element set.
  * ALL VALUES ARE PLACEHOLDER, NOT LIVE MARKET LEVELS.
  * Real-data wiring (phase 2) replaces this module with API-backed data of the
  * same shape; derive-equity.ts and every equity element component stay
@@ -7,18 +7,42 @@
  */
 import type { EquityCoreData } from "./types-equity";
 
+/**
+ * Deterministic pseudo-walk (sine-based noise, no Math.random) — a fixed seed
+ * means the same series renders on the server and the client, so there's no
+ * SSR/hydration mismatch the way a truly random walk would cause.
+ */
+function walk(base: number, n: number, drift: number, vol: number, seed: number): number[] {
+  const arr: number[] = [base];
+  for (let i = 1; i < n; i++) {
+    const wig = (Math.sin(i * 0.35 + seed) + Math.sin(i * 0.11 + seed * 1.9) * 0.6) * vol;
+    arr.push(arr[i - 1] * (1 + drift) + wig);
+  }
+  return arr;
+}
+
+const INDEX_POINTS = 252; // ~1 trading year
+
 const EQUITY_DATA: EquityCoreData = {
   indices: [
-    { name: "S&P 500", color: "var(--ink)",
-      prices: [5780, 5795, 5760, 5810, 5840, 5825, 5860, 5890, 5870, 5905, 5920, 5900, 5935, 5955, 5940] },
-    { name: "Nasdaq 100", color: "var(--gold)",
-      prices: [20100, 20220, 20050, 20280, 20390, 20310, 20480, 20620, 20540, 20710, 20790, 20680, 20850, 20940, 20870] },
-    { name: "Dow Jones", color: "#3A6B9E",
-      prices: [42300, 42410, 42180, 42500, 42610, 42540, 42690, 42800, 42720, 42910, 42980, 42870, 43040, 43150, 43080] },
-    { name: "Russell 2000", color: "var(--green)",
-      prices: [2260, 2245, 2210, 2255, 2280, 2265, 2295, 2310, 2290, 2320, 2335, 2305, 2340, 2360, 2345] },
+    { name: "S&P 500", color: "var(--ink)", prices: walk(5400, INDEX_POINTS, 0.00038, 16, 1.3) },
+    { name: "Nasdaq 100", color: "var(--gold)", prices: walk(18800, INDEX_POINTS, 0.00048, 70, 2.7) },
+    { name: "Dow Jones", color: "#3A6B9E", prices: walk(40200, INDEX_POINTS, 0.00033, 90, 4.1) },
+    { name: "Russell 2000", color: "var(--green)", prices: walk(2150, INDEX_POINTS, 0.0003, 10, 5.9) },
   ],
-  vix: { spot: 18.2, vix3m: 20.4, vix9d: 16.8, spark: [21.5, 20.1, 19.4, 20.8, 19.6, 18.9, 18.2] },
+  vix: {
+    spot: 18.2,
+    vix3m: 20.4,
+    vix9d: 16.8,
+    // 45 sessions of history ending at spot, deterministic wave with an
+    // occasional spike above the 25 stress threshold.
+    history: (() => {
+      const n = 45;
+      const arr = Array.from({ length: n }, (_, i) => Math.max(11, 17 + Math.sin(i * 0.22 + 0.6) * 3.4 + Math.sin(i * 0.05 + 1.1) * 5.2));
+      arr[n - 1] = 18.2;
+      return arr;
+    })(),
+  },
   curve: [["1M", 4.32], ["3M", 4.28], ["6M", 4.15], ["1Y", 3.98], ["2Y", 3.86], ["5Y", 3.94], ["10Y", 4.20], ["30Y", 4.45]],
   oilName: "WTI Crude", oilVal: "70.94", oilChg: 2.47,
   oilSpark: [68, 67.5, 68.2, 69, 69.4, 70.1, 70.94],
@@ -27,6 +51,45 @@ const EQUITY_DATA: EquityCoreData = {
     { name: "AMZN", weightPct: 3.9 }, { name: "META", weightPct: 2.6 }, { name: "GOOGL", weightPct: 2.1 },
     { name: "GOOG", weightPct: 1.8 }, { name: "AVGO", weightPct: 1.7 }, { name: "TSLA", weightPct: 1.6 },
     { name: "BRK.B", weightPct: 1.5 },
+  ],
+  sectors: [
+    { name: "Technology", chg1d: 1.42, chg1w: 3.85, chg1m: 7.20 },
+    { name: "Communication Services", chg1d: 0.95, chg1w: 2.40, chg1m: 5.10 },
+    { name: "Financials", chg1d: 0.58, chg1w: 1.10, chg1m: 2.35 },
+    { name: "Industrials", chg1d: 0.31, chg1w: 0.80, chg1m: 1.95 },
+    { name: "Consumer Discretionary", chg1d: 0.74, chg1w: 1.65, chg1m: 3.40 },
+    { name: "Materials", chg1d: 0.18, chg1w: 0.35, chg1m: 0.85 },
+    { name: "Health Care", chg1d: -0.12, chg1w: -0.45, chg1m: 0.60 },
+    { name: "Consumer Staples", chg1d: -0.28, chg1w: -0.90, chg1m: -1.10 },
+    { name: "Utilities", chg1d: -0.42, chg1w: -1.15, chg1m: -0.35 },
+    { name: "Real Estate", chg1d: -0.65, chg1w: -1.60, chg1m: -2.20 },
+    { name: "Energy", chg1d: -1.35, chg1w: -2.80, chg1m: -4.65 },
+  ],
+  movers: {
+    gainers: [
+      { ticker: "SMCI", name: "Super Micro Computer", price: 42.18, chgPct: 8.92 },
+      { ticker: "PLTR", name: "Palantir Technologies", price: 78.34, chgPct: 6.71 },
+      { ticker: "CRWD", name: "CrowdStrike Holdings", price: 356.20, chgPct: 5.44 },
+      { ticker: "MRNA", name: "Moderna", price: 41.05, chgPct: 4.98 },
+      { ticker: "ENPH", name: "Enphase Energy", price: 68.72, chgPct: 4.60 },
+    ],
+    losers: [
+      { ticker: "INTC", name: "Intel", price: 21.36, chgPct: -6.15 },
+      { ticker: "DXCM", name: "DexCom", price: 61.90, chgPct: -5.20 },
+      { ticker: "APA", name: "APA Corporation", price: 22.44, chgPct: -4.35 },
+      { ticker: "BA", name: "Boeing", price: 154.10, chgPct: -3.80 },
+      { ticker: "PARA", name: "Paramount Global", price: 11.28, chgPct: -3.42 },
+    ],
+  },
+  events: [
+    { daysFromNow: 0, kind: "macro", label: "ISM Manufacturing PMI", detail: "Consensus 48.9, prior 48.4" },
+    { daysFromNow: 1, kind: "earnings", label: "AAPL — Apple", detail: "EPS est. $1.62 · after market close" },
+    { daysFromNow: 2, kind: "earnings", label: "AMZN — Amazon", detail: "EPS est. $1.14 · after market close" },
+    { daysFromNow: 3, kind: "macro", label: "FOMC Rate Decision", detail: "No change expected, ~30% odds priced for a 25bp cut" },
+    { daysFromNow: 4, kind: "earnings", label: "GOOGL — Alphabet", detail: "EPS est. $2.02 · after market close" },
+    { daysFromNow: 6, kind: "macro", label: "Nonfarm Payrolls", detail: "Consensus +170k, prior +206k" },
+    { daysFromNow: 8, kind: "earnings", label: "NVDA — Nvidia", detail: "EPS est. $0.89 · after market close" },
+    { daysFromNow: 10, kind: "macro", label: "CPI (Headline & Core)", detail: "Consensus +0.2% m/m core" },
   ],
 };
 

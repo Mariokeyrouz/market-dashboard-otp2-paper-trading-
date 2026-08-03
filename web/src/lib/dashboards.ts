@@ -66,15 +66,16 @@ export const DASHBOARD_TYPES: DashboardTypeDef[] = [
     hasRegionLens: false,
     logicIntro: {
       blurb:
-        "1 · What's the risk tone? (VIX & term structure, top-left) → 2 · Is breadth narrow? (S&P 500 concentration, top-right) → " +
-        "3 · How are indices actually performing? (the indices chart on the diagonal) → 4 · What's the rates backdrop? (yield curve) → " +
-        "5 · What's the inflation impulse? (oil, bottom-right exit). Everything else is supporting evidence you consult on demand.",
+        "1 · What's the risk tone? (VIX & term structure, top-left) → 2 · Is breadth narrow, and where's the move coming from? " +
+        "(S&P 500 concentration, sector performance, and market movers, top-right) → 3 · How are indices actually performing? " +
+        "(the indices chart on the diagonal, toggle 1M/3M/1Y or hover for a crosshair) → 4 · What's the rates backdrop? (yield curve) → " +
+        "5 · What's next? (oil for the inflation impulse, and the earnings/FOMC calendar for upcoming catalysts).",
       zSteps: [
         "1 · VIX — risk tone",
-        "2 · Concentration — the signal",
+        "2 · Concentration & rotation — the signal",
         "3 · Indices — how it's moving",
         "4 · Yield Curve — confirm / deny",
-        "5 · Oil — what's next",
+        "5 · Oil & Calendar — what's next",
       ],
     },
   },
