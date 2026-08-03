@@ -16,11 +16,14 @@ Usage:
   python factor_strategy_engine.py
 """
 
+import sys
 import json
 import os
 import time
 import numpy as np
 import pandas as pd
+
+sys.stdout.reconfigure(encoding="utf-8")
 
 from strategy_deep_test import download_many, download_tbill, build_market_features
 from event_log import log_event
