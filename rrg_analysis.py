@@ -57,7 +57,9 @@ import rrg_stats as rs
 import rrg_validate as rv
 
 PORTFOLIO = 10_000.0
-N_TOP_SECTORS = 3
+N_TOP_SECTORS = 3         # the requested deliverable below: top-3-sector Kelly walkthrough
+N_CANDIDATE_SECTORS = 6   # broader pool exported to rrg_stock_candidates.csv for the
+                          # paper-trading engine, so it isn't confined to only 3 sectors
 N_STOCKS_PER_SECTOR = 3
 MAX_POSITION_PCT = 20.0          # hard cap, regardless of Kelly
 MAX_SECTOR_PCT = 35.0
@@ -346,10 +348,13 @@ def main():
     print("  quadrant are absent, which flatters Lagging/Improving and inflates R.")
     stock_px = rd.load_stock_panel(verbose=False)
     smap = rd.load_sector_map(verbose=False)
-    all_stock_rows = []      # top N per sector -> sizing candidates
-    full_stock_rows = []     # every constituent -> the dashboard drill-down
+    all_stock_rows = []      # top N per sector, TOP-3 SECTORS ONLY -> Kelly sizing walkthrough
+    full_stock_rows = []     # every constituent, TOP-N_CANDIDATE_SECTORS -> dashboard
+                              # drill-down and the paper-trading engine's candidate pool
+    cand = sec_df.head(N_CANDIDATE_SECTORS)
+    top_etfs = set(top["ticker"])
 
-    for _, srow in top.iterrows():
+    for _, srow in cand.iterrows():
         etf = srow["ticker"]
         names = rd.stocks_in_sector(smap, etf, stock_px.columns)
         if len(names) < 8:
@@ -410,18 +415,19 @@ def main():
 
         base_txt = (f"baseline hit {100*spool:.1f}%" if np.isfinite(spool)
                     else "no pre-2014 history -> no W/R buckets")
-        print(f"\n  --- {etf} ({rd.SECTOR_NAMES.get(etf,'')}) — "
-              f"{len(tick)} constituents, {base_txt} ---")
-        show(sdf.head(8), ["ticker", "rrg_score", "quadrant", "heading", "distance",
-                           "delta_distance", "straightness", "setup",
-                           "hit_1M_pct", "n_bucket", "R"])
-        worst = sdf[sdf["setup"] == "Deteriorating — avoid"].tail(3)
-        if len(worst):
-            print("      Deteriorating (avoid): " +
-                  ", ".join(f"{r['ticker']} ({r['quadrant']}, "
-                            f"Δdist {r['delta_distance']:+.2f})"
-                            for _, r in worst.iterrows()))
-        all_stock_rows.append(sdf.head(N_STOCKS_PER_SECTOR))
+        if etf in top_etfs:
+            print(f"\n  --- {etf} ({rd.SECTOR_NAMES.get(etf,'')}) — "
+                  f"{len(tick)} constituents, {base_txt} ---")
+            show(sdf.head(8), ["ticker", "rrg_score", "quadrant", "heading", "distance",
+                               "delta_distance", "straightness", "setup",
+                               "hit_1M_pct", "n_bucket", "R"])
+            worst = sdf[sdf["setup"] == "Deteriorating — avoid"].tail(3)
+            if len(worst):
+                print("      Deteriorating (avoid): " +
+                      ", ".join(f"{r['ticker']} ({r['quadrant']}, "
+                                f"Δdist {r['delta_distance']:+.2f})"
+                                for _, r in worst.iterrows()))
+            all_stock_rows.append(sdf.head(N_STOCKS_PER_SECTOR))
         full_stock_rows.append(sdf)
 
     if not all_stock_rows:
@@ -597,6 +603,10 @@ def main():
         print("  DESCRIPTION of where each name sits in relative-strength space —")
         print("  useful for monitoring and communication — but on this evidence")
         print("  they are not a basis for allocating real capital.")
+    print(f"\n  rrg_stock_candidates.csv covers the top {N_CANDIDATE_SECTORS} sectors "
+          f"(not just the {N_TOP_SECTORS} above) — that wider pool is what "
+          f"rrg_portfolio_engine.py draws its paper-book holdings from, so the paper "
+          f"book isn't confined to whichever {N_TOP_SECTORS} sectors happen to lead.")
     print(f"\nSaved -> rrg_sector_results.csv, rrg_stock_results.csv, "
           f"rrg_stock_candidates.csv")
     print(f"Runtime: {time.time() - t0:.0f}s")

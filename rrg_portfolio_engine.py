@@ -20,13 +20,33 @@ backtest is a hypothesis about the future, not a proof — but the burden of
 evidence sits with the signal, and right now it has not met it. Nothing here
 places a real order; it is a simulated ledger.
 
+DIVERSIFICATION (changed 2026-08-07)
+-------------------------------------
+The book originally held N_HOLDINGS=5 names capped at 2 per sector, drawn from
+a candidate pool of only the top 3 sectors (rrg_analysis.py's N_TOP_SECTORS).
+Because those top sectors tend to be correlated with each other, that meant up
+to 40% of the book sitting in a single sector on 5 names total — concentrated
+enough that single-name and single-sector noise, not the RRG signal, was
+driving most of the forward P&L swing. That's a bad way to test whether a
+signal has edge, independent of whatever the signal's own merits are.
+
+Now: 12 names, still capped at 2 per sector, drawn from a wider pool of the
+top 6 sectors (rrg_analysis.py's N_CANDIDATE_SECTORS) — exactly 2 picks from
+each of the 6 best-ranked sectors, ~8.3% each. Max single-sector exposure
+drops from ~40% to ~16.7%. This does NOT change the validation verdict above;
+it only makes the forward paper-P&L a cleaner read on the RRG signal itself
+rather than on which 1-2 stocks happened to get picked.
+
 State/ledger schema deliberately mirrors momentum_strategy_engine.py so the
 existing tooling (Portfolio Analytics, Activity Log, run_daily_update.py) can
 pick it up unchanged.
 
 Usage:
-  py rrg_portfolio_engine.py --seed      # create the book (once)
-  py rrg_portfolio_engine.py             # mark to market / rebalance
+  py rrg_portfolio_engine.py --seed        # create the book (once)
+  py rrg_portfolio_engine.py               # mark to market / rebalance on schedule
+  py rrg_portfolio_engine.py --rebalance   # force a rebalance today, regardless of
+                                            # the 28-day schedule (e.g. after a
+                                            # strategy-parameter change like this one)
 """
 
 import json
@@ -61,10 +81,10 @@ SECTORS = "rrg_sector_results.csv"
 CAL = "rrg_calibration.json"
 
 START_NAV = 10_000.0
-N_HOLDINGS = 5
-MAX_PER_SECTOR = 2          # stop one sector taking the whole book
-SLIPPAGE_RATE = 0.001       # 10 bps on traded dollars, same as the other engines
-REBALANCE_DAYS = 28         # monthly-ish, matching the weekly signal's horizon
+N_HOLDINGS = 12               # 2 per sector x rrg_analysis.py's N_CANDIDATE_SECTORS (6)
+MAX_PER_SECTOR = 2            # stop one sector taking the whole book
+SLIPPAGE_RATE = 0.001         # 10 bps on traded dollars, same as the other engines
+REBALANCE_DAYS = 28           # monthly-ish, matching the weekly signal's horizon
 
 
 def log(msg):
@@ -194,14 +214,14 @@ def _append_ledger(date, nav, invested_pct, daily_log_ret, peak_nav, holdings):
     row.to_csv(LEDGER_PATH, index=False)
 
 
-def update():
+def update(force_rebalance=False):
     if not os.path.exists(STATE_PATH):
         log("No state — run with --seed first.")
         return
     with open(STATE_PATH) as f:
         state = json.load(f)
     today = time.strftime("%Y-%m-%d")
-    if state.get("last_date") == today:
+    if state.get("last_date") == today and not force_rebalance:
         log(f"Already updated for {today}.")
         return
 
@@ -218,7 +238,7 @@ def update():
         mv += n * px
     nav = mv + float(state.get("cash_dollars", 0.0))
 
-    due = (pd.Timestamp(today) -
+    due = force_rebalance or (pd.Timestamp(today) -
            pd.Timestamp(state.get("last_rebalance_date", today))).days >= REBALANCE_DAYS
     if due:
         picks = pick_holdings()
@@ -273,7 +293,7 @@ def main():
     if "--seed" in sys.argv:
         seed()
     else:
-        update()
+        update(force_rebalance="--rebalance" in sys.argv)
 
 
 if __name__ == "__main__":

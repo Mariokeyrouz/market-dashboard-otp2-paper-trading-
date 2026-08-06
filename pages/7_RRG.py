@@ -294,6 +294,28 @@ def rrg_figure(tail_map, df, title, label_col="ticker", max_names=14):
 st.divider()
 st.subheader("💼 Paper portfolio — live positions")
 
+st.markdown("""
+<div class="rrg-box">
+<h4>How this book is built</h4>
+<p class="note">
+<b>Universe:</b> constituents of the <b>top 6</b> S&amp;P 500 sectors by RRG Score
+(of 11 total) — not just the top 3.
+<b>Selection:</b> the <b>2</b> highest-RRG-Score names in each of those 6 sectors,
+12 positions total, equal-weighted at ~8.3% each. Rebalanced roughly monthly, or
+whenever the sector leaderboard shifts enough to change the picks.
+<span class="keyline">Why 12 names across 6 sectors, not 5 across 3: an earlier
+version of this book held only 5 names drawn from just the top 3 sectors — and
+because top-ranked sectors tend to move together, that put up to 40% of the book
+in a single sector. At that size, single-stock and single-sector noise was doing
+most of the work in the day-to-day P&amp;L, which made the forward paper track
+record a poor test of whether the RRG signal itself has any edge — independent
+of the signal's own merits. Widening to 6 sectors / 12 names caps single-sector
+exposure at ~16.7% instead, so swings in this book are a cleaner read on the
+signal rather than on which 1-2 stocks happened to get picked.</span>
+</p>
+</div>
+""", unsafe_allow_html=True)
+
 if not (os.path.exists(STATE_PATH) and os.path.exists(LEDGER_PATH)):
     st.info("No paper portfolio yet. Create one with "
             "`py rrg_portfolio_engine.py --seed`, then keep it current with "
