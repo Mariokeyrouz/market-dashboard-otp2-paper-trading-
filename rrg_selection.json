@@ -11,14 +11,6 @@
       "quadrant": "Improving",
       "setup": "Improving -> potential leader"
     },
-    "SPGI": {
-      "ticker": "SPGI",
-      "sector": "Financials",
-      "sector_etf": "XLF",
-      "rrg_score": 100.0,
-      "quadrant": "Improving",
-      "setup": "Improving -> potential leader"
-    },
     "AVB": {
       "ticker": "AVB",
       "sector": "Real Estate",
@@ -27,13 +19,21 @@
       "quadrant": "Improving",
       "setup": "Improving"
     },
-    "TPR": {
-      "ticker": "TPR",
-      "sector": "Consumer Discretionary",
-      "sector_etf": "XLY",
+    "ZBRA": {
+      "ticker": "ZBRA",
+      "sector": "Information Technology",
+      "sector_etf": "XLK",
       "rrg_score": 100.0,
-      "quadrant": "Weakening",
-      "setup": "Deteriorating \u2014 avoid"
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "SPGI": {
+      "ticker": "SPGI",
+      "sector": "Financials",
+      "sector_etf": "XLF",
+      "rrg_score": 100.0,
+      "quadrant": "Improving",
+      "setup": "Improving -> potential leader"
     },
     "CHD": {
       "ticker": "CHD",
@@ -42,14 +42,6 @@
       "rrg_score": 100.0,
       "quadrant": "Leading",
       "setup": "Leading"
-    },
-    "ZBRA": {
-      "ticker": "ZBRA",
-      "sector": "Information Technology",
-      "sector_etf": "XLK",
-      "rrg_score": 100.0,
-      "quadrant": "Improving",
-      "setup": "Improving"
     },
     "NTRS": {
       "ticker": "NTRS",
@@ -66,14 +58,6 @@
       "rrg_score": 98.14814814814817,
       "quadrant": "Improving",
       "setup": "Improving"
-    },
-    "HLT": {
-      "ticker": "HLT",
-      "sector": "Consumer Discretionary",
-      "sector_etf": "XLY",
-      "rrg_score": 96.42857142857144,
-      "quadrant": "Weakening",
-      "setup": "Deteriorating \u2014 avoid"
     },
     "GIS": {
       "ticker": "GIS",
@@ -96,6 +80,22 @@
       "sector": "Communication Services",
       "sector_etf": "XLC",
       "rrg_score": 94.11764705882354,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "BBY": {
+      "ticker": "BBY",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 92.85714285714286,
+      "quadrant": "Leading",
+      "setup": "Established leader"
+    },
+    "NKE": {
+      "ticker": "NKE",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 82.14285714285714,
       "quadrant": "Improving",
       "setup": "Improving"
     }
