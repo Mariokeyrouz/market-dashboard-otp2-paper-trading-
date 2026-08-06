@@ -1,47 +1,103 @@
 {
-  "as_of": "2026-07-29",
-  "n_holdings": 5,
+  "as_of": "2026-08-06",
+  "n_holdings": 12,
   "strategy": "RRG top-N by score, equal weight, sector-capped",
   "holdings": {
-    "WBD": {
-      "ticker": "WBD",
+    "TMUS": {
+      "ticker": "TMUS",
       "sector": "Communication Services",
       "sector_etf": "XLC",
       "rrg_score": 100.0,
-      "quadrant": "Weakening",
-      "setup": "Deteriorating \u2014 avoid"
+      "quadrant": "Improving",
+      "setup": "Improving -> potential leader"
     },
-    "HD": {
-      "ticker": "HD",
-      "sector": "Consumer Discretionary",
-      "sector_etf": "XLY",
+    "SPGI": {
+      "ticker": "SPGI",
+      "sector": "Financials",
+      "sector_etf": "XLF",
+      "rrg_score": 100.0,
+      "quadrant": "Improving",
+      "setup": "Improving -> potential leader"
+    },
+    "AVB": {
+      "ticker": "AVB",
+      "sector": "Real Estate",
+      "sector_etf": "XLRE",
       "rrg_score": 100.0,
       "quadrant": "Improving",
       "setup": "Improving"
     },
-    "IBKR": {
-      "ticker": "IBKR",
-      "sector": "Financials",
-      "sector_etf": "XLF",
+    "TPR": {
+      "ticker": "TPR",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 100.0,
+      "quadrant": "Weakening",
+      "setup": "Deteriorating \u2014 avoid"
+    },
+    "CHD": {
+      "ticker": "CHD",
+      "sector": "Consumer Staples",
+      "sector_etf": "XLP",
       "rrg_score": 100.0,
       "quadrant": "Leading",
       "setup": "Leading"
     },
-    "ERIE": {
-      "ticker": "ERIE",
+    "ZBRA": {
+      "ticker": "ZBRA",
+      "sector": "Information Technology",
+      "sector_etf": "XLK",
+      "rrg_score": 100.0,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "NTRS": {
+      "ticker": "NTRS",
       "sector": "Financials",
       "sector_etf": "XLF",
-      "rrg_score": 98.59154929577464,
-      "quadrant": "Lagging",
-      "setup": "Lagging"
+      "rrg_score": 98.1818181818182,
+      "quadrant": "Weakening",
+      "setup": "Weakening"
     },
-    "EXPE": {
-      "ticker": "EXPE",
+    "HPQ": {
+      "ticker": "HPQ",
+      "sector": "Information Technology",
+      "sector_etf": "XLK",
+      "rrg_score": 98.14814814814817,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "HLT": {
+      "ticker": "HLT",
       "sector": "Consumer Discretionary",
       "sector_etf": "XLY",
-      "rrg_score": 97.67441860465117,
+      "rrg_score": 96.42857142857144,
       "quadrant": "Weakening",
       "setup": "Deteriorating \u2014 avoid"
+    },
+    "GIS": {
+      "ticker": "GIS",
+      "sector": "Consumer Staples",
+      "sector_etf": "XLP",
+      "rrg_score": 95.45454545454544,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "WELL": {
+      "ticker": "WELL",
+      "sector": "Real Estate",
+      "sector_etf": "XLRE",
+      "rrg_score": 95.23809523809524,
+      "quadrant": "Leading",
+      "setup": "Leading"
+    },
+    "PSKY": {
+      "ticker": "PSKY",
+      "sector": "Communication Services",
+      "sector_etf": "XLC",
+      "rrg_score": 94.11764705882354,
+      "quadrant": "Improving",
+      "setup": "Improving"
     }
   }
 }
