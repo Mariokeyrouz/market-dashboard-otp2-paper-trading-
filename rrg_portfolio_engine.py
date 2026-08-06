@@ -108,12 +108,20 @@ def fetch_prices(tickers):
 
 def pick_holdings():
     """
-    Top N by RRG Score from the current analysis, capped per sector.
+    Top N by RRG Score from the current analysis, capped per sector, skipping
+    names the setup classifier itself labels "Deteriorating — avoid" (quadrant
+    Weakening/Lagging with distance still increasing) — the book shouldn't hold
+    what its own page tells a reader to avoid. Skipped names' slots backfill
+    from the next-best-scored eligible name, in that sector or elsewhere, via
+    the same sort+cap loop below; a sector can end up short of MAX_PER_SECTOR
+    if it doesn't have that many eligible names, which shrinks N_HOLDINGS
+    rather than loosening the per-sector cap to compensate.
     Falls back to the sector ETFs themselves if no constituent file exists.
     """
     if os.path.exists(CANDIDATES):
         df = pd.read_csv(CANDIDATES)
-        df = df[df["rrg_score"].notna()].sort_values("rrg_score", ascending=False)
+        df = df[df["rrg_score"].notna() & (df["setup"] != "Deteriorating — avoid")]
+        df = df.sort_values("rrg_score", ascending=False)
         picks, per_sector = [], {}
         for _, r in df.iterrows():
             sec = str(r.get("sector_etf", "?"))
