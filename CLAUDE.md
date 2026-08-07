@@ -55,8 +55,12 @@ registry; `TRACKED_GLOBS` controls what gets auto-committed.
 Adding a strategy means touching four registries:
 1. `run_daily_update.py` → `ENGINES`
 2. `event_log.py` → `STRATS`
-3. `pages/9_Portfolio_Analytics.py` → `PORTFOLIOS`
-4. a page in `pages/`
+3. `pages/10_Portfolio_Analytics.py` → `PORTFOLIOS`
+4. a page in `pages/`, numbered BELOW Portfolio Analytics / Activity Log — those
+   two are system-wide summaries and should stay pinned at the bottom of the
+   sidebar; a new strategy page goes in the gap before them, and the two
+   summary pages get renumbered up to make room (e.g. adding a 9th strategy
+   page bumps Portfolio Analytics 9→10 and Activity Log 10→11).
 
 **RRG is registered in 2–4 but deliberately NOT in `ENGINES`** — see below.
 
