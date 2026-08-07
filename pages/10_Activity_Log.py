@@ -47,6 +47,7 @@ they lock in.
 | ↩️ **Re-entry** | FMTS re-enters after a stop calms | FMTS, FMTS AMA | — |
 | 🛑 **Risk-off** / ✅ **Risk-on** | S&P 500 crosses its 10-month average → cash / back in | Momentum | — |
 | ✂️ **Trim** / ➕ **Reload** | A big (>8pp) exposure change in a day | OTP2.0, OTP2.0 AMA | — (cumulative on their page) |
+| 🔄 **Rebalance** | A sleeve drifts >5% from its 25% target, or SectorEW/FMTS rotate monthly | 🧩 FourPillar | — |
 
 **What each row records:** date · strategy · event · a plain-English detail. Instrumented trades
 (Momentum / FMTS / FMTS AMA rebalances and Gold exits) also carry the **realized P&L** — sale

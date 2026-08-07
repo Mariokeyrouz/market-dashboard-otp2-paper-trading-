@@ -34,6 +34,7 @@ STRATS = [
     ("Gold",       "gold_ledger.csv",       "🥇"),
     ("Momentum",   "momentum_ledger.csv",   "🚀"),
     ("RRG",        "rrg_ledger.csv",        "🔄"),
+    ("FourPillar", "four_pillar_ledger.csv", "🧩"),
 ]
 
 

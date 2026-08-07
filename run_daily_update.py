@@ -55,6 +55,7 @@ ENGINES = [
     "momentum_strategy_engine.py",     # Momentum (new)
     "rrg_analysis.py",                 # RRG rankings — must run BEFORE its engine
     "rrg_portfolio_engine.py",         # RRG — research book, NOT funded (see below)
+    "four_pillar_engine.py",           # Four-Pillar combo (Gold + SectorEW + FMTS 2-factor + OTP2.0)
 ]
 
 # RRG is advanced daily like the others, but it is a research book: the signal

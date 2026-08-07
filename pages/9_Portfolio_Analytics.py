@@ -96,6 +96,16 @@ RESEARCH_ONLY = {"RRG"}
 GOLD_CFG = {"ledger": "gold_ledger.csv", "state": "gold_state.json", "selection": "",
             "icon": "🥇", "color": "#c9a227"}
 
+# Four-Pillar is a combination of the other strategies' constructions (Gold's
+# R-dir+DXY signal, an equal-weight sector rotation, FMTS's 2-factor
+# momentum+low-vol, and OTP2.0's base engine), not a single-instrument or
+# single-ticker-list book — like Gold, it has its own page (holdings are
+# sub-strategy sleeves, not stocks) and is kept out of the equity-only
+# sections below, but still belongs in the headline metrics and system-wide
+# health/correlation/event sections.
+FOUR_PILLAR_CFG = {"ledger": "four_pillar_ledger.csv", "state": "four_pillar_state.json", "selection": "",
+                    "icon": "🧩", "color": "#8e44ad"}
+
 CORR_PERIOD = "1y"   # yfinance period for stock correlation data
 
 
@@ -596,7 +606,7 @@ st.caption(
 spy = fetch_benchmark("SPY")   # total-return benchmark
 
 metric_rows = []
-for name, cfg in {**PORTFOLIOS, "Gold": GOLD_CFG}.items():
+for name, cfg in {**PORTFOLIOS, "Gold": GOLD_CFG, "FourPillar": FOUR_PILLAR_CFG}.items():
     ledger = _load_ledger(cfg["ledger"])
     m = _compute_metrics(ledger)
     if m:
@@ -693,7 +703,7 @@ st.subheader("🩺 System Health & Diagnostics")
 # and is still excluded from the stock-specific equity sections below (Position
 # Attribution, NAV/Drawdown comparison, stock correlations), though it now
 # appears in the headline Performance Metrics table above.
-SYSTEM_PORTFOLIOS = {**PORTFOLIOS, "Gold": GOLD_CFG}
+SYSTEM_PORTFOLIOS = {**PORTFOLIOS, "Gold": GOLD_CFG, "FourPillar": FOUR_PILLAR_CFG}
 _hstates, _hsel = _load_all_states(SYSTEM_PORTFOLIOS)
 
 # (a) Combined system totals
