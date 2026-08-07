@@ -13,6 +13,7 @@ import os
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import yfinance as yf
 
 st.set_page_config(page_title="Four-Pillar Strategy - Paper Trading", page_icon="🧩", layout="wide")
 
@@ -30,6 +31,35 @@ STATE_PATH = "four_pillar_state.json"
 BAND = 0.05
 TARGET_W = 0.25
 SLEEVE_COLOR = {"Gold": "#c9a227", "SectorEW": "#1565c0", "FMTS": "#e65100", "OTP2.0": "#6a1b9a"}
+SLEEVE_CADENCE = {
+    "Gold": "Position (GLD or cash) can change any day the signal or 5% stop fires.",
+    "SectorEW": "Rotates monthly — new top-3 sectors picked fresh each rebalance.",
+    "FMTS": "Rotates monthly — new top-18 by Momentum+Low-Vol score picked fresh each rebalance.",
+    "OTP2.0": "Fixed 7-stock cohort — never changes WHICH stocks; only % invested moves day to day.",
+}
+
+
+@st.cache_data(ttl=900)
+def fetch_current_prices(tickers):
+    tickers = sorted(set(t for t in tickers if t))
+    if not tickers:
+        return {}
+    try:
+        raw = yf.download(tickers, period="5d", interval="1d", auto_adjust=True, progress=False)
+        if raw.empty:
+            return {}
+        closes = raw["Close"] if isinstance(raw.columns, pd.MultiIndex) else raw[["Close"]]
+        if len(tickers) == 1 and "Close" in closes:
+            return {tickers[0]: float(closes["Close"].dropna().iloc[-1])}
+        out = {}
+        for t in tickers:
+            if t in closes.columns:
+                col = closes[t].dropna()
+                if len(col):
+                    out[t] = float(col.iloc[-1])
+        return out
+    except Exception:
+        return {}
 
 st.title("🧩 Four-Pillar Strategy — Live Paper Trading")
 st.caption(
@@ -210,6 +240,58 @@ fig_pie = go.Figure(data=[go.Pie(
 fig_pie.update_layout(height=300, margin=dict(l=0, r=0, t=10, b=0), showlegend=False,
                        paper_bgcolor="rgba(0,0,0,0)")
 st.plotly_chart(fig_pie, width='stretch')
+
+st.divider()
+
+# ── Sleeve holdings — the actual per-ticker positions ──────────────────────────
+st.subheader("📋 Sleeve Holdings")
+st.caption(
+    "Every ticker currently held in each sleeve, with live price and unrealized P&L. "
+    "This is the answer to \"what does the strategy actually own right now\" — the "
+    "breakdown table above only shows sleeve-level totals."
+)
+
+_all_tickers = sorted({t for sub in sleeves.values() for t, q in sub.get("shares", {}).items() if q})
+with st.spinner(f"Pricing {len(_all_tickers)} positions…"):
+    _live_prices = fetch_current_prices(tuple(_all_tickers))
+
+holding_tabs = st.tabs([f"{name} ({sum(1 for q in sub.get('shares', {}).values() if q)})"
+                         for name, sub in sleeves.items()])
+for tab, (name, sub) in zip(holding_tabs, sleeves.items()):
+    with tab:
+        st.caption(f"🔁 {SLEEVE_CADENCE.get(name, '')}")
+        shares = {t: q for t, q in sub.get("shares", {}).items() if q}
+        if not shares:
+            st.info("No open positions in this sleeve right now (in cash).")
+            continue
+        entries = sub.get("entry_prices", {}) or {}
+        rows = []
+        for t, q in shares.items():
+            entry = entries.get(t)
+            cur = _live_prices.get(t)
+            value = q * cur if cur else None
+            ret_pct = (cur / entry - 1) * 100 if (cur and entry) else None
+            rows.append({"Ticker": t, "Shares": q, "Entry Price": entry, "Current Price": cur,
+                         "Value ($)": value, "Unrealized %": ret_pct})
+        df_hold = pd.DataFrame(rows).sort_values("Value ($)", ascending=False, na_position="last")
+        sleeve_total = df_hold["Value ($)"].sum(skipna=True)
+        if sleeve_total:
+            df_hold["Weight in Sleeve %"] = df_hold["Value ($)"] / sleeve_total * 100
+        st.dataframe(
+            df_hold.style.format({
+                "Shares": "{:.4f}", "Entry Price": "${:.2f}", "Current Price": "${:.2f}",
+                "Value ($)": "${:,.2f}", "Unrealized %": "{:+.2f}%", "Weight in Sleeve %": "{:.1f}%",
+            }, na_rep="—").map(
+                lambda v: ("color:#00c896;font-weight:600" if isinstance(v, float) and pd.notna(v) and v > 0
+                           else "color:#ff4b4b;font-weight:600" if isinstance(v, float) and pd.notna(v) and v < 0
+                           else ""),
+                subset=["Unrealized %"],
+            ),
+            width='stretch', hide_index=True,
+        )
+        _missing = [t for t in shares if t not in _live_prices]
+        if _missing:
+            st.caption(f"⚠ No fresh quote for: {', '.join(_missing)} (shown as —).")
 
 st.divider()
 
