@@ -10,14 +10,11 @@ import CbCountdown from "@/components/elements/CbCountdown";
 import Classification from "@/components/elements/Classification";
 import Commodities from "@/components/elements/Commodities";
 import CrossAssetHeatmap from "@/components/elements/CrossAssetHeatmap";
-import EconSurprises from "@/components/elements/EconSurprises";
 import FxChanges from "@/components/elements/FxChanges";
 import Hinge from "@/components/elements/Hinge";
 import KeyReleases from "@/components/elements/KeyReleases";
 import LaborMarket from "@/components/elements/LaborMarket";
-import MacroMatrix from "@/components/elements/MacroMatrix";
 import Playbook from "@/components/elements/Playbook";
-import Positioning from "@/components/elements/Positioning";
 import RegimeStrip from "@/components/elements/RegimeStrip";
 import Tripwires from "@/components/elements/Tripwires";
 import YieldCurve from "@/components/elements/YieldCurve";
@@ -101,16 +98,6 @@ export const ELEMENTS: ElementDef[] = [
     defaultLayout: { x: 0, y: 16, w: 12, h: 5, minW: 8, minH: 4 },
   },
   {
-    id: "matrix",
-    title: "Macro Matrix",
-    component: MacroMatrix,
-    zRole: "support",
-    crossRegion: true,
-    logic:
-      "Everything above reads one economy at a time; this reads all of them at once. A regime call only means something relative to the alternatives — US stagflation implies a different book if Europe is disinflating than if it's stuck too. Sits directly under the tripwires because it answers the question they provoke: 'is this local or global?' Click a row to move the lens to that region.",
-    defaultLayout: { x: 0, y: 20, w: 12, h: 8, minW: 8, minH: 5 },
-  },
-  {
     id: "heatmap",
     title: "Cross-Asset Heatmap",
     component: CrossAssetHeatmap,
@@ -118,16 +105,6 @@ export const ELEMENTS: ElementDef[] = [
     logic:
       "The tape's verdict: cross-asset returns over four horizons. If the regime read is right, it should be visible here — and disagreements are information.",
     defaultLayout: { x: 0, y: 28, w: 4, h: 10, minW: 3, minH: 7 },
-  },
-  {
-    id: "surprises",
-    title: "Economic Surprises",
-    component: EconSurprises,
-    zRole: "support",
-    defaultHidden: true,
-    logic:
-      "Data versus expectations — the pulse of whether the macro narrative is beating or missing. Feeds the growth leg of the regime read.",
-    defaultLayout: { x: 0, y: 34, w: 4, h: 7, minW: 3, minH: 6 },
   },
   {
     id: "cb",
@@ -156,16 +133,6 @@ export const ELEMENTS: ElementDef[] = [
     logic:
       "The other half of the exit point: this week's known catalysts and their consensus, so the last thing you carry away is the calendar of what could change the read.",
     defaultLayout: { x: 4, y: 34, w: 4, h: 6, minW: 3, minH: 5 },
-  },
-  {
-    id: "positioning",
-    title: "Positioning & Flows",
-    component: Positioning,
-    zRole: "support",
-    defaultHidden: true,
-    logic:
-      "Crowding context: z-scores of net spec positioning. A signal that everyone already owns is a weaker signal — this panel tempers conviction.",
-    defaultLayout: { x: 8, y: 34, w: 4, h: 6, minW: 3, minH: 5 },
   },
   {
     id: "commods",

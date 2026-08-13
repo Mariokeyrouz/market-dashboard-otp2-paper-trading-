@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCalendarBucket } from "./macro-calendar";
+import { buildCalendarBucket, buildReleasesList } from "./macro-calendar";
 
 describe("buildCalendarBucket", () => {
   it("drops events already in the past and keeps today/future ones, kind always macro", () => {
@@ -19,5 +19,17 @@ describe("buildCalendarBucket", () => {
 
   it("returns an empty list once every reference date is in the past", () => {
     expect(buildCalendarBucket(new Date("2099-01-01"))).toEqual([]);
+  });
+});
+
+describe("buildReleasesList", () => {
+  it("returns up to `limit` upcoming releases, no fabricated consensus", () => {
+    const rows = buildReleasesList(new Date("2026-08-13T12:00:00"), 5);
+    expect(rows.length).toBeLessThanOrEqual(5);
+    rows.forEach(([day, name, cons]) => {
+      expect(["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]).toContain(day);
+      expect(name.length).toBeGreaterThan(0);
+      expect(cons).toBe("—");
+    });
   });
 });

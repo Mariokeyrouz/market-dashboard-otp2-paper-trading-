@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import ElementLibraryDock from "@/components/chrome/ElementLibraryDock";
 import ElementLibraryPanel from "@/components/chrome/ElementLibraryPanel";
 import Header from "@/components/chrome/Header";
@@ -10,11 +10,11 @@ import RightRail from "@/components/chrome/RightRail";
 import DashboardGrid from "@/components/dashboard/DashboardGrid";
 import { DataContext } from "@/components/DataContext";
 import { MONO } from "@/components/ui";
-import type { StaleBucket } from "@/lib/data/build-equity-data";
-import { AMBER, deriveAll, GREEN } from "@/lib/derive";
+import { AMBER, GREEN } from "@/lib/derive";
 import { useDashStore } from "@/lib/store";
 import { useDashboardDef } from "@/lib/useDashboardDef";
-import { type EquityDataStatus, useEquityData } from "@/lib/useEquityData";
+import { useEquityData } from "@/lib/useEquityData";
+import { useMacroData } from "@/lib/useMacroData";
 import { useShellMode } from "@/lib/useShellMode";
 
 function timeAgoLabel(iso: string): string {
@@ -24,12 +24,13 @@ function timeAgoLabel(iso: string): string {
   return `${mins}m ago`;
 }
 
-function EquityStatusBadge({
+/** Shared LIVE/PARTIAL/DEGRADED footer badge — same status shape for both the Equity and Macro live-data hooks. */
+function LiveStatusBadge({
   status, fetchedAt, staleBuckets,
 }: {
-  status: EquityDataStatus;
+  status: "bootstrap" | "live" | "partial" | "degraded";
   fetchedAt?: string;
-  staleBuckets?: Record<StaleBucket, boolean>;
+  staleBuckets?: Record<string, boolean>;
 }) {
   if (status === "bootstrap") return null; // near-instant; avoid an alarming flash before the first fetch resolves
 
@@ -54,17 +55,19 @@ function EquityStatusBadge({
 }
 
 export default function Page() {
-  const region = useDashStore((s) => s.region);
   const theme = useDashStore((s) => s.theme);
   const dockOpen = useDashStore((s) => s.dockOpen);
   const setDockOpen = useDashStore((s) => s.setDockOpen);
   const railCollapsed = useDashStore((s) => s.railCollapsed);
   const setRailCollapsed = useDashStore((s) => s.setRailCollapsed);
-  const derived = useMemo(() => deriveAll(region), [region]);
   const mode = useShellMode();
   const dashDef = useDashboardDef();
   const isEquity = dashDef.id === "equity";
   const equity = useEquityData(isEquity);
+  // Not gated by the active tab — LeftRail/Header read the outer DataContext
+  // (macro.derived, below) unconditionally for chrome like the tripwire-flag
+  // count, regardless of which dashboard is on screen.
+  const macro = useMacroData();
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -89,7 +92,7 @@ export default function Page() {
   const collapsed = mode === "mid" || railCollapsed;
 
   return (
-    <DataContext.Provider value={derived}>
+    <DataContext.Provider value={macro.derived}>
       {/* Rails + centred grid. The grid keeps its 1820 cap because the
           Z-pattern depends on a scannable sweep width — the reclaimed margin
           becomes standing chrome, not wider tiles. */}
@@ -106,22 +109,17 @@ export default function Page() {
           {/* In wide/mid the rail owns brand + controls + clock, so there is no
               header band — the grid starts at the top. Narrow keeps the header. */}
           {!rails && <Header />}
-          <DashboardGrid equityData={isEquity ? equity.derived : null} />
+          <DashboardGrid equityData={isEquity ? equity.derived : null} macroData={!isEquity ? macro.derived : null} />
           <footer
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 16,
               flexWrap: "wrap", marginTop: 10,
             }}
           >
-            {isEquity ? <EquityStatusBadge status={equity.status} fetchedAt={equity.meta?.fetchedAt} staleBuckets={equity.meta?.stale} /> : (
-              <span
-                style={{
-                  fontFamily: MONO, fontSize: 11, color: "var(--gold)",
-                  border: "1px solid rgba(160,123,29,.4)", borderRadius: 6, padding: "5px 11px",
-                }}
-              >
-                ✎ MOCK DATA — placeholder values, not live levels
-              </span>
+            {isEquity ? (
+              <LiveStatusBadge status={equity.status} fetchedAt={equity.meta?.fetchedAt} staleBuckets={equity.meta?.stale} />
+            ) : (
+              <LiveStatusBadge status={macro.status} fetchedAt={macro.meta?.fetchedAt} staleBuckets={macro.meta?.stale} />
             )}
             <span style={{ fontSize: 11, color: "var(--faint)" }}>
               Opinionated, style-dependent classification · directional reads, no validated hit-rates · layout is yours — see the Logic panel

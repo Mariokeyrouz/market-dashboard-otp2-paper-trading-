@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import ReactGridLayout, { useContainerWidth, verticalCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -8,8 +8,7 @@ import "react-resizable/css/styles.css";
 import { DataContext } from "@/components/DataContext";
 import { DensityContext } from "@/components/DensityContext";
 import { EquityDataContext } from "@/components/EquityDataContext";
-import { REGIONS, type Region } from "@/lib/data/types";
-import { deriveAll, type Derived } from "@/lib/derive";
+import type { Derived } from "@/lib/derive";
 import type { EquityDerived } from "@/lib/derive-equity";
 import { GRID_COLS, GRID_MARGIN, GRID_ROW_HEIGHT } from "@/lib/layout/defaults";
 import { selectHidden, selectLayout, useDashStore } from "@/lib/store";
@@ -25,30 +24,23 @@ const CHROME_ABOVE = 10;
 const ROW_H_MIN = 20;
 const ROW_H_MAX = 21;
 
-export default function DashboardGrid({ equityData }: { equityData: EquityDerived | null }) {
+export default function DashboardGrid({
+  equityData, macroData,
+}: {
+  equityData: EquityDerived | null;
+  macroData: Derived | null;
+}) {
   const { width, containerRef, mounted } = useContainerWidth();
   const dashDef = useDashboardDef();
   const layout = useDashStore(selectLayout);
   const hidden = useDashStore(selectHidden);
   const edit = useDashStore((s) => s.editMode);
-  const region = useDashStore((s) => s.region);
   const pins = useDashStore((s) => s.pins);
   const setLayout = useDashStore((s) => s.setLayout);
   const hideElement = useDashStore((s) => s.hideElement);
   const setPin = useDashStore((s) => s.setPin);
   const clearPin = useDashStore((s) => s.clearPin);
   const densityOverride = useDashStore((s) => s.densityOverride);
-
-  // deriveAll is pure, so every region can be derived up-front and each tile
-  // handed its own slice — which is what makes per-element POV free: no element
-  // component knows or cares that its context isn't the global one.
-  // NOTE: cheap over static mock data; once real feeds land this becomes five
-  // fetches and should go lazy (derive only the regions actually on screen).
-  // Only computed for dashboard types that actually have a region lens.
-  const byRegion = useMemo(
-    () => (dashDef.hasRegionLens ? (Object.fromEntries(REGIONS.map((r) => [r, deriveAll(r)])) as Record<Region, Derived>) : null),
-    [dashDef.hasRegionLens],
-  );
 
   const visible = dashDef.elements.filter((e) => !hidden.includes(e.id));
   // Guarantee every visible element has a layout entry (covers stale persisted
@@ -129,8 +121,8 @@ export default function DashboardGrid({ equityData }: { equityData: EquityDerive
             );
             return (
               <div key={e.id} style={{ height: "100%" }}>
-                {dashDef.hasRegionLens && byRegion ? (
-                  <DataContext.Provider value={byRegion[pin ?? region]}>{frame}</DataContext.Provider>
+                {dashDef.hasRegionLens ? (
+                  <DataContext.Provider value={macroData}>{frame}</DataContext.Provider>
                 ) : (
                   <EquityDataContext.Provider value={equityData}>{frame}</EquityDataContext.Provider>
                 )}

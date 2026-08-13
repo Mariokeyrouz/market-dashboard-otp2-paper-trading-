@@ -2,7 +2,7 @@ import type { Layout, LayoutItem } from "react-grid-layout";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { DEFAULT_DASHBOARD_TYPE, DASHBOARD_TYPES, getDashboardDef, type DashboardType } from "./dashboards";
-import type { Region } from "./data/types";
+import { REGIONS, type Region } from "./data/types";
 import { defaultLayout } from "./layout/defaults";
 
 export type Theme = "dark" | "light";
@@ -239,7 +239,13 @@ export const useDashStore = create<DashState>()(
         for (const type of Object.keys(dashboards) as DashboardType[]) {
           dashboards[type] = { ...dashboards[type], ...(p.dashboards?.[type] ?? {}), activeSavedViewId: null };
         }
-        return { ...current, ...p, dashboards };
+        // A region persisted before REGIONS narrowed to ["US"] (e.g. "EU"
+        // sitting in someone's localStorage) would otherwise crash the mock
+        // lookup — coerce it back to the one valid region instead.
+        const isValidRegion = (r: unknown): r is Region => REGIONS.includes(r as Region);
+        const region = isValidRegion(p.region) ? p.region : REGIONS[0];
+        const pins = Object.fromEntries(Object.entries(p.pins ?? {}).filter(([, r]) => isValidRegion(r)));
+        return { ...current, ...p, dashboards, region, pins };
       },
       // dockOpen/libraryDockOpen persist (layout preferences) but logicOpen/
       // libraryOpen deliberately do not — the overlays are transient, and

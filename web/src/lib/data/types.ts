@@ -1,14 +1,16 @@
-/** Region lens for the whole dashboard. */
-export type Region = "US" | "EU" | "CN" | "JP" | "GL";
+/**
+ * Region lens for the whole dashboard. Narrowed to US-only for now — EU/CN/JP/GL
+ * had no free live data source good enough to ship without falling back to
+ * mock, and the instruction here is no mock data, reachable or not. Re-widen
+ * this union (and REGIONS/REGION_LABELS below) when a region gets a real
+ * live source in build-macro-data.ts.
+ */
+export type Region = "US";
 
-export const REGIONS: Region[] = ["US", "EU", "CN", "JP", "GL"];
+export const REGIONS: Region[] = ["US"];
 
 export const REGION_LABELS: Record<Region, string> = {
   US: "United States",
-  EU: "Euro Area",
-  CN: "China",
-  JP: "Japan",
-  GL: "Global (agg)",
 };
 
 export interface RegimeSeg {
@@ -35,13 +37,16 @@ export interface PlaybookRow {
   color: string;
 }
 
+/**
+ * `action`/`prob`/`move` (a market-implied rate-path guess) were dropped —
+ * no free live source exists for that (CME FedWatch-style data is paid).
+ * `CbCountdown` now shows the actual live Fed Funds target range
+ * (`CoreData.policy`) alongside the meeting countdown instead.
+ */
 export interface CbMeeting {
   name: string;
   days: number;
   date: string;
-  action: string;
-  prob: number;
-  move: string;
 }
 
 /** Core per-region dataset (mirrors the design handoff's DATA map). */
@@ -81,17 +86,17 @@ export interface CoreData {
   cross: [string, number, number, number, number][];
   cb: CbMeeting;
   releases: [string, string, string][];
-  positioning: [string, number][];
 }
 
-/** Extra per-region dataset (mirrors the design handoff's EXTRA map). */
+/**
+ * Extra per-region dataset (mirrors the design handoff's EXTRA map).
+ * `esi`/`esiTrend`/`surprises` (a Citi/Bloomberg-style Economic Surprise
+ * Index) were dropped — no free live equivalent exists.
+ */
 export interface ExtraData {
   labor: [string, string, string][];
   fx: [string, number, number][];
   commods: [string, string, number][];
-  esi: number;
-  esiTrend: number[];
-  surprises: [string, number][];
 }
 
 export type RegionData = CoreData & ExtraData;
