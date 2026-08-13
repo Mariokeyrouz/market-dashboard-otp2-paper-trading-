@@ -7,6 +7,7 @@ for all four active equity strategies.
 
 import json
 import os
+import time
 
 import numpy as np
 import pandas as pd
@@ -235,20 +236,36 @@ def fetch_stock_returns(tickers, period="1y"):
 
 @st.cache_data(ttl=3600)
 def fetch_benchmark(ticker="SPY", period="6mo"):
-    """Benchmark daily total-return closes (auto_adjust folds in dividends)."""
-    try:
-        raw = yf.download(ticker, period=period, interval="1d",
-                          auto_adjust=True, progress=False)
-        if raw.empty:
-            return pd.Series(dtype=float)
-        closes = raw["Close"]
-        if isinstance(closes, pd.DataFrame):
-            closes = closes.iloc[:, 0]
-        if getattr(closes.index, "tz", None) is not None:
-            closes.index = closes.index.tz_localize(None)
-        return closes.dropna()
-    except Exception:
-        return pd.Series(dtype=float)
+    """Benchmark daily total-return closes (auto_adjust folds in dividends).
+
+    Retries a couple of times before giving up — yfinance intermittently
+    hiccups on a single call, and since the result is cached for an hour,
+    a transient failure that returned empty used to silently blank the
+    SPY %% / vs SPY columns for every strategy for the rest of that hour.
+    """
+    last_err = None
+    for attempt in range(3):
+        try:
+            raw = yf.download(ticker, period=period, interval="1d",
+                              auto_adjust=True, progress=False)
+            if raw.empty:
+                last_err = "empty result"
+            else:
+                closes = raw["Close"]
+                if isinstance(closes, pd.DataFrame):
+                    closes = closes.iloc[:, 0]
+                if getattr(closes.index, "tz", None) is not None:
+                    closes.index = closes.index.tz_localize(None)
+                closes = closes.dropna()
+                if not closes.empty:
+                    return closes
+                last_err = "all-NaN result"
+        except Exception as e:
+            last_err = e
+        if attempt < 2:
+            time.sleep(2)
+    print(f"fetch_benchmark({ticker}): giving up after 3 attempts ({last_err})")
+    return pd.Series(dtype=float)
 
 
 def _benchmark_return(spy, start, end):
@@ -604,6 +621,17 @@ st.caption(
 )
 
 spy = fetch_benchmark("SPY")   # total-return benchmark
+if spy.empty:
+    # Don't let a transient yfinance failure get cached as "no data" for the
+    # full ttl=3600 — next page load should retry from scratch instead of
+    # showing blank SPY %% / vs SPY columns for up to an hour.
+    fetch_benchmark.clear()
+    st.warning(
+        "⚠️ Couldn't fetch SPY from Yahoo Finance just now, so **SPY %** and "
+        "**vs SPY** below are blank this load — everything else in the table "
+        "is unaffected. Refresh in a moment; this clears itself once the "
+        "fetch succeeds."
+    )
 
 metric_rows = []
 for name, cfg in {**PORTFOLIOS, "Gold": GOLD_CFG, "FourPillar": FOUR_PILLAR_CFG}.items():
