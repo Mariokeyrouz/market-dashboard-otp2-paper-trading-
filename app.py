@@ -22,44 +22,61 @@ st.markdown("""
 # ── Portfolio correlation ─────────────────────────────────────────────────────
 
 PORTFOLIO_LEDGERS = {
-    "OTP2.0":     "paper_ledger.csv",
-    "OTP2.0 AMA": "paper_ledger_AMA.csv",
-    "FMTS":       "factor_ledger.csv",
-    "FMTS AMA":   "factor_ledger_AMA.csv",
+    "OTP2.0":      "paper_ledger.csv",
+    "OTP2.0 AMA":  "paper_ledger_AMA.csv",
+    "FMTS":        "factor_ledger.csv",
+    "FMTS AMA":    "factor_ledger_AMA.csv",
+    "Momentum":    "momentum_ledger.csv",
+    "Gold":        "gold_ledger.csv",
+    "Four-Pillar": "four_pillar_ledger.csv",
+    "RRG":         "rrg_ledger.csv",
 }
 
+# RRG is a research book, not a funded strategy — see pages/10_Portfolio_Analytics.py.
+# It is still included here so the homepage reflects the whole system, not just the
+# funded subset.
+RESEARCH_ONLY_LEDGERS = {"RRG"}
+
 def _build_corr_card():
-    series = {}
-    stats  = {}
+    rets  = {}
+    stats = {}
     for name, path in PORTFOLIO_LEDGERS.items():
         if not os.path.exists(path):
             continue
         try:
             df = pd.read_csv(path, parse_dates=["date"]).sort_values("date")
-            r  = df["daily_log_ret"].dropna()
-            if len(r) < 2:
+            s  = pd.to_numeric(df.set_index("date")["daily_log_ret"], errors="coerce").dropna()
+            if len(s) < 2:
                 continue
-            series[name] = r.values
-            ann_ret = r.mean() * 252 * 100
-            ann_vol = r.std() * np.sqrt(252) * 100
+            rets[name] = s
+            ann_ret = s.mean() * 252 * 100
+            ann_vol = s.std() * np.sqrt(252) * 100
             sharpe  = ann_ret / ann_vol if ann_vol > 0 else float("nan")
             stats[name] = dict(ret=ann_ret, vol=ann_vol, sharpe=sharpe,
-                               n=len(r), start=str(df["date"].iloc[0].date()),
-                               end=str(df["date"].iloc[-1].date()))
+                               n=len(s), start=str(s.index[0].date()),
+                               end=str(s.index[-1].date()))
         except Exception:
             continue
 
-    names = list(series.keys())
+    names = list(rets.keys())
     n = len(names)
 
     if n < 2:
         return ""   # not enough portfolios seeded yet
 
-    # Align series on common length (take shortest; all seeded same day so same length)
-    min_len = min(len(v) for v in series.values())
-    mat = np.array([series[k][-min_len:] for k in names])  # (n_portfolios, n_days)
-    corr = np.corrcoef(mat)                                 # (n, n)
-    obs  = min_len
+    # Align by date, not by row position — strategies seeded on different days
+    # (e.g. Four-Pillar, added later) have shorter/offset histories. Pairwise
+    # correlation over each pair's actual shared dates avoids truncating every
+    # strategy down to the newest one's tiny window. min_periods=8 blanks out
+    # pairs without enough overlap yet.
+    ret_df  = pd.DataFrame(rets)
+    corr_df = ret_df.corr(min_periods=8)
+    corr    = corr_df.reindex(index=names, columns=names).values
+
+    overlap = ret_df.notna()
+    pair_obs = [int((overlap[names[i]] & overlap[names[j]]).sum())
+                for i in range(n) for j in range(n) if i < j]
+    obs = min(pair_obs) if pair_obs else 0
 
     # Color helper: 1.0=deep red, 0.0=neutral grey, -1.0=deep blue
     def cell_color(v, is_diag):
@@ -96,7 +113,8 @@ def _build_corr_card():
 
     # Header row
     th_cells = '<th style="padding:0;"></th>' + "".join(
-        f'<th style="font-size:10px;font-weight:600;letter-spacing:0.05em;color:#6b6256;padding:4px 10px 6px;text-align:center;white-space:nowrap;">{nm}</th>'
+        f'<th style="font-size:10px;font-weight:600;letter-spacing:0.05em;color:#6b6256;padding:4px 10px 6px;text-align:center;white-space:nowrap;">'
+        f'{nm}{" ⚠️" if nm in RESEARCH_ONLY_LEDGERS else ""}</th>'
         for nm in names
     )
 
@@ -129,11 +147,12 @@ def _build_corr_card():
             f'</td>'
         )
 
-    obs_note = f"{obs} trading day{'s' if obs != 1 else ''}"
+    obs_note = f"min {obs} shared day{'s' if obs != 1 else ''}"
     date_range = ""
     if stats:
-        first_stat = next(iter(stats.values()))
-        date_range = f" · {first_stat['start']} → {first_stat['end']}"
+        starts = [s["start"] for s in stats.values()]
+        ends   = [s["end"] for s in stats.values()]
+        date_range = f" · {min(starts)} → {max(ends)}"
 
     card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 16px 12px;box-shadow:0 1px 2px rgba(70,55,25,0.04);margin-bottom:12px;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -150,7 +169,8 @@ def _build_corr_card():
     </table>
   </div>
   <div style="font-size:9px;color:#a99f8c;margin-top:8px;">
-    Daily log-return correlations across all active equity strategies · Stats are annualised · SR = Sharpe ratio
+    Daily log-return correlations across all active strategies · Stats are annualised · SR = Sharpe ratio
+    {' · ⚠️ RRG is a research book, not funded' if 'RRG' in names else ''}
     {'· <span style="color:#c89b53;font-weight:500;">⚠ Low observation count — values will stabilise after 60+ trading days</span>' if obs < 60 else ''}
   </div>
 </div>'''

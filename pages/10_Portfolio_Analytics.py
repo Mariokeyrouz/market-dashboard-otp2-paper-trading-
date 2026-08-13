@@ -2,7 +2,7 @@
 Portfolio Analytics
 ===================
 Performance metrics and intra-portfolio stock correlation heatmaps
-for all four active equity strategies.
+across all active strategies.
 """
 
 import json
