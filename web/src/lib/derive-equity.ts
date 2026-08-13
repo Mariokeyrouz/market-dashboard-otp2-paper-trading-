@@ -104,8 +104,10 @@ function buildIndicesTF(d: EquityCoreData, points: number, windowLabel: string, 
 }
 
 export function deriveEquity(): EquityDerived {
-  const d = getEquityData();
+  return deriveEquityFrom(getEquityData());
+}
 
+export function deriveEquityFrom(d: EquityCoreData): EquityDerived {
   // ----- equity indices, precomputed for every timeframe up front -----
   const indices = Object.fromEntries(
     TIMEFRAMES.map((tf) => [tf.key, buildIndicesTF(d, tf.points, tf.label, tf.axisLabels)]),

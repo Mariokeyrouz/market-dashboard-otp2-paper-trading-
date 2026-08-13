@@ -81,11 +81,11 @@ export const EQUITY_ELEMENTS: ElementDef[] = [
   },
   {
     id: "eq-calendar",
-    title: "Earnings & FOMC Calendar",
+    title: "Macro Calendar",
     component: EarningsCalendar,
     zRole: "support",
     logic:
-      "What's next — the upcoming big-cap earnings and macro events (FOMC, CPI, payrolls) most likely to move the tape, a reference footer you consult on demand.",
+      "What's next — the upcoming macro events (FOMC, CPI, payrolls, ISM) most likely to move the tape, a reference footer you consult on demand.",
     defaultLayout: { x: 0, y: 42, w: 12, h: 9, minW: 6, minH: 5 },
   },
 ];

@@ -40,7 +40,7 @@ export default function EarningsCalendar() {
   return (
     <div style={TILE}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: compact ? 4 : 8 }}>
-        <PanelTitle>Earnings &amp; FOMC Calendar</PanelTitle>
+        <PanelTitle>Macro Calendar</PanelTitle>
         {!compact && <ItalicNote>next scheduled catalysts</ItalicNote>}
       </div>
       <div style={{ display: "flex", gap: 24, flex: 1, minHeight: 0 }}>

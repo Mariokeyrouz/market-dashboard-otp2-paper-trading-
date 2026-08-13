@@ -1,9 +1,14 @@
 /**
- * MOCK dataset — Equity Dashboard, ported by hand for the v1/v1.1 element set.
- * ALL VALUES ARE PLACEHOLDER, NOT LIVE MARKET LEVELS.
- * Real-data wiring (phase 2) replaces this module with API-backed data of the
- * same shape; derive-equity.ts and every equity element component stay
- * unchanged. Mirrors the macro dashboard's src/lib/data/mock.ts convention.
+ * MOCK dataset — Equity Dashboard. ALL VALUES ARE PLACEHOLDER, NOT LIVE
+ * MARKET LEVELS. Live data (`src/lib/data/build-equity-data.ts`) has since
+ * replaced this as the primary source, but this module keeps two jobs:
+ *  1. Bootstrap seed for `useEquityData`'s first render, before the initial
+ *     `/api/equity` fetch resolves — so the page never renders blank/null.
+ *  2. Per-bucket fallback inside `build-equity-data.ts`: if a live source
+ *     fails, the matching slice of this mock fills the gap rather than
+ *     leaving a hole in the tile.
+ * `derive-equity.ts` and every equity element component are unchanged by any
+ * of this — `deriveEquityFrom` accepts either this mock or live data, same shape.
  */
 import type { EquityCoreData } from "./types-equity";
 

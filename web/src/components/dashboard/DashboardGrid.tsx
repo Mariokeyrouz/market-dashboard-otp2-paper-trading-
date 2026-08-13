@@ -10,7 +10,7 @@ import { DensityContext } from "@/components/DensityContext";
 import { EquityDataContext } from "@/components/EquityDataContext";
 import { REGIONS, type Region } from "@/lib/data/types";
 import { deriveAll, type Derived } from "@/lib/derive";
-import { deriveEquity } from "@/lib/derive-equity";
+import type { EquityDerived } from "@/lib/derive-equity";
 import { GRID_COLS, GRID_MARGIN, GRID_ROW_HEIGHT } from "@/lib/layout/defaults";
 import { selectHidden, selectLayout, useDashStore } from "@/lib/store";
 import { useDashboardDef } from "@/lib/useDashboardDef";
@@ -25,7 +25,7 @@ const CHROME_ABOVE = 10;
 const ROW_H_MIN = 20;
 const ROW_H_MAX = 21;
 
-export default function DashboardGrid() {
+export default function DashboardGrid({ equityData }: { equityData: EquityDerived | null }) {
   const { width, containerRef, mounted } = useContainerWidth();
   const dashDef = useDashboardDef();
   const layout = useDashStore(selectLayout);
@@ -49,7 +49,6 @@ export default function DashboardGrid() {
     () => (dashDef.hasRegionLens ? (Object.fromEntries(REGIONS.map((r) => [r, deriveAll(r)])) as Record<Region, Derived>) : null),
     [dashDef.hasRegionLens],
   );
-  const equityData = useMemo(() => (dashDef.hasRegionLens ? null : deriveEquity()), [dashDef.hasRegionLens]);
 
   const visible = dashDef.elements.filter((e) => !hidden.includes(e.id));
   // Guarantee every visible element has a layout entry (covers stale persisted

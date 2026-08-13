@@ -69,7 +69,7 @@ export const DASHBOARD_TYPES: DashboardTypeDef[] = [
         "1 · What's the risk tone? (VIX & term structure, top-left) → 2 · Is breadth narrow, and where's the move coming from? " +
         "(S&P 500 concentration, sector performance, and market movers, top-right) → 3 · How are indices actually performing? " +
         "(the indices chart on the diagonal, toggle 1M/3M/1Y or hover for a crosshair) → 4 · What's the rates backdrop? (yield curve) → " +
-        "5 · What's next? (commodities for the inflation impulse, and the earnings/FOMC calendar for upcoming catalysts).",
+        "5 · What's next? (commodities for the inflation impulse, and the macro calendar for upcoming catalysts).",
       zSteps: [
         "1 · VIX — risk tone",
         "2 · Concentration & rotation — the signal",
