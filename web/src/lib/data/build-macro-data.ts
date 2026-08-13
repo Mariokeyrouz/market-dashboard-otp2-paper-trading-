@@ -46,7 +46,9 @@ const pct = (a: number, b: number) => ((a - b) / b) * 100;
 // ---------- hinge (10Y nominal/real/breakeven + classification + playbook) ----------
 async function fetchHingeBucket(): Promise<Pick<CoreData, "nom" | "real" | "be" | "dNom" | "dReal" | "dBe" | "classLabel" | "classDesc" | "classTags" | "classMover" | "playbook">> {
   const LOOKBACK = 5; // business days, matches macro_data.py's DEFAULT_LOOKBACK_DAYS
-  const DISPLAY_POINTS = 10;
+  // ~3 months of daily points — 10 (≈2 weeks) read as three nearly-flat
+  // lines with almost no texture; this gives the chart something to show.
+  const DISPLAY_POINTS = 60;
   const [nomObs, realObs, beObs] = await Promise.all([
     fetchFredSeries("DGS10", 0.5, 3600),
     fetchFredSeries("DFII10", 0.5, 3600),

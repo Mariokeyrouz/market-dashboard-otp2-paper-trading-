@@ -129,11 +129,17 @@ export function deriveAllFrom(region: Region, d: CoreData & ExtraData): Derived 
   const hx = (i: number) => HL + (i / (n - 1)) * (HW - HL - HR);
   const hy = (v: number) => HT + ((hi - v) / (hi - lo)) * (HH - HT - HB);
   const ticks: Tick[] = buildTicks(lo, hi, 5, hy);
-  const dates = ["Jun 23", "Jun 27", "Jul 1"]; // mock window labels (real index later)
+  // Relative labels (no real Date object needed) — same convention as the
+  // equity dashboard's indices chart, rather than a fixed calendar window
+  // that goes stale the moment it's not actually "this week" anymore.
+  const sessionsAgo = (i: number) => {
+    const k = n - 1 - i;
+    return k === 0 ? "Today" : `${k} session${k === 1 ? "" : "s"} ago`;
+  };
   const xTicks: XTick[] = [
-    { x: hx(0).toFixed(1), label: dates[0], anchor: "start" },
-    { x: hx(Math.floor((n - 1) / 2)).toFixed(1), label: dates[1], anchor: "middle" },
-    { x: hx(n - 1).toFixed(1), label: dates[2], anchor: "end" },
+    { x: hx(0).toFixed(1), label: sessionsAgo(0), anchor: "start" },
+    { x: hx(Math.floor((n - 1) / 2)).toFixed(1), label: sessionsAgo(Math.floor((n - 1) / 2)), anchor: "middle" },
+    { x: hx(n - 1).toFixed(1), label: sessionsAgo(n - 1), anchor: "end" },
   ];
   const areaBetween = (top: number[], base: number[]): string => {
     let p = "M" + hx(0).toFixed(1) + " " + hy(top[0]).toFixed(1);
