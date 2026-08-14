@@ -79,19 +79,11 @@ def _build_corr_card():
     obs = min(pair_obs) if pair_obs else 0
 
     # Color helper: 1.0=deep red, 0.0=neutral grey, -1.0=deep blue
-    def cell_color(v, is_diag):
-        if is_diag:
-            return "#2b2620", "#f3eee2"   # bg, text
-        if np.isnan(v):
-            return "#f5f0e8", "#a99f8c"
+    def corr_hex(v):
         # clamp to [-1, 1] just in case
         v = max(-1.0, min(1.0, v))
         if v >= 0:
             # 0 → warm parchment; 1 → deep red
-            r = int(193 + (v * (193 - 193)))
-            g = int(185 - v * (185 - 74))
-            b = int(170 - v * (170 - 50))
-            # simpler: interpolate between #f3eee2 and #c14a32
             r2 = int(0xf3 + v * (0xc1 - 0xf3))
             g2 = int(0xee + v * (0x4a - 0xee))
             b2 = int(0xe2 + v * (0x32 - 0xe2))
@@ -103,6 +95,14 @@ def _build_corr_card():
             b2 = int(0xe2 + av * (0x8c - 0xe2))
         bg  = f"#{r2:02x}{g2:02x}{b2:02x}"
         lum = 0.299 * r2 + 0.587 * g2 + 0.114 * b2
+        return bg, lum
+
+    def cell_color(v, is_diag):
+        if is_diag:
+            return "#2b2620", "#f3eee2"   # bg, text
+        if np.isnan(v):
+            return "#f5f0e8", "#a99f8c"
+        bg, lum = corr_hex(v)
         txt = "#f3eee2" if lum < 140 else "#2b2620"
         return bg, txt
 
@@ -154,7 +154,7 @@ def _build_corr_card():
         ends   = [s["end"] for s in stats.values()]
         date_range = f" · {min(starts)} → {max(ends)}"
 
-    card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 16px 12px;box-shadow:0 1px 2px rgba(70,55,25,0.04);margin-bottom:12px;">
+    card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 16px 12px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:inline-block;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
     <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">Portfolio Correlation</div>
     <div style="font-size:9.5px;color:#a99f8c;font-family:'IBM Plex Mono',monospace;">{obs_note}{date_range}</div>
@@ -227,11 +227,42 @@ def fetch_all():
 
     return data
 
+SECTOR_ETFS = [
+    ('XLK',  'Technology'),
+    ('XLF',  'Financials'),
+    ('XLV',  'Health Care'),
+    ('XLY',  'Cons. Discretionary'),
+    ('XLP',  'Cons. Staples'),
+    ('XLE',  'Energy'),
+    ('XLI',  'Industrials'),
+    ('XLB',  'Materials'),
+    ('XLU',  'Utilities'),
+    ('XLRE', 'Real Estate'),
+    ('XLC',  'Comm. Services'),
+]
+
+@st.cache_data(ttl=300)
+def fetch_sectors():
+    out = {}
+    for sym, _ in SECTOR_ETFS:
+        try:
+            h = yf.Ticker(sym).history(period='2mo', interval='1d')
+            c = [float(x) for x in h['Close'].dropna()]
+            if len(c) < 2:
+                raise ValueError('empty')
+            d1  = (c[-1] - c[-2]) / c[-2] * 100
+            d1m = (c[-1] - c[-21]) / c[-21] * 100 if len(c) >= 21 else None
+            out[sym] = dict(price=c[-1], d1=d1, d1m=d1m)
+        except Exception:
+            out[sym] = dict(price=None, d1=None, d1m=None)
+    return out
+
 if st.button('🔄 Refresh Data'):
     st.cache_data.clear()
     st.rerun()
 
 data = fetch_all()
+sector_data = fetch_sectors()
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -587,6 +618,51 @@ global_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border
   {global_rows_html}
 </div>'''
 
+# ── Sector Performance card (1M rotation, ranked) ──────────────────────────────
+# Sits beside the correlation matrix — a domestic-equity breadth/rotation read
+# that complements the cross-asset macro cards without repeating them.
+
+_sector_ranked = sorted(
+    ((sym, name, sector_data[sym]) for sym, name in SECTOR_ETFS if sector_data[sym]['d1m'] is not None),
+    key=lambda r: r[2]['d1m'], reverse=True,
+)
+_sector_max_abs = max((abs(r[2]['d1m']) for r in _sector_ranked), default=1) or 1
+
+def sector_row(sym, name, s, last=False):
+    d1, d1m = s['d1'], s['d1m']
+    col = '#2f8f5b' if d1m >= 0 else '#c14a32'
+    fill = abs(d1m) / _sector_max_abs * 50
+    bar = (f'<div style="position:absolute;left:50%;width:{fill:.1f}%;height:100%;background:{col};border-radius:0 3px 3px 0;"></div>' if d1m >= 0
+           else f'<div style="position:absolute;right:50%;width:{fill:.1f}%;height:100%;background:{col};border-radius:3px 0 0 3px;"></div>')
+    d1_col = '#2f8f5b' if d1 is not None and d1 >= 0 else '#c14a32'
+    d1_txt = f'{d1:+.1f}%' if d1 is not None else '—'
+    border = '' if last else 'border-bottom:1px solid #f3eddf;'
+    return f'''<div style="display:flex;align-items:center;gap:7px;padding:6px 0;{border}">
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:500;background:#f4eedf;padding:2px 5px;border-radius:3px;color:#6b6256;width:30px;text-align:center;flex-shrink:0;">{sym}</span>
+  <span style="flex:1;font-size:11px;color:#2b2620;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{name}</span>
+  <div style="width:90px;height:12px;background:#f5efe3;border-radius:5px;position:relative;flex-shrink:0;">
+    <div style="position:absolute;left:50%;top:0;width:1px;height:100%;background:#d5cec0;"></div>
+    {bar}
+  </div>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:{col};width:44px;text-align:right;flex-shrink:0;">{d1m:+.1f}%</span>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:{d1_col};width:38px;text-align:right;flex-shrink:0;">{d1_txt}</span>
+</div>'''
+
+sector_rows_html = ''.join(sector_row(sym, name, s, i == len(_sector_ranked) - 1) for i, (sym, name, s) in enumerate(_sector_ranked))
+if not sector_rows_html:
+    sector_rows_html = '<div style="font-size:10px;color:#a99f8c;padding:8px 0;">No sector data available.</div>'
+
+sector_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 16px 12px;box-shadow:0 1px 2px rgba(70,55,25,0.04);flex:1;min-width:280px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+    <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">S&amp;P Sector Rotation</div>
+    <div style="display:flex;gap:10px;font-size:8.5px;color:#a99f8c;letter-spacing:0.04em;text-transform:uppercase;padding-right:1px;">
+      <span style="width:44px;text-align:right;">1M</span><span style="width:38px;text-align:right;">1D</span>
+    </div>
+  </div>
+  <div style="font-size:9px;color:#a99f8c;margin-bottom:6px;">Ranked by 1-month return · SPDR sector ETFs</div>
+  {sector_rows_html}
+</div>'''
+
 # ── Extended Macro card ────────────────────────────────────────────────────────
 
 MACRO_TILES = [
@@ -718,8 +794,11 @@ button:hover{{filter:brightness(0.94);}}
     </div>
   </div>
 
-  <!-- PORTFOLIO CORRELATION -->
-  {corr_card_html}
+  <!-- PORTFOLIO CORRELATION | SECTOR ROTATION -->
+  <div style="display:flex;gap:14px;align-items:stretch;flex-wrap:wrap;margin-bottom:12px;">
+    {corr_card_html}
+    {sector_card}
+  </div>
 
   <!-- ROW 1: price charts | yield curve | dr copper | risk & rates -->
   <div style="display:grid;grid-template-columns:1.95fr 1.12fr 1.12fr 1.02fr;gap:12px;align-items:stretch;margin-bottom:12px;">
