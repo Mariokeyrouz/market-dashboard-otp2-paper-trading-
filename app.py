@@ -2,6 +2,7 @@ import streamlit as st
 import yfinance as yf
 import json
 import os
+import requests
 import numpy as np
 import pandas as pd
 from datetime import datetime, date
@@ -644,19 +645,59 @@ vol_premium_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;b
   <div style="font-size:9.5px;color:#6b6256;margin-top:8px;line-height:1.4;">Positive = implied vol priced above realized, the normal state; compression toward zero has preceded vol spikes.</div>
 </div>'''
 
-# ── CFTC COT card (illustrative) ───────────────────────────────────────────────
+# ── CFTC COT card (live) ────────────────────────────────────────────────────────
+# Legacy "Futures Only" report, Non-Commercial (speculative) net position.
+# Market names below are each instrument's currently-active listing in CFTC's
+# dataset — several of these get renamed over the years (e.g. WTI crude moved
+# from "CRUDE OIL, LIGHT SWEET" to "WTI-PHYSICAL", 10Y notes to "UST 10Y NOTE"),
+# so a stale name silently stops returning rows rather than erroring.
 
-COT_ROWS = [
-    ('S&P 500',   68,   '#2f8f5b'),
-    ('Gold',      186,  '#2f8f5b'),
-    ('Copper',    28,   '#2f8f5b'),
-    ('Oil (WTI)', -44,  '#c14a32'),
-    ('10Y TSY',   -312, '#c14a32'),
-    ('EUR/USD',   14,   '#2f8f5b'),
+COT_INSTRUMENTS = [
+    ('S&P 500',   'E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE'),
+    ('Gold',      'GOLD - COMMODITY EXCHANGE INC.'),
+    ('Copper',    'COPPER- #1 - COMMODITY EXCHANGE INC.'),
+    ('Oil (WTI)', 'WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE'),
+    ('10Y TSY',   'UST 10Y NOTE - CHICAGO BOARD OF TRADE'),
+    ('EUR/USD',   'EURO FX - CHICAGO MERCANTILE EXCHANGE'),
 ]
-max_abs_cot = max(abs(v) for _, v, _ in COT_ROWS)
 
-def cot_row(label, val, color):
+@st.cache_data(ttl=6 * 3600)
+def fetch_cot():
+    rows, report_date = [], None
+    for label, market in COT_INSTRUMENTS:
+        try:
+            r = requests.get(
+                'https://publicreporting.cftc.gov/resource/6dca-aqww.json',
+                params={
+                    '$where': f"market_and_exchange_names='{market}'",
+                    '$order': 'report_date_as_yyyy_mm_dd DESC',
+                    '$limit': 1,
+                },
+                timeout=10,
+            )
+            r.raise_for_status()
+            d = r.json()[0]
+            net = (int(d['noncomm_positions_long_all']) - int(d['noncomm_positions_short_all'])) / 1000
+            rows.append((label, net))
+            rd = d.get('report_date_as_yyyy_mm_dd')
+            if rd and (report_date is None or rd > report_date):
+                report_date = rd
+        except Exception:
+            rows.append((label, None))
+    return rows, report_date
+
+cot_rows, cot_report_date = fetch_cot()
+_cot_valid = [v for _, v in cot_rows if v is not None]
+max_abs_cot = max((abs(v) for v in _cot_valid), default=1) or 1
+
+def cot_row(label, val):
+    if val is None:
+        return f'''<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+  <span style="font-size:10.5px;color:#4a443b;width:64px;flex-shrink:0;white-space:nowrap;">{label}</span>
+  <div style="flex:1;height:13px;background:#f5efe3;border-radius:5px;"></div>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#a99f8c;width:40px;text-align:right;flex-shrink:0;">N/A</span>
+</div>'''
+    color = '#2f8f5b' if val >= 0 else '#c14a32'
     pct_fill = abs(val) / max_abs_cot * 50
     if val >= 0:
         bar = f'<div style="position:absolute;left:50%;width:{pct_fill:.1f}%;height:100%;background:{color};border-radius:0 3px 3px 0;"></div>'
@@ -669,18 +710,27 @@ def cot_row(label, val, color):
     <div style="position:absolute;left:50%;top:0;width:1px;height:100%;background:#d5cec0;"></div>
     {bar}
   </div>
-  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:{color};width:40px;text-align:right;flex-shrink:0;">{sign}{val}K</span>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:{color};width:40px;text-align:right;flex-shrink:0;">{sign}{val:.0f}K</span>
 </div>'''
 
-cot_rows_html = ''.join(cot_row(l, v, c) for l, v, c in COT_ROWS)
+cot_rows_html = ''.join(cot_row(l, v) for l, v in cot_rows)
+
+if cot_report_date:
+    _cot_dt = datetime.fromisoformat(cot_report_date.replace('Z', ''))
+    cot_date_txt = f'Report as of {_cot_dt.strftime("%b")} {_cot_dt.day}, {_cot_dt.year}'
+else:
+    cot_date_txt = 'Live CFTC data unavailable — showing what could be fetched'
 
 cot_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;min-width:0;">
-  <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;margin-bottom:4px;">CFTC COT Positioning</div>
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;">
+    <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;">CFTC COT Positioning</div>
+    <div style="font-size:8.5px;color:#a99f8c;font-family:'IBM Plex Mono',monospace;white-space:nowrap;">{cot_date_txt}</div>
+  </div>
   <div style="display:flex;justify-content:space-between;font-size:9px;color:#a99f8c;margin-bottom:8px;letter-spacing:0.05em;">
     <span>◄ NET SHORT</span><span>NET LONG ►</span>
   </div>
   {cot_rows_html}
-  <div style="font-size:9px;color:#a99f8c;margin-top:4px;">Illustrative · Latest CFTC COT release</div>
+  <div style="font-size:9px;color:#a99f8c;margin-top:4px;">Non-Commercial (speculative) net position, thousands of contracts · Source: CFTC Legacy Futures-Only report</div>
 </div>'''
 
 # ── Global Markets card ────────────────────────────────────────────────────────
