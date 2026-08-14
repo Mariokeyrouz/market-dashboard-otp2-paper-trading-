@@ -199,7 +199,7 @@ export const useDashStore = create<DashState>()(
     }),
     {
       name: "mws_state_v1",
-      version: 3,
+      version: 4,
       // Pre-v1 browsers may have a persisted `theme` from a since-removed
       // third theme option — coerce anything that isn't a known theme to the
       // new default (Black) rather than letting it fall through to a dead
@@ -225,6 +225,21 @@ export const useDashStore = create<DashState>()(
           delete state.hidden;
           delete state.savedViews;
           delete state.activeSavedViewId;
+        }
+        // v3 -> v4: Commodities/FX Changes grew their default height (5->7,
+        // 6->7 rows) because Comfortable density needs more room than they
+        // were allotted — rows were rendering past the tile's clipped bottom
+        // edge. Bump only untouched instances (still at the old default
+        // dimensions) so a manually resized tile isn't silently overridden.
+        if (version < 4 && state) {
+          const dashboards = (state as { dashboards?: Record<string, { layout?: LayoutItem[] }> }).dashboards;
+          const macroLayout = dashboards?.macro?.layout;
+          if (macroLayout) {
+            for (const l of macroLayout) {
+              if (l.i === "commods" && l.h === 5) l.h = 7;
+              if (l.i === "fx" && l.h === 6) l.h = 7;
+            }
+          }
         }
         return state;
       },

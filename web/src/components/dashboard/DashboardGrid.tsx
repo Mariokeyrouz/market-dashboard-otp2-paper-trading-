@@ -69,6 +69,16 @@ export default function DashboardGrid({
       // Fixed chrome estimate (not the live top) so the centering margin we add
       // below can't feed back into the measurement.
       const marginY = GRID_MARGIN[1];
+      if (densityOverride === "comfortable") {
+        // "Comfortable" means tiles get their full designed row height, not
+        // whatever the viewport can be crushed down to fit — the whole point
+        // of the override is more room per tile. If that makes the grid
+        // taller than the viewport, the page scrolls instead of every tile
+        // getting squeezed back down to compact-sized rows.
+        setRowHeight(GRID_ROW_HEIGHT);
+        setCenterMargin(0);
+        return;
+      }
       const availTotal = window.innerHeight - CHROME_ABOVE - FOOTER_ALLOWANCE;
       const rh = Math.max(ROW_H_MIN, Math.min(ROW_H_MAX, (availTotal - (totalRows - 1) * marginY) / totalRows));
       const gridPx = totalRows * rh + (totalRows - 1) * marginY;
@@ -78,11 +88,11 @@ export default function DashboardGrid({
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
-  }, [edit, totalRows]);
+  }, [edit, totalRows, densityOverride]);
 
   // "auto" defers to the fitted row height; "compact"/"comfortable" force the
-  // density regardless of it (comfortable may crop content on short tiles —
-  // an accepted tradeoff for a manual override rather than a fit change).
+  // content density to match — "comfortable" also gets real pixel room via
+  // the rowHeight branch above, so this isn't just a content-flag override.
   const autoCompact = rowHeight < 22;
   const compact = densityOverride === "auto" ? autoCompact : densityOverride === "compact";
 

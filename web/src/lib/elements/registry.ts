@@ -141,7 +141,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "The real-economy inflation impulse in detail — the complex that feeds the breakeven leg of the hinge.",
-    defaultLayout: { x: 8, y: 28, w: 4, h: 5, minW: 3, minH: 4 },
+    defaultLayout: { x: 8, y: 28, w: 4, h: 7, minW: 3, minH: 4 },
   },
   {
     id: "fx",
@@ -150,7 +150,7 @@ export const ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "The currency channel: how the region's exchange rates are moving and what that does to financial conditions.",
-    defaultLayout: { x: 8, y: 33, w: 4, h: 6, minW: 3, minH: 4 },
+    defaultLayout: { x: 8, y: 35, w: 4, h: 7, minW: 3, minH: 4 },
   },
   {
     id: "labor",
