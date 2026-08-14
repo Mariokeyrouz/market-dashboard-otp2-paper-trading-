@@ -199,7 +199,7 @@ export const useDashStore = create<DashState>()(
     }),
     {
       name: "mws_state_v1",
-      version: 4,
+      version: 5,
       // Pre-v1 browsers may have a persisted `theme` from a since-removed
       // third theme option — coerce anything that isn't a known theme to the
       // new default (Black) rather than letting it fall through to a dead
@@ -239,6 +239,28 @@ export const useDashStore = create<DashState>()(
               if (l.i === "commods" && l.h === 5) l.h = 7;
               if (l.i === "fx" && l.h === 6) l.h = 7;
             }
+          }
+        }
+        // v4 -> v5: Equity's default layout was packed into uniform
+        // full-height bands (51 rows total) with no interleaving slack like
+        // Macro's, so it needed ~900px+ of viewport just to avoid scrolling.
+        // Tightened every tile toward its comfortable minimum (51 -> 38
+        // rows). Only replace an equity layout that's still exactly the old
+        // untouched default — a manually resized/moved layout is left alone.
+        if (version < 5 && state) {
+          const dashboards = (state as { dashboards?: Record<string, { layout?: LayoutItem[] }> }).dashboards;
+          const equityLayout = dashboards?.equity?.layout;
+          const oldDefaultH: Record<string, number> = {
+            "eq-vix": 11, "eq-concentration": 11, "eq-sectors": 11, "eq-movers": 11,
+            "eq-indices": 11, "eq-curve": 9, "eq-oil": 9, "eq-calendar": 9,
+          };
+          const untouched =
+            equityLayout &&
+            equityLayout.length === Object.keys(oldDefaultH).length &&
+            equityLayout.every((l) => oldDefaultH[l.i] === l.h);
+          if (untouched && dashboards?.equity) {
+            const def = getDashboardDef("equity");
+            dashboards.equity.layout = defaultLayout(def.elements).filter((l) => !def.defaultHidden.includes(l.i));
           }
         }
         return state;

@@ -23,7 +23,7 @@ export const EQUITY_ELEMENTS: ElementDef[] = [
     zRole: "anchor",
     logic:
       "The fastest single-glance risk-tone read entering the page: where VIX sits, and whether the term structure is pricing calm (contango) or near-term stress (backwardation). Plays the role the Regime Strip plays on the macro dashboard.",
-    defaultLayout: { x: 0, y: 0, w: 7, h: 11, minW: 4, minH: 6 },
+    defaultLayout: { x: 0, y: 0, w: 7, h: 8, minW: 4, minH: 6 },
   },
   {
     id: "eq-concentration",
@@ -32,6 +32,8 @@ export const EQUITY_ELEMENTS: ElementDef[] = [
     zRole: "scan",
     logic:
       "The single most-debated actionable read in this market regime — is breadth dangerously narrow? Ends the first sweep on the sharpest signal, the equity-dashboard equivalent of Classification.",
+    // Ranks all 10 top-weight names — shorter than this crops rows, so
+    // unlike the shorter tiles around it, this one keeps its original height.
     defaultLayout: { x: 7, y: 0, w: 5, h: 11, minW: 4, minH: 6 },
   },
   {
@@ -41,6 +43,7 @@ export const EQUITY_ELEMENTS: ElementDef[] = [
     zRole: "scan",
     logic:
       "Where the move is actually coming from — the 11 GICS sectors ranked by today's move, with 1W/1M alongside to tell a one-day pop from a real rotation.",
+    // All 11 GICS sectors — same reasoning as Concentration above.
     defaultLayout: { x: 0, y: 11, w: 5, h: 11, minW: 4, minH: 6 },
   },
   {
@@ -50,7 +53,8 @@ export const EQUITY_ELEMENTS: ElementDef[] = [
     zRole: "scan",
     logic:
       "The single-name extremes underneath the index-level read — today's biggest S&P 500 gainers and losers, side by side.",
-    defaultLayout: { x: 5, y: 11, w: 7, h: 11, minW: 4, minH: 6 },
+    // 5 rows each side — h:7 crops the 5th mid-row.
+    defaultLayout: { x: 5, y: 11, w: 7, h: 8, minW: 4, minH: 6 },
   },
   {
     id: "eq-indices",
@@ -59,7 +63,7 @@ export const EQUITY_ELEMENTS: ElementDef[] = [
     zRole: "pivot",
     logic:
       "The chart this dashboard hangs on — the broadest, most information-dense read of how the major indices are actually performing. Gets the most area, the same role the Hinge plays on the macro dashboard. Toggle 1M/3M/1Y or hover for a crosshair readout.",
-    defaultLayout: { x: 0, y: 22, w: 12, h: 11, minW: 6, minH: 8 },
+    defaultLayout: { x: 0, y: 22, w: 12, h: 9, minW: 6, minH: 8 },
   },
   {
     id: "eq-curve",
@@ -68,7 +72,7 @@ export const EQUITY_ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "The rates backdrop for equity valuation and discount-rate context — consult-on-demand supporting evidence, the same role it plays on the macro dashboard.",
-    defaultLayout: { x: 0, y: 33, w: 7, h: 9, minW: 4, minH: 6 },
+    defaultLayout: { x: 0, y: 31, w: 7, h: 7, minW: 4, minH: 6 },
   },
   {
     id: "eq-oil",
@@ -77,7 +81,7 @@ export const EQUITY_ELEMENTS: ElementDef[] = [
     zRole: "terminal",
     logic:
       "A small exit-point tile — the real-economy inflation-impulse check (oil, gold, copper, nat gas) you glance at on the way out, the same role Commodities plays on the macro dashboard.",
-    defaultLayout: { x: 7, y: 33, w: 5, h: 9, minW: 3, minH: 4 },
+    defaultLayout: { x: 7, y: 31, w: 5, h: 7, minW: 3, minH: 4 },
   },
   {
     id: "eq-calendar",
@@ -86,7 +90,8 @@ export const EQUITY_ELEMENTS: ElementDef[] = [
     zRole: "support",
     logic:
       "What's next — the upcoming macro events (FOMC, CPI, payrolls, ISM) most likely to move the tape, a reference footer you consult on demand.",
-    defaultLayout: { x: 0, y: 42, w: 12, h: 9, minW: 6, minH: 5 },
+    // 6 events per column — shorter than this crops the last one mid-row.
+    defaultLayout: { x: 0, y: 38, w: 12, h: 10, minW: 6, minH: 5 },
   },
 ];
 
