@@ -301,10 +301,11 @@ def chg_str(key):
     col = '#2f8f5b' if pc >= 0 else '#c14a32'
     return f'{arrow} {abs(pc):.2f}%', col
 
-def svg_chart(prices, color, W=320, H=96, pad=8):
+def svg_chart(prices, color, W=320, H=96, pad=8, ref=None):
     if not prices or len(prices) < 2:
         return '<text x="50%" y="50%" fill="#a99f8c" font-size="11" text-anchor="middle">No data</text>'
-    mn, mx = min(prices), max(prices)
+    vals = prices + [ref] if ref is not None else prices
+    mn, mx = min(vals), max(vals)
     rng = mx - mn or 1
     n = len(prices)
     coords = [(i / (n - 1) * W, pad + (1 - (p - mn) / rng) * (H - 2 * pad)) for i, p in enumerate(prices)]
@@ -312,6 +313,10 @@ def svg_chart(prices, color, W=320, H=96, pad=8):
     area_d = line_d + f' L{W},{H} L0,{H} Z'
     gid = f'g{abs(hash(str(prices[-1]) + color)) % 99999}'
     lx, ly = coords[-1]
+    ref_line = ''
+    if ref is not None:
+        ry = pad + (1 - (ref - mn) / rng) * (H - 2 * pad)
+        ref_line = f'<line x1="0" y1="{ry:.1f}" x2="{W}" y2="{ry:.1f}" stroke="#c9bfa8" stroke-width="1" stroke-dasharray="3,3"/>'
     return f'''<defs>
   <linearGradient id="{gid}" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0%" stop-color="{color}" stop-opacity="0.20"/>
@@ -322,6 +327,7 @@ def svg_chart(prices, color, W=320, H=96, pad=8):
 <line x1="0" y1="{H//3}" x2="{W}" y2="{H//3}" stroke="#f1ece1" stroke-width="1"/>
 <line x1="0" y1="{H*2//3}" x2="{W}" y2="{H*2//3}" stroke="#f1ece1" stroke-width="1"/>
 <path d="{area_d}" fill="url(#{gid})"/>
+{ref_line}
 <path d="{line_d}" fill="none" stroke="{color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
 <circle cx="{lx:.1f}" cy="{ly:.1f}" r="3.5" fill="{color}" stroke="white" stroke-width="1.5"/>'''
 
@@ -484,6 +490,35 @@ yield_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-
   </div>
 </div>'''
 
+# ── 10Y–3M spread (recession-model input) — fills the empty space below the
+# yield curve card with the single-number version of the same curve: is it
+# inverted right now, and for how long has it been.
+_tnx_c, _irx_c = closes('tnx'), closes('irx')
+_n_sp = min(len(_tnx_c), len(_irx_c))
+spread_series = [_tnx_c[-_n_sp + i] - _irx_c[-_n_sp + i] for i in range(_n_sp)] if _n_sp >= 2 else []
+last_spread = spread_series[-1] if spread_series else None
+
+if last_spread is not None:
+    _inverted = last_spread < 0
+    spread_col  = '#c14a32' if _inverted else '#2f8f5b'
+    spread_stat = 'Inverted' if _inverted else 'Normal'
+    spread_bg   = '#fbe9e4' if _inverted else '#e7f5ec'
+    spread_svg  = svg_chart(spread_series[-180:], spread_col, 280, 46, 5, ref=0.0)
+    spread_txt  = f'{last_spread:+.2f}%'
+else:
+    spread_col, spread_stat, spread_bg, spread_txt = '#a99f8c', '—', '#f5f0e8', 'N/A'
+    spread_svg = svg_chart([], spread_col)
+
+yield_spread_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;min-width:0;">
+  <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;margin-bottom:8px;">10Y–3M Spread</div>
+  <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:{spread_col};">{spread_txt}</span>
+    <span style="font-size:9.5px;font-weight:600;background:{spread_bg};color:{spread_col};border-radius:4px;padding:2px 7px;">{spread_stat}</span>
+  </div>
+  <svg viewBox="0 0 280 46" width="100%" height="46" preserveAspectRatio="none">{spread_svg}</svg>
+  <div style="font-size:9.5px;color:#6b6256;margin-top:8px;line-height:1.4;">NY Fed recession-model input · negative spreads have preceded every US recession since 1970, lead time varies (~6–18mo).</div>
+</div>'''
+
 # ── Dr. Copper card ────────────────────────────────────────────────────────────
 
 cu_p = price('copper')
@@ -514,6 +549,34 @@ copper_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border
   </div>
 </div>'''
 
+# ── Copper/Gold ratio (risk-appetite proxy) — the growth-vs-safety complement
+# to the Dr. Copper signal above it; scaled x1000 (desk convention) so the
+# ~0.0015 raw ratio reads as a legible number.
+_cu_c, _au_c = closes('copper'), closes('gold')
+_n_cg = min(len(_cu_c), len(_au_c))
+cg_series = [(_cu_c[-_n_cg + i] / _au_c[-_n_cg + i]) * 1000 for i in range(_n_cg)] if _n_cg >= 2 else []
+last_cg = cg_series[-1] if cg_series else None
+cg_chg = ((cg_series[-1] / cg_series[-22] - 1) * 100) if len(cg_series) >= 22 else None
+
+if last_cg is not None:
+    cg_col  = '#2f8f5b' if (cg_chg or 0) >= 0 else '#c14a32'
+    cg_svg  = svg_chart(cg_series[-180:], '#7a8c5c', 280, 46, 5)
+    cg_txt  = f'{last_cg:.3f}'
+    cg_chgtxt = f'{cg_chg:+.1f}% · 1M' if cg_chg is not None else '—'
+else:
+    cg_col, cg_txt, cg_chgtxt = '#a99f8c', 'N/A', '—'
+    cg_svg = svg_chart([], '#7a8c5c')
+
+copper_gold_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;min-width:0;">
+  <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;margin-bottom:8px;">Copper/Gold Ratio</div>
+  <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#2b2620;">{cg_txt}</span>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{cg_col};">{cg_chgtxt}</span>
+  </div>
+  <svg viewBox="0 0 280 46" width="100%" height="46" preserveAspectRatio="none">{cg_svg}</svg>
+  <div style="font-size:9.5px;color:#6b6256;margin-top:8px;line-height:1.4;">Rising = growth/risk-on demand outpacing the gold safe-haven bid; falling = risk-off. Tracks 10Y yields closely.</div>
+</div>'''
+
 # ── Risk & Rates card ──────────────────────────────────────────────────────────
 
 vix_p = price('vix')
@@ -541,6 +604,44 @@ risk_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-r
   {gauge('10Y Treasury', f"{tnx_p:.3f}%" if tnx_p else 'N/A', (tnx_p / 8 * 100) if tnx_p else 0, '#c79a4e', '0% → 8%', '#c08a2d')}
   {gauge('DXY (Dollar Index)', f"{dxy_p:.2f}" if dxy_p else 'N/A', ((dxy_p - 80) / 50 * 100) if dxy_p else 0, '#9a6db5', '80 → 130')}
   {gauge('ISM Manufacturing', f'{ism_val}', ism_val, '#c89b53', '0 → 100  ·  50 = expansion threshold', '#c14a32' if ism_val < 50 else '#2f8f5b')}
+</div>'''
+
+# ── Vol risk premium: VIX vs 20d realized — the professional-desk complement
+# to the raw VIX gauge above (options are priced on the spread between implied
+# and realized, not on VIX's level alone). Realized vol is computed from the
+# same S&P 500 closes already fetched for the price-chart cards.
+_sp_c, _vix_c = closes('sp500'), closes('vix')
+if len(_sp_c) >= 22 and len(_vix_c) >= 2:
+    _log_rets = np.diff(np.log(_sp_c))
+    rv_series = [float(np.std(_log_rets[i - 20:i], ddof=1) * np.sqrt(252) * 100)
+                 for i in range(20, len(_log_rets) + 1)]
+    _n_vrp = min(len(rv_series), len(_vix_c))
+    rv_aligned  = rv_series[-_n_vrp:]
+    vix_aligned = _vix_c[-_n_vrp:]
+    vrp_series = [v - r for v, r in zip(vix_aligned, rv_aligned)]
+else:
+    vrp_series, rv_aligned = [], []
+
+last_vrp = vrp_series[-1] if vrp_series else None
+last_rv  = rv_aligned[-1] if rv_aligned else None
+
+if last_vrp is not None:
+    vrp_col = '#2f8f5b' if last_vrp >= 0 else '#c14a32'
+    vrp_txt = f'{last_vrp:+.1f} pts'
+    rv_txt  = f'{last_rv:.1f}%'
+    vrp_svg = svg_chart(vrp_series[-180:], vrp_col, 280, 46, 5, ref=0.0)
+else:
+    vrp_col, vrp_txt, rv_txt = '#a99f8c', 'N/A', 'N/A'
+    vrp_svg = svg_chart([], vrp_col)
+
+vol_premium_card = f'''<div style="background:#ffffff;border:1px solid #e8e0d2;border-radius:9px;padding:14px 15px;box-shadow:0 1px 2px rgba(70,55,25,0.04);display:flex;flex-direction:column;min-width:0;">
+  <div style="font-size:10.5px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#a2987f;margin-bottom:8px;">Vol Risk Premium</div>
+  <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:{vrp_col};">{vrp_txt}</span>
+  </div>
+  <div style="font-size:10px;color:#a99f8c;margin-bottom:6px;">VIX {vix_val} − 20d realized {rv_txt}</div>
+  <svg viewBox="0 0 280 46" width="100%" height="46" preserveAspectRatio="none">{vrp_svg}</svg>
+  <div style="font-size:9.5px;color:#6b6256;margin-top:8px;line-height:1.4;">Positive = implied vol priced above realized, the normal state; compression toward zero has preceded vol spikes.</div>
 </div>'''
 
 # ── CFTC COT card (illustrative) ───────────────────────────────────────────────
@@ -801,13 +902,20 @@ button:hover{{filter:brightness(0.94);}}
   </div>
 
   <!-- ROW 1: price charts | yield curve | dr copper | risk & rates -->
-  <div style="display:grid;grid-template-columns:1.95fr 1.12fr 1.12fr 1.02fr;gap:12px;align-items:stretch;margin-bottom:12px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;min-width:0;">
+  <!-- Explicit 2-row grid (not per-column flex stacks) so every card in the
+  top row shares one height and every card in the bottom row shares another —
+  grid auto-placement fills row 1 (yield/copper/risk) then row 2 (their
+  sub-cards) around the price-chart block, which spans both via grid-row. -->
+  <div style="display:grid;grid-template-columns:1.95fr 1.12fr 1.12fr 1.02fr;grid-template-rows:auto auto;gap:12px;margin-bottom:12px;">
+    <div style="grid-row:1 / span 2;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;min-width:0;">
       {cards_html}
     </div>
     {yield_card}
     {copper_card}
     {risk_card}
+    {yield_spread_card}
+    {copper_gold_card}
+    {vol_premium_card}
   </div>
 
   <!-- ROW 2: cot | global | macro | fed -->
