@@ -21,6 +21,13 @@ export default function RightRail({ open, onToggle }: { open: boolean; onToggle:
           style={{
             alignSelf: "stretch",
             width: DOCK_W, flexShrink: 0,
+            // The row has no fixed height of its own (it sizes to its tallest
+            // child), so without a self-imposed cap this panel's long copy
+            // became that tallest child and stretched the whole page instead
+            // of the dashboard's actual height. Capping to the viewport and
+            // scrolling internally — sticky so it stays put if the grid (e.g.
+            // Comfortable density) is itself taller than one screen.
+            position: "sticky", top: 8, maxHeight: "calc(100vh - 16px)",
             overflowY: "auto",
             background: "var(--tile)", border: "1px solid var(--tile-border)",
             borderRadius: 10, padding: "12px 14px 16px",
