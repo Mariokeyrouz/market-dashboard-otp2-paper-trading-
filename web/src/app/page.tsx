@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import ElementLibraryDock from "@/components/chrome/ElementLibraryDock";
 import ElementLibraryPanel from "@/components/chrome/ElementLibraryPanel";
 import Header from "@/components/chrome/Header";
@@ -32,6 +32,12 @@ function LiveStatusBadge({
   fetchedAt?: string;
   staleBuckets?: Record<string, boolean>;
 }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   if (status === "bootstrap") return null; // near-instant; avoid an alarming flash before the first fetch resolves
 
   const color = status === "live" ? GREEN : AMBER;
