@@ -100,34 +100,15 @@ export default function LeftRail({
             M
           </div>
           {!collapsed && (
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <select
-                className="mws-select"
-                aria-label="Dashboard type"
-                value={dashboardType}
-                onChange={(e) => setDashboardType(e.target.value as typeof dashboardType)}
-                style={{
-                  fontFamily: SERIF, fontSize: 15, fontWeight: 600, letterSpacing: "-.01em",
-                  color: "var(--ink)", background: "transparent", border: "none", padding: 0,
-                  cursor: "pointer", width: "100%",
-                }}
-              >
-                {DASHBOARD_TYPES.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
-              <span
-                style={{
-                  display: "inline-block", marginTop: 4,
-                  fontFamily: MONO, fontSize: 10, padding: "2px 6px",
-                  border: "1px solid var(--control-border)", borderRadius: 5, color: "var(--muted)",
-                }}
-              >
-                OTP2.0
-              </span>
-            </div>
+            <span
+              style={{
+                display: "inline-block",
+                fontFamily: MONO, fontSize: 10, padding: "2px 6px",
+                border: "1px solid var(--control-border)", borderRadius: 5, color: "var(--muted)",
+              }}
+            >
+              OTP2.0
+            </span>
           )}
           {onToggleCollapse && (
             <button
@@ -146,6 +127,44 @@ export default function LeftRail({
             </button>
           )}
         </div>
+
+        {!collapsed && (
+          <>
+            <div style={divider} />
+            <div style={{ ...MICRO, marginBottom: 2 }}>Dashboard</div>
+            <div
+              role="tablist"
+              aria-label="Dashboard type"
+              style={{
+                display: "flex", flexDirection: "column", gap: 2,
+                border: "1px solid var(--control-border)", borderRadius: 8, padding: 3,
+              }}
+            >
+              {DASHBOARD_TYPES.map((d) => {
+                const active = d.id === dashboardType;
+                return (
+                  <button
+                    key={d.id}
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setDashboardType(d.id)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      width: "100%", textAlign: "left", cursor: "pointer",
+                      border: "1px solid transparent", borderRadius: 6, padding: "7px 9px",
+                      background: active ? "color-mix(in srgb, var(--gold) 13%, transparent)" : "transparent",
+                    }}
+                  >
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: active ? "var(--gold)" : "var(--control-border)", flexShrink: 0 }} />
+                    <span style={{ fontFamily: SERIF, fontSize: 14, fontWeight: 600, color: active ? "var(--ink)" : "var(--muted)" }}>
+                      {d.shortLabel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         {dashDef.hasRegionLens && REGIONS.length > 1 && (
           <>
