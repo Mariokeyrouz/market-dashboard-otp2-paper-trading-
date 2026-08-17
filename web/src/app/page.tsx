@@ -70,10 +70,7 @@ export default function Page() {
   const dashDef = useDashboardDef();
   const isEquity = dashDef.id === "equity";
   const equity = useEquityData(isEquity);
-  // Not gated by the active tab — LeftRail/Header read the outer DataContext
-  // (macro.derived, below) unconditionally for chrome like the tripwire-flag
-  // count, regardless of which dashboard is on screen.
-  const macro = useMacroData();
+  const macro = useMacroData(!isEquity);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;

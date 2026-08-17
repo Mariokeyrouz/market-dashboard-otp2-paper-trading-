@@ -23,14 +23,7 @@ function statusFor(meta: MacroFetchMeta): MacroDataStatus {
   return "live";
 }
 
-/**
- * Fetches /api/macro and polls it. Unlike useEquityData, this is NOT gated
- * by which dashboard tab is active — LeftRail/Header read `useDerived()`
- * unconditionally (the tripwire-flag count, the market-open badge) via
- * page.tsx's outer DataContext.Provider, regardless of whether the Macro or
- * Equity tab is on screen, so macro data has to stay live all the time.
- */
-export function useMacroData(): MacroDataState {
+export function useMacroData(enabled = true): MacroDataState {
   const [state, setState] = useState<MacroDataState>(() => ({
     derived: deriveAll("US"),
     meta: null,
@@ -40,6 +33,7 @@ export function useMacroData(): MacroDataState {
   const inFlight = useRef(false);
 
   useEffect(() => {
+    if (!enabled) return;
     let cancelled = false;
 
     async function poll() {
@@ -76,7 +70,7 @@ export function useMacroData(): MacroDataState {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onVisible);
     };
-  }, []);
+  }, [enabled]);
 
   return state;
 }
