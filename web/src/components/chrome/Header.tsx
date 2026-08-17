@@ -139,7 +139,7 @@ export default function Header() {
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
-              {dashDef.hasRegionLens && (
+              {dashDef.hasRegionLens && REGIONS.length > 1 && (
                 <>
                   <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
                     Region
@@ -161,6 +161,14 @@ export default function Header() {
                       ▼
                     </span>
                   </div>
+                </>
+              )}
+              {dashDef.hasRegionLens && REGIONS.length === 1 && (
+                <>
+                  <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>
+                    Region
+                  </span>
+                  <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, color: "var(--gold)" }}>{REGIONS[0]}</span>
                 </>
               )}
               <span style={{ fontSize: 10, letterSpacing: ".14em", color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 }}>

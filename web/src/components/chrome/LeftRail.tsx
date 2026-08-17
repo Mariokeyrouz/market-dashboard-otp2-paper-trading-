@@ -147,7 +147,7 @@ export default function LeftRail({
           )}
         </div>
 
-        {dashDef.hasRegionLens && (
+        {dashDef.hasRegionLens && REGIONS.length > 1 && (
           <>
             <div style={divider} />
 
@@ -187,6 +187,16 @@ export default function LeftRail({
                 </button>
               );
             })}
+          </>
+        )}
+        {dashDef.hasRegionLens && REGIONS.length === 1 && !collapsed && (
+          <>
+            <div style={divider} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={MICRO}>Point of view</div>
+              <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, color: "var(--gold)" }}>{REGIONS[0]}</span>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--muted)" }}>EU · CN · JP awaiting a live source</div>
           </>
         )}
       </div>
