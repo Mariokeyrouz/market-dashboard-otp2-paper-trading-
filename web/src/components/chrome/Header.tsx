@@ -37,13 +37,7 @@ const btnStyle = (accent: string): React.CSSProperties => ({
   cursor: "pointer",
 });
 
-/**
- * `showControls` is false once the left rail is on screen: the rail owns the
- * brand, POV switcher, theme, and the customize actions, and duplicating
- * them here would give the same state two places to be changed from. In
- * that case the header shrinks to just the clock/market-status box.
- */
-export default function Header({ showControls = true }: { showControls?: boolean }) {
+export default function Header() {
   const v = useDerived();
   const { clock, open } = useClock();
   const dashDef = useDashboardDef();
@@ -104,14 +98,6 @@ export default function Header({ showControls = true }: { showControls?: boolean
       </div>
     </div>
   );
-
-  if (!showControls) {
-    return (
-      <div style={{ marginBottom: 8, display: "flex", justifyContent: "flex-end" }}>
-        {clockBox}
-      </div>
-    );
-  }
 
   return (
     <div style={{ marginBottom: 8 }}>
