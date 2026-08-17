@@ -34,6 +34,9 @@ export interface EquityCoreData {
   vix: { spot: number; vix3m: number; vix9d: number; history: number[] };
   /** Same [tenor, yield%] tuple shape as the macro dashboard's yield curve. */
   curve: [string, number][];
+  curveDate: string;
+  curvePrev: [string, number][];
+  curvePrevDate: string;
   /** [name, priceStr, chgPct][] — same tuple shape as the macro dashboard's commodities. */
   commods: [string, string, number][];
   /** Top-10 S&P 500 constituents by index weight, descending. */

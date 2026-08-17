@@ -33,6 +33,9 @@ const DATA: Record<Region, CoreData> = {
       { side: "FADE", asset: "Long-duration tech", note: "rate-sensitive", color: "var(--amber)" },
     ],
     curve: [["3M", 4.55], ["1Y", 4.2], ["2Y", 3.86], ["5Y", 3.95], ["7Y", 4.05], ["10Y", 4.2], ["30Y", 4.45]],
+    curveDate: "2026-08-12",
+    curvePrev: [["3M", 4.58], ["1Y", 4.15], ["2Y", 3.80], ["5Y", 3.90], ["7Y", 4.00], ["10Y", 4.16], ["30Y", 4.40]],
+    curvePrevDate: "2026-08-05",
     tripwires: [
       { label: "Credit · HY OAS", tag: "Leading tell for equity stress", val: "3.20%", chg: 0.1, unit: " pp", state: "", note: "Widening = rising stress.", tone: "var(--amber)" },
       { label: "Equity Vol · VIX", tag: "Risk-on / risk-off tripwire", val: "18.2", chg: null, state: "Contango", note: "Front below back month — calm / risk-on tilt.", tone: "var(--green)" },

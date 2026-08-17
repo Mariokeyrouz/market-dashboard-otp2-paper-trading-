@@ -82,6 +82,9 @@ export interface CoreData {
   oilSpark: number[];
   playbook: PlaybookRow[];
   curve: [string, number][];
+  curveDate: string;
+  curvePrev: [string, number][];
+  curvePrevDate: string;
   tripwires: TripwireRaw[];
   cross: [string, number, number, number, number][];
   cb: CbMeeting;

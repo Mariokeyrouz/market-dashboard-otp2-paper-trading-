@@ -8,6 +8,14 @@
 export interface Tick { y: string; ty: string; label: string }
 export interface XTick { x: string; label: string; anchor: "start" | "middle" | "end" }
 
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "2026-08-12" (or with a time suffix) -> "Aug 12", matching this app's other short-date labels. */
+export function shortDate(isoDate: string): string {
+  const [, m, d] = isoDate.slice(0, 10).split("-").map(Number);
+  return `${MONTH_ABBR[m - 1]} ${d}`;
+}
+
 /** SVG path `d` for a polyline through `arr`, mapped via `x`/`yfn`. */
 export function buildPath(arr: number[], x: (i: number) => number, yfn: (v: number) => number): string {
   return arr.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + yfn(v).toFixed(1)).join(" ");

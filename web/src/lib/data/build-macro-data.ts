@@ -14,7 +14,7 @@ import { curveState, volCurveState } from "./classify/tripwires";
 import { fetchFredSeries, indexNearYearStartFred, type FredObservation } from "./providers/fred";
 import { fetchYahooChart, indexNearYearStart } from "./providers/yahoo-chart";
 import { fetchYahooSparkBatch } from "./providers/yahoo-spark-batch";
-import { fetchTreasuryCurve, MACRO_TENORS } from "./providers/treasury-curve";
+import { fetchTreasuryCurveWithHistory, MACRO_TENORS } from "./providers/treasury-curve";
 import { getRegionData } from "./mock";
 import { ISM_MANUFACTURING_PMI, latestIsmPair } from "./reference/ism-history";
 import { nextFomcMeeting } from "./reference/fomc-dates";
@@ -111,8 +111,9 @@ async function fetchFciBucket(): Promise<Pick<CoreData, "cond" | "condSub">> {
 }
 
 // ---------- yield curve ----------
-async function fetchCurveBucket(): Promise<Pick<CoreData, "curve">> {
-  return { curve: await fetchTreasuryCurve(MACRO_TENORS) };
+async function fetchCurveBucket(): Promise<Pick<CoreData, "curve" | "curveDate" | "curvePrev" | "curvePrevDate">> {
+  const { now, prev } = await fetchTreasuryCurveWithHistory(MACRO_TENORS);
+  return { curve: now.curve, curveDate: now.date, curvePrev: prev.curve, curvePrevDate: prev.date };
 }
 
 // ---------- tripwires ----------
@@ -317,7 +318,7 @@ export async function buildMacroData(): Promise<{ data: CoreData & ExtraData; me
     growthSub: "ISM mfg · last published print",
     ...(fedFunds.ok ? fedFunds.value : { policy: mock.policy, policySub: mock.policySub }),
     ...(fci.ok ? fci.value : { cond: mock.cond, condSub: mock.condSub }),
-    ...(curve.ok ? curve.value : { curve: mock.curve }),
+    ...(curve.ok ? curve.value : { curve: mock.curve, curveDate: mock.curveDate, curvePrev: mock.curvePrev, curvePrevDate: mock.curvePrevDate }),
     ...(tripwires.ok ? tripwires.value : { tripwires: mock.tripwires }),
     ...(oil.ok ? oil.value : { oilName: mock.oilName, oilVal: mock.oilVal, oilChg: mock.oilChg, oilSpark: mock.oilSpark }),
     ...(cross.ok ? cross.value : { cross: mock.cross }),

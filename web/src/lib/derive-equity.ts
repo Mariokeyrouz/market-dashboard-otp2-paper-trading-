@@ -3,7 +3,7 @@
  * and conventions exactly, but for a flat (no per-region) dataset. No React,
  * no side effects: unit-testable and swappable to real data.
  */
-import { buildPath, buildTicks } from "./chart-geometry";
+import { buildPath, buildTicks, shortDate } from "./chart-geometry";
 import type { Tick, XTick } from "./chart-geometry";
 import { AMBER, GREEN, RED, bpSign, curveShapeWord, makeSpark, sign, sparkPath, toneUpDown } from "./derive";
 import type { LegendEntry } from "./derive";
@@ -45,6 +45,7 @@ export interface EquityDerived {
     spread2: string; spread2Color: string;
     spread3: string; spread3Color: string;
     shape: string;
+    dateLabel: string; prevDateLabel: string;
   };
   commods: { name: string; price: string; chg: string; chgColor: string; spark: string }[];
   concentration: { totalWeightPct: string; rows: { name: string; weightPct: string; barW: string }[] };
@@ -133,7 +134,9 @@ export function deriveEquityFrom(d: EquityCoreData): EquityDerived {
   const CW = 460, CH = 210, CL = 42, CR = 14, CT = 22, CB = 34;
   const cv = d.curve;
   const cn = cv.length;
-  const prev = cv.map((p, i) => p[1] - (0.06 - 0.05 * ((i / (cn - 1) - 0.5) * 2)));
+  // A real historical snapshot, not a fabricated offset — aligned to `cv`'s
+  // tenor order by lookup rather than assumed index parity.
+  const prev = cv.map((p) => d.curvePrev.find((q) => q[0] === p[0])?.[1] ?? p[1]);
   const cyv = [...cv.map((p) => p[1]), ...prev];
   let clo = Math.min(...cyv);
   let chi = Math.max(...cyv);
@@ -216,6 +219,7 @@ export function deriveEquityFrom(d: EquityCoreData): EquityDerived {
       spread2: sign(spread2, 2), spread2Color: toneUpDown(spread2),
       spread3: sign(spread3, 2), spread3Color: toneUpDown(spread3),
       shape: curveShapeWord(spread),
+      dateLabel: shortDate(d.curveDate), prevDateLabel: shortDate(d.curvePrevDate),
     },
     commods: d.commods.map(([name, priceStr, chg]) => {
       const price = parseFloat(priceStr.replace(/,/g, ""));

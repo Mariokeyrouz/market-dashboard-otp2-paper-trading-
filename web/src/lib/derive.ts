@@ -3,7 +3,7 @@
  * dashboard, ported from the validated design handoff's renderVals().
  * No React, no side effects: unit-testable and swappable to real data.
  */
-import { buildPath, buildTicks } from "./chart-geometry";
+import { buildPath, buildTicks, shortDate } from "./chart-geometry";
 import type { Tick, XTick } from "./chart-geometry";
 import { getRegionData } from "./data/mock";
 import type { CoreData, ExtraData, PlaybookRow, Region, RegimeSeg } from "./data/types";
@@ -100,6 +100,7 @@ export interface Derived {
     spread2: string; spread2Color: string;
     spread3: string; spread3Color: string;
     shape: string;
+    dateLabel: string; prevDateLabel: string;
   };
   labor: { name: string; value: string; delta: string }[];
   fx: { pair: string; d1: string; d1Color: string; ytd: string; ytdColor: string; barLeft: string; barW: string; barColor: string }[];
@@ -166,7 +167,9 @@ export function deriveAllFrom(region: Region, d: CoreData & ExtraData): Derived 
   const CW = 460, CH = 210, CL = 42, CR = 14, CT = 22, CB = 34;
   const cv = d.curve;
   const cn = cv.length;
-  const prev = cv.map((p, i) => p[1] - (0.06 - 0.05 * ((i / (cn - 1) - 0.5) * 2)));
+  // A real historical snapshot, not a fabricated offset — aligned to `cv`'s
+  // tenor order by lookup rather than assumed index parity.
+  const prev = cv.map((p) => d.curvePrev.find((q) => q[0] === p[0])?.[1] ?? p[1]);
   const cyv = [...cv.map((p) => p[1]), ...prev];
   let clo = Math.min(...cyv);
   let chi = Math.max(...cyv);
@@ -257,6 +260,7 @@ export function deriveAllFrom(region: Region, d: CoreData & ExtraData): Derived 
       spread2: sign(spread2, 2), spread2Color: toneUpDown(spread2),
       spread3: sign(spread3, 2), spread3Color: toneUpDown(spread3),
       shape: curveShapeWord(spread),
+      dateLabel: shortDate(d.curveDate), prevDateLabel: shortDate(d.curvePrevDate),
     },
     labor: d.labor.map(([name, value, delta]) => ({ name, value, delta })),
     fx, commods,

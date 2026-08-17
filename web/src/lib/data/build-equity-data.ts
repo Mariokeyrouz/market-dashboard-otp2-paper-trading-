@@ -17,7 +17,7 @@
 import { getEquityData } from "./mock-equity";
 import { fetchYahooChart } from "./providers/yahoo-chart";
 import { fetchYahooSparkBatch } from "./providers/yahoo-spark-batch";
-import { fetchTreasuryCurve } from "./providers/treasury-curve";
+import { fetchTreasuryCurveWithHistory } from "./providers/treasury-curve";
 import { CONCENTRATION_WEIGHTS } from "./reference/concentration-weights";
 import { SECTOR_ETFS } from "./reference/sector-etfs";
 import { SP500_CONSTITUENTS } from "./reference/sp500-constituents";
@@ -112,6 +112,11 @@ async function fetchSectorsBucket(): Promise<SectorRow[]> {
 
 const MOVERS_MIN_SUCCESS_RATIO = 0.9;
 
+async function fetchCurveBucket(): Promise<Pick<EquityCoreData, "curve" | "curveDate" | "curvePrev" | "curvePrevDate">> {
+  const { now, prev } = await fetchTreasuryCurveWithHistory();
+  return { curve: now.curve, curveDate: now.date, curvePrev: prev.curve, curvePrevDate: prev.date };
+}
+
 async function fetchMoversBucket(): Promise<EquityCoreData["movers"]> {
   const { quotes, failedChunks, totalChunks } = await fetchYahooSparkBatch(SP500_CONSTITUENTS);
   if (failedChunks / totalChunks > 1 - MOVERS_MIN_SUCCESS_RATIO) {
@@ -136,7 +141,7 @@ export async function buildEquityData(): Promise<{ data: EquityCoreData; meta: E
   const [indices, vix, curve, commods, sectors, movers] = await Promise.all([
     settle(fetchIndicesBucket),
     settle(fetchVixBucket),
-    settle(fetchTreasuryCurve),
+    settle(fetchCurveBucket),
     settle(fetchCommodsBucket),
     settle(fetchSectorsBucket),
     settle(fetchMoversBucket),
@@ -154,7 +159,7 @@ export async function buildEquityData(): Promise<{ data: EquityCoreData; meta: E
   const data: EquityCoreData = {
     indices: indices.ok ? indices.value : mock.indices,
     vix: vix.ok ? vix.value : mock.vix,
-    curve: curve.ok ? curve.value : mock.curve,
+    ...(curve.ok ? curve.value : { curve: mock.curve, curveDate: mock.curveDate, curvePrev: mock.curvePrev, curvePrevDate: mock.curvePrevDate }),
     commods: commods.ok ? commods.value : mock.commods,
     concentration: CONCENTRATION_WEIGHTS,
     sectors: sectors.ok ? sectors.value : mock.sectors,

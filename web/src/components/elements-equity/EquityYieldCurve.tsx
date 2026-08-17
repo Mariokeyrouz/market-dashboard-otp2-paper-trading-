@@ -18,11 +18,11 @@ export default function EquityYieldCurve() {
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ width: 14, height: 2.6, background: "var(--gold)", borderRadius: 2 }} />
-            <span style={{ fontSize: 10, color: "var(--muted)" }}>now</span>
+            <span style={{ fontSize: 10, color: "var(--muted)" }}>{c.dateLabel}</span>
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ width: 14, height: 0, borderTop: "2px dashed var(--faint)" }} />
-            <span style={{ fontSize: 10, color: "var(--muted)" }}>1w ago</span>
+            <span style={{ fontSize: 10, color: "var(--muted)" }}>{c.prevDateLabel}</span>
           </span>
         </div>
       </div>
