@@ -124,8 +124,8 @@ export default function Page() {
             ) : (
               <LiveStatusBadge status={macro.status} fetchedAt={macro.meta?.fetchedAt} staleBuckets={macro.meta?.stale} />
             )}
-            <span style={{ fontSize: 11, color: "var(--faint)" }}>
-              Opinionated, style-dependent classification · directional reads, no validated hit-rates · layout is yours — see the Logic panel
+            <span style={{ fontSize: 12, color: "var(--muted)" }}>
+              Opinionated, style-dependent classification · directional reads, no validated hit-rates
             </span>
           </footer>
         </div>
