@@ -19,10 +19,11 @@ import ElementFrame from "./ElementFrame";
 const FOOTER_ALLOWANCE = 58;
 /** Fixed estimate of chrome above the grid (column top padding; no header in rail mode). */
 const CHROME_ABOVE = 10;
-/** Fit-to-height bounds: crush no further than MIN (then the page scrolls); MAX caps the
- *  stretch so tiles stay comfortably sized on tall screens instead of ballooning. */
+/** Fit-to-height bounds: crush no further than MIN (then the page scrolls); MAX
+ *  caps the stretch at the designed row height (GRID_ROW_HEIGHT) rather than
+ *  letting tiles balloon past it. */
 const ROW_H_MIN = 20;
-const ROW_H_MAX = 21;
+const ROW_H_MAX = GRID_ROW_HEIGHT;
 
 export default function DashboardGrid({
   equityData, macroData,
@@ -93,7 +94,9 @@ export default function DashboardGrid({
   // "auto" defers to the fitted row height; "compact"/"comfortable" force the
   // content density to match — "comfortable" also gets real pixel room via
   // the rowHeight branch above, so this isn't just a content-flag override.
-  const autoCompact = rowHeight < 22;
+  // Compact is a response to the grid actually being crushed below the
+  // designed row height, not a fixed threshold that's unreachable in practice.
+  const autoCompact = rowHeight < GRID_ROW_HEIGHT - 3;
   const compact = densityOverride === "auto" ? autoCompact : densityOverride === "compact";
 
   return (

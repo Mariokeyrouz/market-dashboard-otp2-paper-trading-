@@ -199,7 +199,7 @@ export const useDashStore = create<DashState>()(
     }),
     {
       name: "mws_state_v1",
-      version: 5,
+      version: 6,
       // Pre-v1 browsers may have a persisted `theme` from a since-removed
       // third theme option — coerce anything that isn't a known theme to the
       // new default (Black) rather than letting it fall through to a dead
@@ -261,6 +261,26 @@ export const useDashStore = create<DashState>()(
           if (untouched && dashboards?.equity) {
             const def = getDashboardDef("equity");
             dashboards.equity.layout = defaultLayout(def.elements).filter((l) => !def.defaultHidden.includes(l.i));
+          }
+        }
+        // v5 -> v6: The macro default layout ran to 42 rows (Cross-Asset Heatmap,
+        // Yield Curve, Commodities, FX Changes all below y:28) against a 27px
+        // designed row height -- no viewport fits that without scrolling, which
+        // also meant ROW_H_MAX could never reach GRID_ROW_HEIGHT and "auto" density
+        // was permanently compact. Those four became defaultHidden (still
+        // re-addable from the Customize tray), bringing the visible default to 21
+        // rows. Only extend a `hidden` list that's still exactly the old untouched
+        // default -- a manually shown/hidden tile is left alone.
+        if (version < 6 && state) {
+          const dashboards = (state as { dashboards?: Record<string, { hidden?: string[] }> }).dashboards;
+          const macroHidden = dashboards?.macro?.hidden;
+          const oldDefaultHidden = ["releases", "labor"];
+          const untouched =
+            macroHidden &&
+            macroHidden.length === oldDefaultHidden.length &&
+            oldDefaultHidden.every((id) => macroHidden!.includes(id));
+          if (untouched && dashboards?.macro) {
+            dashboards.macro.hidden = [...macroHidden!, "heatmap", "curve", "commods", "fx"];
           }
         }
         return state;

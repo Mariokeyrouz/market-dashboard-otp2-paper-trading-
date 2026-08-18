@@ -102,6 +102,7 @@ export const ELEMENTS: ElementDef[] = [
     title: "Cross-Asset Heatmap",
     component: CrossAssetHeatmap,
     zRole: "support",
+    defaultHidden: true,
     logic:
       "The tape's verdict: cross-asset returns over four horizons. If the regime read is right, it should be visible here — and disagreements are information.",
     defaultLayout: { x: 0, y: 28, w: 4, h: 10, minW: 3, minH: 7 },
@@ -120,6 +121,7 @@ export const ELEMENTS: ElementDef[] = [
     title: "Yield Curve",
     component: YieldCurve,
     zRole: "support",
+    defaultHidden: true,
     logic:
       "The full term structure behind the hinge's single point: slope, shape word, and week-over-week shift. Where the cycle expresses itself in rates space.",
     defaultLayout: { x: 4, y: 28, w: 4, h: 8, minW: 3, minH: 8 },
@@ -139,6 +141,7 @@ export const ELEMENTS: ElementDef[] = [
     title: "Commodities",
     component: Commodities,
     zRole: "support",
+    defaultHidden: true,
     logic:
       "The real-economy inflation impulse in detail — the complex that feeds the breakeven leg of the hinge.",
     defaultLayout: { x: 8, y: 28, w: 4, h: 7, minW: 3, minH: 4 },
@@ -148,6 +151,7 @@ export const ELEMENTS: ElementDef[] = [
     title: "FX Changes",
     component: FxChanges,
     zRole: "support",
+    defaultHidden: true,
     logic:
       "The currency channel: how the region's exchange rates are moving and what that does to financial conditions.",
     defaultLayout: { x: 8, y: 35, w: 4, h: 7, minW: 3, minH: 4 },
