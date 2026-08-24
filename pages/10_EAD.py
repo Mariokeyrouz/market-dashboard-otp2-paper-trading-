@@ -1,13 +1,16 @@
 """
-Equity Analysis Dashboard
+Equity Analysis Dashboard (EAD)
 ==========================
 Read-only research tool: type a ticker, get a full single-stock view —
 company overview, key stats, trailing returns, earnings history,
-fundamentals deep-dive, and cash-flow trends.
+fundamentals deep-dive, institutional ownership, and cash-flow trends —
+laid out as one dense scrollable page of card panels (no tabs).
 
 No ledger, no daily-update wiring — purely additive, not part of the
 paper-trading system (does not touch ENGINES/STRATS/PORTFOLIOS).
 """
+
+import html as _html
 
 import numpy as np
 import pandas as pd
@@ -15,15 +18,11 @@ import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
-st.set_page_config(page_title="Equity Analysis", page_icon="🔍", layout="wide")
-
-st.markdown("""
-<style>
-    [data-testid="stMetricDelta"] svg { display: none; }
-</style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="Equity Analysis Dashboard", page_icon="🔍", layout="wide")
 
 GRID_COLOR = "#2a2a3e"
+POS_COLOR = "#00c896"
+NEG_COLOR = "#ff4b4b"
 CF_COLORS = {
     "Operating CF": "#4a9eff",
     "Investing CF": "#c9a227",
@@ -31,7 +30,57 @@ CF_COLORS = {
     "Free Cash Flow": "#00c896",
 }
 
+st.markdown("""
+<style>
+    [data-testid="stMetricDelta"] svg { display: none; }
+    .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+    [data-testid="stVerticalBlock"] { gap: 0.4rem; }
+
+    .ead-title { font-size: 19px; font-weight: 700; color: #e6e6e6; margin: 0; }
+    .ead-subtitle { font-size: 11.5px; color: #8080a0; margin: 0 0 10px 0; }
+    .ead-company { font-size: 15px; font-weight: 700; color: #e6e6e6; margin: 0; }
+    .ead-sector { font-size: 11.5px; color: #9090a8; margin: 0 0 4px 0; }
+    .ead-desc { font-size: 12px; line-height: 1.45; color: #c0c0d0; margin: 0 0 8px 0; }
+
+    [data-testid="stExpander"] summary { font-size: 11.5px !important; }
+    [data-testid="stExpander"] p { font-size: 12px !important; }
+    .stTextInput label { font-size: 12px !important; }
+    .stTextInput input { font-size: 12px !important; padding: 4px 8px !important; }
+    .stCaption, [data-testid="stCaptionContainer"] { font-size: 10.5px !important; }
+
+    .ead-card {
+        background: #1e1e2e;
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+    }
+    .ead-card h4 {
+        color: #e6e6e6;
+        margin: 0 0 4px 0;
+        font-size: 12px;
+        border-bottom: 1px solid #2a2a3e;
+        padding-bottom: 4px;
+    }
+    table.ead-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    table.ead-table th {
+        text-align: left; color: #9090a8; font-weight: 500;
+        border-bottom: 1px solid #2a2a3e; padding: 2px 4px;
+    }
+    table.ead-table td { padding: 2px 4px; color: #d0d0e0; line-height: 1.5; }
+    table.ead-table td.label { color: #9090a8; }
+    table.ead-table td.value { text-align: right; font-weight: 600; color: #e6e6e6; white-space: nowrap; }
+    table.ead-table tr:nth-child(even) { background: rgba(255,255,255,0.03); }
+    table.ead-table td.num { text-align: right; white-space: nowrap; }
+</style>
+""", unsafe_allow_html=True)
+
+CHART_FONT = dict(size=10, color="#c0c0d0")
+
 # ── Helpers ──────────────────────────────────────────────────────────────────
+
+
+def esc(x) -> str:
+    return _html.escape(str(x)) if x is not None else ""
 
 
 def safe_get(d, *keys, default=np.nan):
@@ -85,9 +134,21 @@ def fmt(x, kind="num2"):
         if ax >= 1e3:
             return f"{sign}${ax / 1e3:.2f}K"
         return f"{sign}${ax:,.2f}"
+    if kind == "usd2":
+        return f"${x:,.2f}"
     if kind == "num0":
         return f"{x:,.0f}"
     return f"{x:.2f}"  # num2
+
+
+def render_kv_card(title: str, rows_: list):
+    """rows_: list of (label, value_str, color_or_None)."""
+    parts = [f'<div class="ead-card"><h4>{esc(title)}</h4><table class="ead-table">']
+    for label, value, color in rows_:
+        style = f' style="color:{color};"' if color else ""
+        parts.append(f'<tr><td class="label">{esc(label)}</td><td class="value"{style}>{esc(value)}</td></tr>')
+    parts.append("</table></div>")
+    st.markdown("".join(parts), unsafe_allow_html=True)
 
 
 # ── Data fetch ───────────────────────────────────────────────────────────────
@@ -100,7 +161,8 @@ def fetch_ticker_bundle(ticker: str) -> dict:
     out = {
         "ticker": ticker, "info": {}, "hist": pd.DataFrame(),
         "fin": pd.DataFrame(), "bal": pd.DataFrame(), "cf": pd.DataFrame(),
-        "qcf": pd.DataFrame(), "earnings": None, "valid": False,
+        "qcf": pd.DataFrame(), "earnings": None, "holders": pd.DataFrame(),
+        "valid": False,
     }
     if not ticker:
         return out
@@ -146,12 +208,25 @@ def fetch_ticker_bundle(ticker: str) -> dict:
     except Exception:
         out["earnings"] = None
 
+    try:
+        ih = t.institutional_holders
+        out["holders"] = ih if ih is not None and not ih.empty else pd.DataFrame()
+    except Exception:
+        out["holders"] = pd.DataFrame()
+
     out["valid"] = (
         (not out["hist"].empty)
         or bool(out["info"].get("longBusinessSummary"))
         or bool(out["info"].get("shortName"))
     )
     return out
+
+
+def _denorm_tz(close: pd.Series) -> pd.Series:
+    if close.index.tz is not None:
+        close = close.copy()
+        close.index = close.index.tz_localize(None)
+    return close
 
 
 def trailing_returns(hist: pd.DataFrame) -> dict:
@@ -166,9 +241,7 @@ def trailing_returns(hist: pd.DataFrame) -> dict:
     close = hist["Close"].dropna()
     if close.empty:
         return result
-    if close.index.tz is not None:
-        close = close.copy()
-        close.index = close.index.tz_localize(None)
+    close = _denorm_tz(close)
 
     last_date = close.index[-1]
     last_close = float(close.iloc[-1])
@@ -233,6 +306,61 @@ def build_earnings_table(earnings: pd.DataFrame | None) -> pd.DataFrame:
     return df.rename(columns={"Surprise(%)": "Surprise (%)"})
 
 
+def render_earnings_card(df: pd.DataFrame):
+    if df.empty:
+        st.markdown('<div class="ead-card"><h4>Last 4 Earnings</h4>', unsafe_allow_html=True)
+        st.info("No earnings history available for this ticker.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    parts = [
+        '<div class="ead-card"><h4>Last 4 Earnings</h4><table class="ead-table"><tr>'
+        "<th>Date</th><th>EPS Est.</th><th>Reported EPS</th><th>Surprise</th><th>Result</th></tr>"
+    ]
+    for _, r in df.iterrows():
+        surprise = r.get("Surprise (%)")
+        surprise_str = f"{surprise:+.2f}%" if pd.notna(surprise) else "N/A"
+        surprise_color = POS_COLOR if pd.notna(surprise) and surprise >= 0 else (NEG_COLOR if pd.notna(surprise) else None)
+        bm = r["Beat/Miss"]
+        bm_color = POS_COLOR if bm == "Beat" else (NEG_COLOR if bm == "Miss" else None)
+        est_str = f'{r["EPS Estimate"]:.2f}' if pd.notna(r["EPS Estimate"]) else "N/A"
+        rep_str = f'{r["Reported EPS"]:.2f}' if pd.notna(r["Reported EPS"]) else "N/A"
+        parts.append(
+            f'<tr><td>{esc(r["Earnings Date"])}</td>'
+            f'<td class="num">{esc(est_str)}</td>'
+            f'<td class="num">{esc(rep_str)}</td>'
+            f'<td class="num" style="color:{surprise_color or "#d0d0e0"};">{esc(surprise_str)}</td>'
+            f'<td class="num" style="color:{bm_color or "#d0d0e0"};font-weight:600;">{esc(bm)}</td></tr>'
+        )
+    parts.append("</table></div>")
+    st.markdown("".join(parts), unsafe_allow_html=True)
+
+
+def build_holders_table(holders: pd.DataFrame) -> pd.DataFrame:
+    if holders is None or holders.empty:
+        return pd.DataFrame()
+    keep = [c for c in ["Holder", "pctHeld"] if c in holders.columns]
+    if "Holder" not in keep or "pctHeld" not in keep:
+        return pd.DataFrame()
+    return holders[keep].head(8).reset_index(drop=True)
+
+
+def render_holders_card(df: pd.DataFrame):
+    if df.empty:
+        st.markdown('<div class="ead-card"><h4>Top Institutional Holders</h4>', unsafe_allow_html=True)
+        st.info("No institutional holder data available for this ticker.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    parts = ['<div class="ead-card"><h4>Top Institutional Holders</h4><table class="ead-table"><tr><th>Holder</th><th>% Out</th></tr>']
+    for _, r in df.iterrows():
+        pct = r["pctHeld"]
+        pct_str = fmt(float(pct), "pct") if pd.notna(pct) else "N/A"
+        parts.append(f'<tr><td>{esc(r["Holder"])}</td><td class="num">{esc(pct_str)}</td></tr>')
+    parts.append("</table></div>")
+    st.markdown("".join(parts), unsafe_allow_html=True)
+
+
 def compute_fundamentals(info: dict, fin: pd.DataFrame, bal: pd.DataFrame) -> dict:
     """Valuation/short-interest/dividend fields come straight from `.info`
     (no reliable statement equivalent). Everything else is derived from the
@@ -246,6 +374,7 @@ def compute_fundamentals(info: dict, fin: pd.DataFrame, bal: pd.DataFrame) -> di
     f["pb"] = safe_get(info, "priceToBook")
     f["beta"] = safe_get(info, "beta")
     f["market_cap"] = safe_get(info, "marketCap")
+    f["current_price"] = safe_get(info, "currentPrice")
 
     payout = safe_get(info, "payoutRatio")
     div_rate = info.get("dividendRate")
@@ -343,21 +472,65 @@ def cashflow_chart(df: pd.DataFrame, title: str) -> go.Figure:
         fig.add_trace(go.Bar(name=col, x=df["Period"], y=df[col], marker_color=color))
     fig.update_layout(
         barmode="group",
-        title=title,
-        height=380,
+        title=dict(text=title, font=dict(size=12, color="#e6e6e6")),
+        height=230,
+        font=CHART_FONT,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=40, b=0),
-        yaxis=dict(gridcolor=GRID_COLOR, tickformat="$,.0f"),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+        margin=dict(l=0, r=0, t=30, b=0),
+        yaxis=dict(gridcolor=GRID_COLOR, tickformat="$,.0f", tickfont=dict(size=9)),
+        xaxis=dict(tickfont=dict(size=9)),
+        legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, font=dict(size=9)),
+    )
+    return fig
+
+
+def price_by_year(hist: pd.DataFrame, years: list) -> list:
+    """Last available close in each calendar year (NaN if the ticker didn't trade that year)."""
+    if hist is None or hist.empty:
+        return [np.nan] * len(years)
+    close = _denorm_tz(hist["Close"].dropna())
+    out = []
+    for y in years:
+        try:
+            yi = int(y)
+        except (TypeError, ValueError):
+            out.append(np.nan)
+            continue
+        mask = close.index.year == yi
+        out.append(float(close[mask].iloc[-1]) if mask.any() else np.nan)
+    return out
+
+
+def cashflow_vs_price_chart(annual_cf: pd.DataFrame, hist: pd.DataFrame, ticker: str) -> go.Figure:
+    years = annual_cf["Period"].tolist()
+    prices = price_by_year(hist, years)
+    fig = go.Figure()
+    fig.add_trace(go.Bar(name="Free Cash Flow", x=years, y=annual_cf["Free Cash Flow"], marker_color=CF_COLORS["Free Cash Flow"], yaxis="y"))
+    fig.add_trace(go.Scatter(name="Stock Price", x=years, y=prices, mode="lines+markers", line=dict(color="#4a9eff", width=2), yaxis="y2"))
+    fig.update_layout(
+        title=dict(text=f"{ticker} — Free Cash Flow vs. Stock Price", font=dict(size=12, color="#e6e6e6")),
+        height=260,
+        font=CHART_FONT,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=30, b=0),
+        xaxis=dict(title=dict(text="Year", font=dict(size=9)), tickfont=dict(size=9)),
+        yaxis=dict(title=dict(text="Free Cash Flow ($)", font=dict(size=9)), gridcolor=GRID_COLOR, tickformat="$,.0f", tickfont=dict(size=9)),
+        yaxis2=dict(title=dict(text="Stock Price ($)", font=dict(size=9)), overlaying="y", side="right", showgrid=False, tickfont=dict(size=9)),
+        legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, font=dict(size=9)),
     )
     return fig
 
 
 # ── Page ─────────────────────────────────────────────────────────────────────
 
-st.title("🔍 Equity Analysis Dashboard")
-st.caption("Look up any ticker for a full view: overview, fundamentals, and cash-flow trends. Research tool only — not investment advice.")
+st.markdown('<div class="ead-title">🔍 Equity Analysis Dashboard</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="ead-subtitle">Look up any ticker for a full view: overview, fundamentals, '
+    'ownership, and cash-flow trends. Research tool only — not investment advice.</div>',
+    unsafe_allow_html=True,
+)
 
 if "eq_ticker" not in st.session_state:
     st.session_state["eq_ticker"] = "AAPL"
@@ -381,112 +554,115 @@ info, hist = bundle["info"], bundle["hist"]
 fin, bal, cf, qcf = bundle["fin"], bundle["bal"], bundle["cf"], bundle["qcf"]
 fnd = compute_fundamentals(info, fin, bal)
 
-tab_overview, tab_fundamentals, tab_cashflow = st.tabs(["📋 Overview", "📊 Fundamentals", "💵 Cash Flow"])
+# ── Header: name / sector / description ─────────────────────────────────────
+name = info.get("shortName") or info.get("longName") or ticker
+sector = info.get("sector") or "N/A"
+industry = info.get("industry") or "N/A"
+st.markdown(f'<div class="ead-company">{esc(name)} ({esc(ticker)})</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="ead-sector">{esc(sector)} · {esc(industry)}</div>', unsafe_allow_html=True)
 
-# ── Tab 1: Overview ───────────────────────────────────────────────────────────
-with tab_overview:
-    name = info.get("shortName") or info.get("longName") or ticker
-    sector = info.get("sector") or "N/A"
-    industry = info.get("industry") or "N/A"
-    st.subheader(f"{name} ({ticker})")
-    st.caption(f"{sector} · {industry}")
-
-    summary = info.get("longBusinessSummary")
-    if summary:
-        if len(summary) > 500:
-            st.write(summary[:500].rsplit(" ", 1)[0] + "…")
-            with st.expander("Read full description"):
-                st.write(summary)
-        else:
-            st.write(summary)
+summary = info.get("longBusinessSummary")
+if summary:
+    if len(summary) > 320:
+        st.markdown(f'<div class="ead-desc">{esc(summary[:320].rsplit(" ", 1)[0])}…</div>', unsafe_allow_html=True)
+        with st.expander("Read full description"):
+            st.markdown(f'<div class="ead-desc">{esc(summary)}</div>', unsafe_allow_html=True)
     else:
-        st.info("No company description available.")
+        st.markdown(f'<div class="ead-desc">{esc(summary)}</div>', unsafe_allow_html=True)
+else:
+    st.info("No company description available.")
 
-    st.markdown("**Key Stats**")
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Trailing P/E", fmt(fnd["trailing_pe"]))
-    c2.metric("Forward P/E", fmt(fnd["forward_pe"]))
-    c3.metric("Market Cap", fmt(fnd["market_cap"], "usd"))
-    c4.metric("Beta", fmt(fnd["beta"]))
-    c5.metric("Industry", industry)
+# ── Row 1: General Info | Valuation & Profitability | Liquidity, Solvency & Dividends
+r1c1, r1c2, r1c3 = st.columns(3, gap="small")
 
-    st.markdown("**Trailing Returns**")
+with r1c1:
+    render_kv_card("General Information", [
+        ("Current Price", fmt(fnd["current_price"], "usd2"), None),
+        ("Market Cap", fmt(fnd["market_cap"], "usd"), None),
+        ("Trailing P/E", fmt(fnd["trailing_pe"]), None),
+        ("Forward P/E", fmt(fnd["forward_pe"]), None),
+        ("Beta", fmt(fnd["beta"]), None),
+        ("Sector", sector, None),
+        ("Industry", industry, None),
+    ])
+
+with r1c2:
+    render_kv_card("Valuation & Profitability", [
+        ("P/S Ratio", fmt(fnd["ps"]), None),
+        ("P/B Ratio", fmt(fnd["pb"]), None),
+        ("Revenue", fmt(fnd["revenue"], "usd"), None),
+        ("Profit Margin", fmt(fnd["profit_margin"], "pct"), None),
+        ("Operating Margin", fmt(fnd["operating_margin"], "pct"), None),
+        ("Return on Equity", fmt(fnd["roe"], "pct"), None),
+        ("Return on Assets", fmt(fnd["roa"], "pct"), None),
+    ])
+
+with r1c3:
+    div_rows = (
+        [("Dividend Payout Ratio", fmt(fnd["payout_ratio"], "pct"), None),
+         ("Retention Rate", fmt(fnd["retention_rate"], "pct"), None)]
+        if fnd["has_dividend"] else [("Dividend", "No dividend", None)]
+    )
+    render_kv_card("Liquidity, Solvency & Dividends", [
+        ("Total Cash", fmt(fnd["total_cash"], "usd"), None),
+        ("Total Debt", fmt(fnd["total_debt"], "usd"), None),
+        ("Debt/Equity", fmt(fnd["debt_to_equity"]), None),
+        ("Current Ratio", fmt(fnd["current_ratio"]), None),
+        ("Quick Ratio", fmt(fnd["quick_ratio"]), None),
+        ("Interest Coverage (DSR proxy)", fmt(fnd["interest_coverage"]), None),
+        *div_rows,
+    ])
+    st.caption(
+        "yfinance doesn't expose a principal-repayment schedule, so a textbook Debt "
+        "Service Ratio isn't derivable — Interest Coverage (EBITDA / Interest Expense) "
+        "is shown instead as the closest available proxy."
+    )
+
+# ── Row 2: Short Interest | Stock Returns | Top Institutional Holders ───────
+r2c1, r2c2, r2c3 = st.columns(3, gap="small")
+
+with r2c1:
+    render_kv_card("Short Interest", [
+        ("Short % of Float", fmt(fnd["short_pct_float"], "pct"), None),
+        ("Short Ratio (days to cover)", fmt(fnd["short_ratio"]), None),
+        ("Shares Short", fmt(fnd["shares_short"], "num0"), None),
+    ])
+
+with r2c2:
     rets = trailing_returns(hist)
-    cols = st.columns(7)
-    for col, label in zip(cols, ["1D", "5D", "1M", "6M", "YTD", "1Y", "5Y"]):
-        col.metric(label, fmt(rets.get(label), "pct_signed"))
+    ret_rows = []
+    for label in ["1D", "5D", "1M", "6M", "YTD", "1Y", "5Y"]:
+        val = rets.get(label)
+        color = None if val is None else (POS_COLOR if val >= 0 else NEG_COLOR)
+        ret_rows.append((label, fmt(val, "pct_signed"), color))
+    render_kv_card("Stock Returns", ret_rows)
 
-    st.markdown("**Last 4 Earnings**")
-    eq_table = build_earnings_table(bundle["earnings"])
-    if eq_table.empty:
-        st.info("No earnings history available for this ticker.")
-    else:
-        st.dataframe(eq_table, width="stretch", height=38 + 35 * len(eq_table) + 10, hide_index=True)
+with r2c3:
+    holders_df = build_holders_table(bundle["holders"])
+    render_holders_card(holders_df)
 
-# ── Tab 2: Fundamentals ────────────────────────────────────────────────────────
-with tab_fundamentals:
-    if fin.empty and bal.empty:
-        st.info("Fundamentals data unavailable for this ticker.")
-    else:
-        sub_val, sub_prof, sub_liq, sub_div, sub_short = st.tabs(
-            ["Valuation", "Profitability", "Liquidity & Solvency", "Dividends", "Short Interest"]
-        )
+# ── Row 3: Last 4 Earnings (full width) ──────────────────────────────────────
+eq_table = build_earnings_table(bundle["earnings"])
+render_earnings_card(eq_table)
 
-        with sub_val:
-            c1, c2 = st.columns(2)
-            c1.metric("P/S", fmt(fnd["ps"]))
-            c2.metric("P/B", fmt(fnd["pb"]))
+# ── Row 4: Cash Flow vs Stock Price ──────────────────────────────────────────
+annual_cf = build_cashflow_frame(cf, quarterly=False, n_periods=4)
+if annual_cf.empty:
+    st.info("Annual cash flow data unavailable for this ticker.")
+else:
+    st.plotly_chart(cashflow_vs_price_chart(annual_cf, hist, ticker), width="stretch")
 
-        with sub_prof:
-            c1, c2, c3, c4, c5 = st.columns(5)
-            c1.metric("Revenue", fmt(fnd["revenue"], "usd"))
-            c2.metric("Profit Margin", fmt(fnd["profit_margin"], "pct"))
-            c3.metric("Operating Margin", fmt(fnd["operating_margin"], "pct"))
-            c4.metric("Return on Equity", fmt(fnd["roe"], "pct"))
-            c5.metric("Return on Assets", fmt(fnd["roa"], "pct"))
-
-        with sub_liq:
-            c1, c2, c3, c4, c5, c6 = st.columns(6)
-            c1.metric("Total Cash", fmt(fnd["total_cash"], "usd"))
-            c2.metric("Total Debt", fmt(fnd["total_debt"], "usd"))
-            c3.metric("Debt/Equity", fmt(fnd["debt_to_equity"]))
-            c4.metric("Current Ratio", fmt(fnd["current_ratio"]))
-            c5.metric("Quick Ratio", fmt(fnd["quick_ratio"]))
-            c6.metric("Interest Coverage (DSR proxy)", fmt(fnd["interest_coverage"]))
-            st.caption(
-                "yfinance doesn't expose a principal-repayment schedule, so a textbook "
-                "Debt Service Ratio isn't derivable. Interest Coverage (EBITDA / Interest "
-                "Expense) is shown instead as the closest available proxy for debt-service capacity."
-            )
-
-        with sub_div:
-            if fnd["has_dividend"]:
-                c1, c2 = st.columns(2)
-                c1.metric("Dividend Payout Ratio", fmt(fnd["payout_ratio"], "pct"))
-                c2.metric("Retention Rate", fmt(fnd["retention_rate"], "pct"))
-            else:
-                st.info("No dividend.")
-
-        with sub_short:
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Short % of Float", fmt(fnd["short_pct_float"], "pct"))
-            c2.metric("Short Ratio (days to cover)", fmt(fnd["short_ratio"]))
-            c3.metric("Shares Short", fmt(fnd["shares_short"], "num0"))
-
-# ── Tab 3: Cash Flow ───────────────────────────────────────────────────────────
-with tab_cashflow:
-    st.markdown("**Annual**")
-    annual_cf = build_cashflow_frame(cf, quarterly=False, n_periods=4)
+# ── Row 5: Annual + Quarterly Cash Flow Breakdown ────────────────────────────
+r5c1, r5c2 = st.columns(2, gap="small")
+with r5c1:
     if annual_cf.empty:
-        st.info("Annual cash flow data unavailable for this ticker.")
+        st.info("Annual cash flow breakdown unavailable for this ticker.")
     else:
-        st.plotly_chart(cashflow_chart(annual_cf, "Annual Cash Flow Trend"), width="stretch")
-        st.dataframe(annual_cf.set_index("Period"), width="stretch")
+        st.plotly_chart(cashflow_chart(annual_cf, "Annual Cash Flow Breakdown"), width="stretch")
 
-    st.markdown("**Quarterly**")
+with r5c2:
     quarterly_cf = build_cashflow_frame(qcf, quarterly=True, n_periods=5)
     if quarterly_cf.empty:
-        st.info("Quarterly cash flow data unavailable for this ticker.")
+        st.info("Quarterly cash flow breakdown unavailable for this ticker.")
     else:
-        st.plotly_chart(cashflow_chart(quarterly_cf, "Quarterly Cash Flow Trend"), width="stretch")
-        st.dataframe(quarterly_cf.set_index("Period"), width="stretch")
+        st.plotly_chart(cashflow_chart(quarterly_cf, "Quarterly Cash Flow Breakdown"), width="stretch")
