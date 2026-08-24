@@ -33,7 +33,7 @@ PORTFOLIO_LEDGERS = {
     "RRG":         "rrg_ledger.csv",
 }
 
-# RRG is a research book, not a funded strategy — see pages/10_Portfolio_Analytics.py.
+# RRG is a research book, not a funded strategy — see pages/11_Portfolio_Analytics.py.
 # It is still included here so the homepage reflects the whole system, not just the
 # funded subset.
 RESEARCH_ONLY_LEDGERS = {"RRG"}

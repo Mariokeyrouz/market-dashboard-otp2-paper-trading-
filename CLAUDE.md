@@ -32,6 +32,9 @@ GitHub: `Mariokeyrouz/market-dashboard-otp2-paper-trading-`, branch `main`.
   Add `sys.stdout.reconfigure(encoding="utf-8")` in scripts that print them.
 - **Bash tool + backticks**: backticks inside a double-quoted `git commit -m "..."`
   trigger command substitution and silently eat text. Use a `<<'MSG'` heredoc.
+- **The daily update runs in GitHub Actions, not on the desktop** (since 2026-07-29,
+  `.github/workflows/daily-update.yml`) — the Windows Task Scheduler job must stay
+  **disabled**. If both run, they race to commit to the same ledgers.
 
 ## Streamlit conventions
 
@@ -48,14 +51,23 @@ GitHub: `Mariokeyrouz/market-dashboard-otp2-paper-trading-`, branch `main`.
 
 ## Paper-trading system
 
-Six strategies, each with `*_ledger.csv` + `*_state.json`, advanced by
-`run_daily_update.py` (Windows Task Scheduler, ~6 PM). `ENGINES` in that file is the
+Seven funded strategies (OTP2.0, OTP2.0 AMA, FMTS, FMTS AMA, Gold, Momentum,
+Four-Pillar) plus RRG as an unfunded research book, each with `*_ledger.csv` +
+`*_state.json`, advanced by `run_daily_update.py`. `ENGINES` in that file is the
 registry; `TRACKED_GLOBS` controls what gets auto-committed.
+
+Runs daily in **GitHub Actions** (`.github/workflows/daily-update.yml`), 22:30 UTC
+weekdays (18:30 ET / 17:30 EST — after the close either way; GitHub cron is UTC-only
+and ignores DST). The job commits the advanced ledgers with `GITHUB_TOKEN` and pushes,
+which is what triggers the Streamlit Cloud redeploy. `workflow_dispatch` allows a
+manual run from the Actions tab. The system now advances whether or not the desktop
+is on — the local Windows Task Scheduler job that used to do this is deprecated and
+must stay disabled (see Environment traps).
 
 Adding a strategy means touching four registries:
 1. `run_daily_update.py` → `ENGINES`
 2. `event_log.py` → `STRATS`
-3. `pages/10_Portfolio_Analytics.py` → `PORTFOLIOS`
+3. `pages/11_Portfolio_Analytics.py` → `PORTFOLIOS`
 4. a page in `pages/`, numbered BELOW Portfolio Analytics / Activity Log — those
    two are system-wide summaries and should stay pinned at the bottom of the
    sidebar; a new strategy page goes in the gap before them, and the two
