@@ -37,9 +37,25 @@ st.markdown("""
     [data-testid="stVerticalBlock"] { gap: 0.4rem; }
 
     .ead-title { font-size: 19px; font-weight: 700; color: #e6e6e6; margin: 0; }
-    .ead-subtitle { font-size: 11.5px; color: #8080a0; margin: 0 0 10px 0; }
+    .ead-subtitle { font-size: 11.5px; color: #8080a0; margin: 0 0 8px 0; }
     .ead-company { font-size: 15px; font-weight: 700; color: #e6e6e6; margin: 0; }
     .ead-sector { font-size: 11.5px; color: #9090a8; margin: 0 0 4px 0; }
+
+    .ead-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 10px 0; }
+    .ead-nav a {
+        font-size: 10.5px; color: #a0b8ff; text-decoration: none;
+        padding: 3px 10px; background: #1e1e2e; border-radius: 12px;
+        border: 1px solid #2a2a3e;
+    }
+    .ead-nav a:hover { border-color: #4a9eff; }
+    .ead-section-label {
+        font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+        color: #6a6a88; text-transform: uppercase; margin: 6px 0 4px 0;
+        scroll-margin-top: 10px;
+    }
+    div[data-testid="stButton"] button {
+        font-size: 11px !important; padding: 2px 4px !important; min-height: 0 !important;
+    }
     .ead-desc { font-size: 12px; line-height: 1.45; color: #c0c0d0; margin: 0 0 8px 0; }
 
     [data-testid="stExpander"] summary { font-size: 11.5px !important; }
@@ -532,19 +548,53 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if "eq_ticker" not in st.session_state:
-    st.session_state["eq_ticker"] = "AAPL"
+QUICK_TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "SPY"]
 
-ticker_input = st.text_input("Ticker", value=st.session_state["eq_ticker"]).strip().upper()
-if ticker_input:
-    st.session_state["eq_ticker"] = ticker_input
+# Query-param <-> session_state sync: lets the ticker survive a refresh, browser
+# back/forward, or a pasted link (?ticker=MSFT), while local typing/clicks still win.
+qp_ticker = (st.query_params.get("ticker") or "").strip().upper()
+if "eq_ticker" not in st.session_state:
+    st.session_state["eq_ticker"] = qp_ticker or "AAPL"
+elif qp_ticker and qp_ticker != st.session_state["eq_ticker"]:
+    st.session_state["eq_ticker"] = qp_ticker
+
+search_col, btn_col = st.columns([1, 3], gap="small")
+with search_col:
+    ticker_input = st.text_input(
+        "Ticker", value=st.session_state["eq_ticker"], help="Type a symbol and press Enter",
+    ).strip().upper()
+    if ticker_input:
+        st.session_state["eq_ticker"] = ticker_input
+
+with btn_col:
+    qcols = st.columns(len(QUICK_TICKERS), gap="small")
+    for qc, qt in zip(qcols, QUICK_TICKERS):
+        with qc:
+            if st.button(qt, key=f"quick_{qt}", width="stretch"):
+                st.session_state["eq_ticker"] = qt
+                st.rerun()
+
 ticker = st.session_state["eq_ticker"]
 
 if not ticker:
     st.info("Enter a ticker to begin.")
     st.stop()
 
-bundle = fetch_ticker_bundle(ticker)
+if st.query_params.get("ticker") != ticker:
+    st.query_params["ticker"] = ticker
+
+st.markdown(
+    '<div class="ead-nav">'
+    '<a href="#ead-overview">Overview</a>'
+    '<a href="#ead-returns">Returns &amp; Ownership</a>'
+    '<a href="#ead-earnings">Earnings</a>'
+    '<a href="#ead-cashflow">Cash Flow</a>'
+    "</div>",
+    unsafe_allow_html=True,
+)
+
+with st.spinner(f"Loading {ticker}…"):
+    bundle = fetch_ticker_bundle(ticker)
 
 if not bundle["valid"]:
     st.error(f"No data found for '{ticker}'. Check the symbol and try again.")
@@ -558,7 +608,7 @@ fnd = compute_fundamentals(info, fin, bal)
 name = info.get("shortName") or info.get("longName") or ticker
 sector = info.get("sector") or "N/A"
 industry = info.get("industry") or "N/A"
-st.markdown(f'<div class="ead-company">{esc(name)} ({esc(ticker)})</div>', unsafe_allow_html=True)
+st.markdown(f'<div id="ead-overview" class="ead-company">{esc(name)} ({esc(ticker)})</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="ead-sector">{esc(sector)} · {esc(industry)}</div>', unsafe_allow_html=True)
 
 summary = info.get("longBusinessSummary")
@@ -571,6 +621,8 @@ if summary:
         st.markdown(f'<div class="ead-desc">{esc(summary)}</div>', unsafe_allow_html=True)
 else:
     st.info("No company description available.")
+
+st.markdown('<div class="ead-section-label">Fundamentals</div>', unsafe_allow_html=True)
 
 # ── Row 1: General Info | Valuation & Profitability | Liquidity, Solvency & Dividends
 r1c1, r1c2, r1c3 = st.columns(3, gap="small")
@@ -618,6 +670,8 @@ with r1c3:
         "is shown instead as the closest available proxy."
     )
 
+st.markdown('<div id="ead-returns" class="ead-section-label">Returns &amp; Ownership</div>', unsafe_allow_html=True)
+
 # ── Row 2: Short Interest | Stock Returns | Top Institutional Holders ───────
 r2c1, r2c2, r2c3 = st.columns(3, gap="small")
 
@@ -642,10 +696,12 @@ with r2c3:
     render_holders_card(holders_df)
 
 # ── Row 3: Last 4 Earnings (full width) ──────────────────────────────────────
+st.markdown('<div id="ead-earnings" class="ead-section-label">Earnings</div>', unsafe_allow_html=True)
 eq_table = build_earnings_table(bundle["earnings"])
 render_earnings_card(eq_table)
 
 # ── Row 4: Cash Flow vs Stock Price ──────────────────────────────────────────
+st.markdown('<div id="ead-cashflow" class="ead-section-label">Cash Flow</div>', unsafe_allow_html=True)
 annual_cf = build_cashflow_frame(cf, quarterly=False, n_periods=4)
 if annual_cf.empty:
     st.info("Annual cash flow data unavailable for this ticker.")
