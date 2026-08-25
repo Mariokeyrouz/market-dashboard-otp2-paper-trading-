@@ -32,63 +32,64 @@ st.markdown("""
 <style>
     [data-testid="stMetricDelta"] svg { display: none; }
     .block-container { padding-top: 2rem; padding-bottom: 2rem; }
-    [data-testid="stVerticalBlock"] { gap: 0.4rem; }
+    [data-testid="stVerticalBlock"] { gap: 0.6rem; }
 
-    .ead-title { font-size: 19px; font-weight: 700; color: #e6e6e6; margin: 0; }
-    .ead-subtitle { font-size: 11.5px; color: #8080a0; margin: 0 0 8px 0; }
-    .ead-company { font-size: 15px; font-weight: 700; color: #e6e6e6; margin: 0; }
-    .ead-sector { font-size: 11.5px; color: #9090a8; margin: 0 0 4px 0; }
+    .ead-title { font-size: 20px; font-weight: 700; color: #ffffff; margin: 0; }
+    .ead-subtitle { font-size: 12px; color: #898781; margin: 0 0 10px 0; }
+    .ead-company { font-size: 17px; font-weight: 700; color: #ffffff; margin: 0; }
+    .ead-sector { font-size: 12px; color: #c3c2b7; margin: 0 0 6px 0; }
 
-    .ead-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 10px 0; }
+    .ead-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 16px 0; }
     .ead-nav a {
-        font-size: 10.5px; color: #a0b8ff; text-decoration: none;
-        padding: 3px 10px; background: #1e1e2e; border-radius: 12px;
+        font-size: 11px; color: #a0b8ff; text-decoration: none;
+        padding: 4px 11px; background: #1e1e2e; border-radius: 12px;
         border: 1px solid #2a2a3e;
     }
     .ead-nav a:hover { border-color: #4a9eff; }
     .ead-section-label {
-        font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
-        color: #6a6a88; text-transform: uppercase; margin: 6px 0 4px 0;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+        color: #898781; text-transform: uppercase; margin: 20px 0 8px 0;
         scroll-margin-top: 10px;
     }
-    div[data-testid="stButton"] button {
-        font-size: 11px !important; padding: 2px 4px !important; min-height: 0 !important;
-    }
-    .ead-desc { font-size: 12px; line-height: 1.45; color: #c0c0d0; margin: 0 0 8px 0; }
+    .ead-desc { font-size: 13px; line-height: 1.6; color: #c3c2b7; margin: 0; }
 
-    [data-testid="stExpander"] summary { font-size: 11.5px !important; }
-    [data-testid="stExpander"] p { font-size: 12px !important; }
-    .stTextInput label { font-size: 12px !important; }
-    .stTextInput input { font-size: 12px !important; padding: 4px 8px !important; }
-    .stCaption, [data-testid="stCaptionContainer"] { font-size: 10.5px !important; }
+    [data-testid="stExpander"] summary { font-size: 12px !important; }
+    [data-testid="stExpander"] p { font-size: 12.5px !important; }
+    .stTextInput label { font-size: 12.5px !important; }
+    .stTextInput input { font-size: 13px !important; padding: 6px 10px !important; }
+    .stCaption, [data-testid="stCaptionContainer"] { font-size: 11px !important; }
 
     .ead-card {
         background: #1e1e2e;
-        border-radius: 8px;
-        padding: 8px 10px;
-        margin-bottom: 8px;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
     }
     .ead-card h4 {
-        color: #e6e6e6;
-        margin: 0 0 4px 0;
-        font-size: 12px;
+        color: #ffffff;
+        margin: 0 0 10px 0;
+        font-size: 13px;
+        font-weight: 600;
         border-bottom: 1px solid #2a2a3e;
-        padding-bottom: 4px;
+        padding-bottom: 8px;
     }
-    table.ead-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    table.ead-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
     table.ead-table th {
-        text-align: left; color: #9090a8; font-weight: 500;
-        border-bottom: 1px solid #2a2a3e; padding: 2px 4px;
+        text-align: left; color: #898781; font-weight: 500;
+        border-bottom: 1px solid #2a2a3e; padding: 4px 6px;
     }
-    table.ead-table td { padding: 2px 4px; color: #d0d0e0; line-height: 1.5; }
-    table.ead-table td.label { color: #9090a8; }
-    table.ead-table td.value { text-align: right; font-weight: 600; color: #e6e6e6; white-space: nowrap; }
+    table.ead-table td { padding: 5px 6px; color: #c3c2b7; line-height: 1.6; }
+    table.ead-table td.label { color: #898781; }
+    table.ead-table td.value {
+        text-align: right; font-weight: 600; color: #ffffff; white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
     table.ead-table tr:nth-child(even) { background: rgba(255,255,255,0.03); }
-    table.ead-table td.num { text-align: right; white-space: nowrap; }
+    table.ead-table td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 </style>
 """, unsafe_allow_html=True)
 
-CHART_FONT = dict(size=10, color="#c0c0d0")
+CHART_FONT = dict(size=11, color="#c3c2b7")
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -492,31 +493,66 @@ def price_by_year(hist: pd.DataFrame, years: list) -> list:
     return out
 
 
-def cashflow_vs_price_chart(annual_cf: pd.DataFrame, hist: pd.DataFrame, ticker: str) -> go.Figure:
-    """One consolidated chart: Operating CF + Free Cash Flow (grouped bars, the
-    two most decision-relevant series) against Stock Price (secondary axis).
-    Investing/Financing CF are left out of the chart to keep it readable —
-    they're still available in the full-breakdown table below it."""
-    years = annual_cf["Period"].tolist()
-    prices = price_by_year(hist, years)
+def cashflow_chart(annual_cf: pd.DataFrame, ticker: str) -> go.Figure:
+    """Operating CF + Free Cash Flow, grouped bars, ONE axis. Never combined
+    with Stock Price on a second scale — a dual-axis chart invents a visual
+    correlation that isn't in the data (see dataviz anti-patterns). Price gets
+    its own chart on the same x-categories instead, placed alongside this one."""
     fig = go.Figure()
     for col, color in CF_COLORS.items():
-        fig.add_trace(go.Bar(name=col, x=years, y=annual_cf[col], marker_color=color, yaxis="y"))
-    fig.add_trace(go.Scatter(name="Stock Price", x=years, y=prices, mode="lines+markers", line=dict(color="#e0a030", width=2), yaxis="y2"))
+        fig.add_trace(go.Bar(
+            name=col, x=annual_cf["Period"], y=annual_cf[col],
+            marker=dict(color=color, cornerradius=4),
+        ))
     fig.update_layout(
         barmode="group",
-        title=dict(text=f"{ticker} — Cash Flow vs. Stock Price", font=dict(size=12, color="#e6e6e6")),
-        height=260,
+        bargap=0.3,
+        bargroupgap=0.1,
+        title=dict(text=f"{ticker} — Cash Flow", font=dict(size=13, color="#ffffff")),
+        height=280,
         font=CHART_FONT,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=30, b=0),
-        xaxis=dict(title=dict(text="Year", font=dict(size=9)), tickfont=dict(size=9)),
-        yaxis=dict(title=dict(text="Cash Flow ($)", font=dict(size=9)), gridcolor=GRID_COLOR, tickformat="$,.0f", tickfont=dict(size=9)),
-        yaxis2=dict(title=dict(text="Stock Price ($)", font=dict(size=9)), overlaying="y", side="right", showgrid=False, tickfont=dict(size=9)),
-        legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, font=dict(size=9)),
+        margin=dict(l=0, r=10, t=44, b=0),
+        xaxis=dict(tickfont=dict(size=11)),
+        yaxis=dict(gridcolor=GRID_COLOR, tickformat="$,.0f", tickfont=dict(size=11)),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, font=dict(size=11)),
     )
     return fig
+
+
+def price_chart(annual_cf: pd.DataFrame, hist: pd.DataFrame, ticker: str) -> go.Figure:
+    """Year-end stock price, single series, single axis, same x-categories as
+    the cash flow chart alongside it — comparable without faking a shared scale."""
+    years = annual_cf["Period"].tolist()
+    prices = price_by_year(hist, years)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        name="Stock Price", x=years, y=prices, mode="lines+markers",
+        line=dict(color="#e0a030", width=2),
+        marker=dict(size=8, color="#e0a030", line=dict(color="#1e1e2e", width=2)),
+    ))
+    fig.update_layout(
+        title=dict(text=f"{ticker} — Stock Price (year-end)", font=dict(size=13, color="#ffffff")),
+        height=280,
+        font=CHART_FONT,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=10, t=44, b=0),
+        showlegend=False,
+        xaxis=dict(tickfont=dict(size=11)),
+        yaxis=dict(gridcolor=GRID_COLOR, tickformat="$,.0f", tickfont=dict(size=11)),
+    )
+    return fig
+
+
+def format_cashflow_table(annual_cf: pd.DataFrame) -> pd.DataFrame:
+    """Display copy with every dollar figure comma/suffix-formatted — never
+    a raw float — matching every other dollar value on this page."""
+    out = annual_cf.set_index("Period").copy()
+    for col in out.columns:
+        out[col] = out[col].apply(lambda x: fmt(x, "usd"))
+    return out
 
 
 # ── Page ─────────────────────────────────────────────────────────────────────
@@ -528,31 +564,19 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-QUICK_TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "SPY"]
-
 # Query-param <-> session_state sync: lets the ticker survive a refresh, browser
-# back/forward, or a pasted link (?ticker=MSFT), while local typing/clicks still win.
+# back/forward, or a pasted link (?ticker=MSFT), while local typing still wins.
 qp_ticker = (st.query_params.get("ticker") or "").strip().upper()
 if "eq_ticker" not in st.session_state:
     st.session_state["eq_ticker"] = qp_ticker or "AAPL"
 elif qp_ticker and qp_ticker != st.session_state["eq_ticker"]:
     st.session_state["eq_ticker"] = qp_ticker
 
-search_col, btn_col = st.columns([1, 3], gap="small")
-with search_col:
-    ticker_input = st.text_input(
-        "Ticker", value=st.session_state["eq_ticker"], help="Type a symbol and press Enter",
-    ).strip().upper()
-    if ticker_input:
-        st.session_state["eq_ticker"] = ticker_input
-
-with btn_col:
-    qcols = st.columns(len(QUICK_TICKERS), gap="small")
-    for qc, qt in zip(qcols, QUICK_TICKERS):
-        with qc:
-            if st.button(qt, key=f"quick_{qt}", width="stretch"):
-                st.session_state["eq_ticker"] = qt
-                st.rerun()
+ticker_input = st.text_input(
+    "Ticker", value=st.session_state["eq_ticker"], help="Type a symbol and press Enter",
+).strip().upper()
+if ticker_input:
+    st.session_state["eq_ticker"] = ticker_input
 
 ticker = st.session_state["eq_ticker"]
 
@@ -593,14 +617,15 @@ st.markdown(f'<div class="ead-sector">{esc(sector)} · {esc(industry)}</div>', u
 
 summary = info.get("longBusinessSummary")
 if summary:
+    short = summary if len(summary) <= 320 else summary[:320].rsplit(" ", 1)[0] + "…"
+    st.markdown(f'<div class="ead-card"><h4>About</h4><div class="ead-desc">{esc(short)}</div></div>', unsafe_allow_html=True)
     if len(summary) > 320:
-        st.markdown(f'<div class="ead-desc">{esc(summary[:320].rsplit(" ", 1)[0])}…</div>', unsafe_allow_html=True)
         with st.expander("Read full description"):
             st.markdown(f'<div class="ead-desc">{esc(summary)}</div>', unsafe_allow_html=True)
-    else:
-        st.markdown(f'<div class="ead-desc">{esc(summary)}</div>', unsafe_allow_html=True)
 else:
-    st.info("No company description available.")
+    st.markdown('<div class="ead-card"><h4>About</h4>', unsafe_allow_html=True)
+    st.info("No company description available for this ticker.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="ead-section-label">Fundamentals</div>', unsafe_allow_html=True)
 
@@ -680,12 +705,19 @@ st.markdown('<div id="ead-earnings" class="ead-section-label">Earnings</div>', u
 eq_table = build_earnings_table(bundle["earnings"])
 render_earnings_card(eq_table)
 
-# ── Row 4: Cash Flow vs Stock Price (single consolidated chart) ─────────────
+# ── Row 4: Cash Flow | Stock Price — two single-axis charts, never combined
+# on one dual-scale plot (see dataviz anti-patterns: a shared axis between
+# unrelated scales invents a correlation that isn't in the data) ────────────
 st.markdown('<div id="ead-cashflow" class="ead-section-label">Cash Flow</div>', unsafe_allow_html=True)
 annual_cf = build_cashflow_frame(cf, quarterly=False, n_periods=4)
 if annual_cf.empty:
     st.info("Annual cash flow data unavailable for this ticker.")
 else:
-    st.plotly_chart(cashflow_vs_price_chart(annual_cf, hist, ticker), width="stretch")
+    r4c1, r4c2 = st.columns(2, gap="small")
+    with r4c1:
+        st.plotly_chart(cashflow_chart(annual_cf, ticker), width="stretch")
+    with r4c2:
+        st.plotly_chart(price_chart(annual_cf, hist, ticker), width="stretch")
+
     with st.expander("Full breakdown (incl. Investing & Financing CF)"):
-        st.dataframe(annual_cf.set_index("Period"), width="stretch")
+        st.dataframe(format_cashflow_table(annual_cf), width="stretch")
