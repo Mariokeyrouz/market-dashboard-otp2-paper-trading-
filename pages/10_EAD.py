@@ -25,8 +25,6 @@ POS_COLOR = "#00c896"
 NEG_COLOR = "#ff4b4b"
 CF_COLORS = {
     "Operating CF": "#4a9eff",
-    "Investing CF": "#c9a227",
-    "Financing CF": "#8e5ac9",
     "Free Cash Flow": "#00c896",
 }
 
@@ -177,7 +175,7 @@ def fetch_ticker_bundle(ticker: str) -> dict:
     out = {
         "ticker": ticker, "info": {}, "hist": pd.DataFrame(),
         "fin": pd.DataFrame(), "bal": pd.DataFrame(), "cf": pd.DataFrame(),
-        "qcf": pd.DataFrame(), "earnings": None, "holders": pd.DataFrame(),
+        "earnings": None, "holders": pd.DataFrame(),
         "valid": False,
     }
     if not ticker:
@@ -212,11 +210,6 @@ def fetch_ticker_bundle(ticker: str) -> dict:
         out["cf"] = t.cashflow if t.cashflow is not None else pd.DataFrame()
     except Exception:
         out["cf"] = pd.DataFrame()
-
-    try:
-        out["qcf"] = t.quarterly_cashflow if t.quarterly_cashflow is not None else pd.DataFrame()
-    except Exception:
-        out["qcf"] = pd.DataFrame()
 
     try:
         ed = t.get_earnings_dates(limit=12)
@@ -482,25 +475,6 @@ def build_cashflow_frame(cf: pd.DataFrame, quarterly: bool, n_periods: int) -> p
     })
 
 
-def cashflow_chart(df: pd.DataFrame, title: str) -> go.Figure:
-    fig = go.Figure()
-    for col, color in CF_COLORS.items():
-        fig.add_trace(go.Bar(name=col, x=df["Period"], y=df[col], marker_color=color))
-    fig.update_layout(
-        barmode="group",
-        title=dict(text=title, font=dict(size=12, color="#e6e6e6")),
-        height=230,
-        font=CHART_FONT,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=30, b=0),
-        yaxis=dict(gridcolor=GRID_COLOR, tickformat="$,.0f", tickfont=dict(size=9)),
-        xaxis=dict(tickfont=dict(size=9)),
-        legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, font=dict(size=9)),
-    )
-    return fig
-
-
 def price_by_year(hist: pd.DataFrame, years: list) -> list:
     """Last available close in each calendar year (NaN if the ticker didn't trade that year)."""
     if hist is None or hist.empty:
@@ -519,20 +493,26 @@ def price_by_year(hist: pd.DataFrame, years: list) -> list:
 
 
 def cashflow_vs_price_chart(annual_cf: pd.DataFrame, hist: pd.DataFrame, ticker: str) -> go.Figure:
+    """One consolidated chart: Operating CF + Free Cash Flow (grouped bars, the
+    two most decision-relevant series) against Stock Price (secondary axis).
+    Investing/Financing CF are left out of the chart to keep it readable —
+    they're still available in the full-breakdown table below it."""
     years = annual_cf["Period"].tolist()
     prices = price_by_year(hist, years)
     fig = go.Figure()
-    fig.add_trace(go.Bar(name="Free Cash Flow", x=years, y=annual_cf["Free Cash Flow"], marker_color=CF_COLORS["Free Cash Flow"], yaxis="y"))
-    fig.add_trace(go.Scatter(name="Stock Price", x=years, y=prices, mode="lines+markers", line=dict(color="#4a9eff", width=2), yaxis="y2"))
+    for col, color in CF_COLORS.items():
+        fig.add_trace(go.Bar(name=col, x=years, y=annual_cf[col], marker_color=color, yaxis="y"))
+    fig.add_trace(go.Scatter(name="Stock Price", x=years, y=prices, mode="lines+markers", line=dict(color="#e0a030", width=2), yaxis="y2"))
     fig.update_layout(
-        title=dict(text=f"{ticker} — Free Cash Flow vs. Stock Price", font=dict(size=12, color="#e6e6e6")),
+        barmode="group",
+        title=dict(text=f"{ticker} — Cash Flow vs. Stock Price", font=dict(size=12, color="#e6e6e6")),
         height=260,
         font=CHART_FONT,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=0, r=0, t=30, b=0),
         xaxis=dict(title=dict(text="Year", font=dict(size=9)), tickfont=dict(size=9)),
-        yaxis=dict(title=dict(text="Free Cash Flow ($)", font=dict(size=9)), gridcolor=GRID_COLOR, tickformat="$,.0f", tickfont=dict(size=9)),
+        yaxis=dict(title=dict(text="Cash Flow ($)", font=dict(size=9)), gridcolor=GRID_COLOR, tickformat="$,.0f", tickfont=dict(size=9)),
         yaxis2=dict(title=dict(text="Stock Price ($)", font=dict(size=9)), overlaying="y", side="right", showgrid=False, tickfont=dict(size=9)),
         legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, font=dict(size=9)),
     )
@@ -601,7 +581,7 @@ if not bundle["valid"]:
     st.stop()
 
 info, hist = bundle["info"], bundle["hist"]
-fin, bal, cf, qcf = bundle["fin"], bundle["bal"], bundle["cf"], bundle["qcf"]
+fin, bal, cf = bundle["fin"], bundle["bal"], bundle["cf"]
 fnd = compute_fundamentals(info, fin, bal)
 
 # ── Header: name / sector / description ─────────────────────────────────────
@@ -700,25 +680,12 @@ st.markdown('<div id="ead-earnings" class="ead-section-label">Earnings</div>', u
 eq_table = build_earnings_table(bundle["earnings"])
 render_earnings_card(eq_table)
 
-# ── Row 4: Cash Flow vs Stock Price ──────────────────────────────────────────
+# ── Row 4: Cash Flow vs Stock Price (single consolidated chart) ─────────────
 st.markdown('<div id="ead-cashflow" class="ead-section-label">Cash Flow</div>', unsafe_allow_html=True)
 annual_cf = build_cashflow_frame(cf, quarterly=False, n_periods=4)
 if annual_cf.empty:
     st.info("Annual cash flow data unavailable for this ticker.")
 else:
     st.plotly_chart(cashflow_vs_price_chart(annual_cf, hist, ticker), width="stretch")
-
-# ── Row 5: Annual + Quarterly Cash Flow Breakdown ────────────────────────────
-r5c1, r5c2 = st.columns(2, gap="small")
-with r5c1:
-    if annual_cf.empty:
-        st.info("Annual cash flow breakdown unavailable for this ticker.")
-    else:
-        st.plotly_chart(cashflow_chart(annual_cf, "Annual Cash Flow Breakdown"), width="stretch")
-
-with r5c2:
-    quarterly_cf = build_cashflow_frame(qcf, quarterly=True, n_periods=5)
-    if quarterly_cf.empty:
-        st.info("Quarterly cash flow breakdown unavailable for this ticker.")
-    else:
-        st.plotly_chart(cashflow_chart(quarterly_cf, "Quarterly Cash Flow Breakdown"), width="stretch")
+    with st.expander("Full breakdown (incl. Investing & Financing CF)"):
+        st.dataframe(annual_cf.set_index("Period"), width="stretch")
