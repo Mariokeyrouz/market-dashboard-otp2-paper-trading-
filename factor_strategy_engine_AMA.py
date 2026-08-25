@@ -16,7 +16,7 @@ import time
 import numpy as np
 import pandas as pd
 
-from strategy_deep_test import download_many, download_tbill, build_market_features
+from strategy_deep_test import download_many, build_market_features
 from event_log import log_event
 
 LEDGER_PATH    = "factor_ledger_AMA.csv"
@@ -47,13 +47,14 @@ def _build_rvol_sma(market_df):
     return market_df
 
 
-def _step(state, px_today, market_row, cash_ret_simple):
+def _step(state, px_today, market_row):
     tickers      = list(state["shares"].keys())
     shares       = state["shares"]
     entry_prices = state["entry_prices"]
 
+    # Cash earns nothing while stopped out
     stock_value  = sum(shares[t] * px_today[t] for t in tickers if t in px_today)
-    cash_dollars = state["cash_dollars"] * (1.0 + cash_ret_simple)
+    cash_dollars = state["cash_dollars"]
     nav          = stock_value + cash_dollars
 
     peak_nav     = max(state["peak_nav"], nav)
@@ -120,8 +121,6 @@ def main():
     raw  = download_many(["^GSPC", "^VIX"] + tickers)
     gspc = raw["^GSPC"]
     vix  = raw["^VIX"]
-    tbill_raw, tbill_src = download_tbill()
-    print(f"  T-bill source: {tbill_src}")
 
     closes = {t: raw[t]["Close"].squeeze() for t in tickers if t in raw}
 
@@ -137,8 +136,6 @@ def main():
         common_index = common_index.intersection(closes[t].dropna().index)
     market_df = market_df.loc[common_index]
     prices    = prices.loc[common_index]
-
-    cash_daily = tbill_raw.reindex(common_index).ffill().bfill() / 252
 
     print(f"Common index: {common_index[0].date()} to {common_index[-1].date()} "
           f"({len(common_index):,} trading days)")
@@ -254,7 +251,7 @@ def main():
         px_today = {t: float(prices[t].iloc[i]) for t in tickers if t in prices.columns}
         prev_nav = state["nav"]
 
-        state = _step(state, px_today, mrow, float(cash_daily.iloc[i]))
+        state = _step(state, px_today, mrow)
 
         daily_log_ret = np.log(state["nav"] / prev_nav) if prev_nav > 0 else 0.0
         new_rows.append({

@@ -9,7 +9,7 @@ Strategy rules:
   - Weights proportional to composite factor score
   - Portfolio-level trailing stop: if NAV falls 9% from peak → scale to 50% invested
   - Re-entry: when 20-day realized vol drops below its 60-day SMA (sellers exhausted)
-  - Cash earns T-bill rate
+  - Cash earns nothing — the stopped-out sleeve just sits idle, no T-bill yield
   - 10 bps slippage on all trades
 
 Usage:
@@ -25,7 +25,7 @@ import pandas as pd
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-from strategy_deep_test import download_many, download_tbill, build_market_features
+from strategy_deep_test import download_many, build_market_features
 from event_log import log_event
 
 LEDGER_PATH    = "factor_ledger.csv"
@@ -58,7 +58,7 @@ def _build_rvol_sma(market_df):
     return market_df
 
 
-def _step(state, px_today, market_row, cash_ret_simple):
+def _step(state, px_today, market_row):
     """
     Advance state by one trading day.
 
@@ -73,9 +73,9 @@ def _step(state, px_today, market_row, cash_ret_simple):
     shares       = state["shares"]
     entry_prices = state["entry_prices"]
 
-    # 1. Mark holdings to today's prices; apply cash return
+    # 1. Mark holdings to today's prices; cash earns nothing while stopped out
     stock_value = sum(shares[t] * px_today[t] for t in tickers if t in px_today)
-    cash_dollars = state["cash_dollars"] * (1.0 + cash_ret_simple)
+    cash_dollars = state["cash_dollars"]
     nav = stock_value + cash_dollars
 
     # 2. Update peak NAV
@@ -152,8 +152,6 @@ def main():
     raw  = download_many(["^GSPC", "^VIX"] + tickers)
     gspc = raw["^GSPC"]
     vix  = raw["^VIX"]
-    tbill_raw, tbill_src = download_tbill()
-    print(f"  T-bill source: {tbill_src}")
 
     closes = {t: raw[t]["Close"].squeeze() for t in tickers if t in raw}
 
@@ -171,8 +169,6 @@ def main():
         common_index = common_index.intersection(closes[t].dropna().index)
     market_df = market_df.loc[common_index]
     prices    = prices.loc[common_index]
-
-    cash_daily = tbill_raw.reindex(common_index).ffill().bfill() / 252
 
     print(f"Common index: {common_index[0].date()} to {common_index[-1].date()} "
           f"({len(common_index):,} trading days)")
@@ -296,7 +292,7 @@ def main():
         px_today = {t: float(prices[t].iloc[i]) for t in tickers if t in prices.columns}
         prev_nav = state["nav"]
 
-        state = _step(state, px_today, mrow, float(cash_daily.iloc[i]))
+        state = _step(state, px_today, mrow)
 
         daily_log_ret = np.log(state["nav"] / prev_nav) if prev_nav > 0 else 0.0
         new_rows.append({

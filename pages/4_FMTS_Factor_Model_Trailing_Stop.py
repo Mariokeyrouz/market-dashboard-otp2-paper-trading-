@@ -134,7 +134,8 @@ The top 18 stocks by composite score are held, weighted proportionally to their 
 <br><br>
 <b>Risk Control — Trailing Stop:</b> The portfolio tracks a peak NAV watermark daily. If the portfolio
 draws down 9% from that peak, the engine scales invested capital to 50% and moves the rest to cash
-(earning the T-bill rate). Re-entry is triggered when short-term realized volatility (20-day) falls
+(earning nothing — the idle sleeve sits flat, no T-bill yield). Re-entry is triggered when short-term
+realized volatility (20-day) falls
 below its 60-day moving average — a signal that selling pressure has exhausted itself.
 <br><br>
 <b>What this page shows:</b> A live forward simulation seeded on 2026-07-02 tracking the strategy in
