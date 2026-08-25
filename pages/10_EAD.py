@@ -371,6 +371,50 @@ def render_holders_card(df: pd.DataFrame):
     st.markdown("".join(parts), unsafe_allow_html=True)
 
 
+def build_description(info: dict) -> tuple:
+    """Returns (text, is_official_summary). Equities and most ETFs/mutual
+    funds have a real longBusinessSummary; a handful of funds don't, in which
+    case category/fund family stands in. Indices and crypto have no text
+    description anywhere in yfinance (there's no filing to draw from), so
+    that's stated plainly instead of silently showing nothing."""
+    summary = info.get("longBusinessSummary")
+    if summary:
+        return summary, True
+
+    quote_type = (info.get("quoteType") or "").upper()
+    long_name = info.get("longName") or info.get("shortName")
+    category = info.get("category")
+    fund_family = info.get("fundFamily")
+
+    if quote_type in ("ETF", "MUTUALFUND") and (category or fund_family):
+        bits = [long_name] if long_name else []
+        tail = " ".join(p for p in [
+            f"a {category} fund" if category else None,
+            f"managed by {fund_family}" if fund_family else None,
+        ] if p)
+        if tail:
+            bits.append(tail)
+        return ". ".join(bits) + ".", False
+
+    if quote_type == "INDEX":
+        return "This is a market index, not a company or fund — Yahoo Finance doesn't provide a text description for indices.", False
+    if quote_type == "CRYPTOCURRENCY":
+        return "This is a cryptocurrency, not a company or fund — no text description is available from this data source.", False
+
+    return "No description available for this ticker" + (f" (type: {quote_type})" if quote_type else "") + ".", False
+
+
+def build_subtitle(info: dict) -> str:
+    """Sector · Industry for equities; Category · Fund Family for ETFs/mutual
+    funds, since those fields are almost always empty for non-equity types."""
+    quote_type = (info.get("quoteType") or "").upper()
+    if quote_type in ("ETF", "MUTUALFUND"):
+        bits = [b for b in [info.get("category"), info.get("fundFamily")] if b]
+        return " · ".join(bits) if bits else (quote_type or "N/A")
+    bits = [b for b in [info.get("sector"), info.get("industry")] if b]
+    return " · ".join(bits) if bits else (quote_type or "N/A")
+
+
 def compute_fundamentals(info: dict, fin: pd.DataFrame, bal: pd.DataFrame) -> dict:
     """Valuation/short-interest/dividend fields come straight from `.info`
     (no reliable statement equivalent). Everything else is derived from the
@@ -610,22 +654,25 @@ fnd = compute_fundamentals(info, fin, bal)
 
 # ── Header: name / sector / description ─────────────────────────────────────
 name = info.get("shortName") or info.get("longName") or ticker
+quote_type = (info.get("quoteType") or "").upper()
+is_fund = quote_type in ("ETF", "MUTUALFUND")
 sector = info.get("sector") or "N/A"
 industry = info.get("industry") or "N/A"
-st.markdown(f'<div id="ead-overview" class="ead-company">{esc(name)} ({esc(ticker)})</div>', unsafe_allow_html=True)
-st.markdown(f'<div class="ead-sector">{esc(sector)} · {esc(industry)}</div>', unsafe_allow_html=True)
+category = info.get("category") or "N/A"
+fund_family = info.get("fundFamily") or "N/A"
 
-summary = info.get("longBusinessSummary")
-if summary:
-    short = summary if len(summary) <= 320 else summary[:320].rsplit(" ", 1)[0] + "…"
+st.markdown(f'<div id="ead-overview" class="ead-company">{esc(name)} ({esc(ticker)})</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="ead-sector">{esc(build_subtitle(info))}</div>', unsafe_allow_html=True)
+
+desc_text, is_summary = build_description(info)
+if is_summary and len(desc_text) > 320:
+    short = desc_text[:320].rsplit(" ", 1)[0] + "…"
     st.markdown(f'<div class="ead-card"><h4>About</h4><div class="ead-desc">{esc(short)}</div></div>', unsafe_allow_html=True)
-    if len(summary) > 320:
-        with st.expander("Read full description"):
-            st.markdown(f'<div class="ead-desc">{esc(summary)}</div>', unsafe_allow_html=True)
+    with st.expander("Read full description"):
+        st.markdown(f'<div class="ead-desc">{esc(desc_text)}</div>', unsafe_allow_html=True)
 else:
-    st.markdown('<div class="ead-card"><h4>About</h4>', unsafe_allow_html=True)
-    st.info("No company description available for this ticker.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    style = ' style="font-style:italic;color:#898781;"' if not is_summary else ""
+    st.markdown(f'<div class="ead-card"><h4>About</h4><div class="ead-desc"{style}>{esc(desc_text)}</div></div>', unsafe_allow_html=True)
 
 st.markdown('<div class="ead-section-label">Fundamentals</div>', unsafe_allow_html=True)
 
@@ -633,14 +680,18 @@ st.markdown('<div class="ead-section-label">Fundamentals</div>', unsafe_allow_ht
 r1c1, r1c2, r1c3 = st.columns(3, gap="small")
 
 with r1c1:
+    id_rows = (
+        [("Category", category, None), ("Fund Family", fund_family, None)]
+        if is_fund else
+        [("Sector", sector, None), ("Industry", industry, None)]
+    )
     render_kv_card("General Information", [
         ("Current Price", fmt(fnd["current_price"], "usd2"), None),
         ("Market Cap", fmt(fnd["market_cap"], "usd"), None),
         ("Trailing P/E", fmt(fnd["trailing_pe"]), None),
         ("Forward P/E", fmt(fnd["forward_pe"]), None),
         ("Beta", fmt(fnd["beta"]), None),
-        ("Sector", sector, None),
-        ("Industry", industry, None),
+        *id_rows,
     ])
 
 with r1c2:
