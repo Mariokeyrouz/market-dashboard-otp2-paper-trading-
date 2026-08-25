@@ -106,6 +106,41 @@ def fetch_prices(tickers):
     return out
 
 
+def _apply_splits(state, tickers, today):
+    """
+    Detect stock splits since the last update and rescale shares/entry price
+    so position value is unaffected. yfinance's live `.history()` close is
+    always split-adjusted, but the held share count in state.json is not —
+    without this, a real split (e.g. AVB 2.793-for-1 on 2026-08-17) reads as
+    a fake multi-percent loss on the next mark, because old share count x
+    new (much lower) price << old share count x old price.
+    """
+    last_date = state.get("last_date")
+    if not last_date:
+        return
+    start = pd.Timestamp(last_date) + pd.Timedelta(days=1)
+    end = pd.Timestamp(today)
+    for t in tickers:
+        try:
+            splits = yf.Ticker(t).splits
+        except Exception:
+            continue
+        if splits.empty:
+            continue
+        idx = splits.index
+        if idx.tz is not None:
+            idx = idx.tz_localize(None)
+        recent = splits[(idx >= start) & (idx <= end)]
+        for ratio in recent:
+            if not ratio or ratio <= 0:
+                continue
+            state["shares"][t] = state["shares"][t] * ratio
+            state["entry_prices"][t] = state["entry_prices"][t] / ratio
+            if t in state.get("last_prices", {}):
+                state["last_prices"][t] = state["last_prices"][t] / ratio
+            log(f"{t}: applied {ratio:.4g}-for-1 split adjustment")
+
+
 def pick_holdings():
     """
     Top N by RRG Score from the current analysis, capped per sector, skipping
@@ -234,6 +269,7 @@ def update(force_rebalance=False):
         return
 
     tickers = list(state["shares"])
+    _apply_splits(state, tickers, today)
     prices = fetch_prices(tickers)
     prev_nav = float(state["nav"])
 
