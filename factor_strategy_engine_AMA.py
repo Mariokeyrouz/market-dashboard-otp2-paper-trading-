@@ -18,6 +18,7 @@ import pandas as pd
 
 from strategy_deep_test import download_many, build_market_features
 from event_log import log_event
+from blotter import record_fills
 
 LEDGER_PATH    = "factor_ledger_AMA.csv"
 STATE_PATH     = "factor_state_AMA.json"
@@ -47,7 +48,7 @@ def _build_rvol_sma(market_df):
     return market_df
 
 
-def _step(state, px_today, market_row):
+def _step(state, px_today, market_row, date_str=None):
     tickers      = list(state["shares"].keys())
     shares       = state["shares"]
     entry_prices = state["entry_prices"]
@@ -83,6 +84,10 @@ def _step(state, px_today, market_row):
 
     factor = (target_stock / stock_value) if stock_value > 1e-9 else 0.0
 
+    was_stopped = state["stopped_out"]
+    prev_shares = dict(shares)
+    prev_entry_prices = dict(entry_prices)
+
     for t in tickers:
         if t not in px_today:
             continue
@@ -92,6 +97,16 @@ def _step(state, px_today, market_row):
             bought = new_sh - old_sh
             entry_prices[t] = (old_sh * entry_prices[t] + bought * px_today[t]) / new_sh
         shares[t] = new_sh
+
+    if not was_stopped and stopped_out:
+        fill_reason = "stop"
+    elif was_stopped and not stopped_out:
+        fill_reason = "reentry"
+    else:
+        fill_reason = "vol-target"
+    if date_str is not None:
+        record_fills("FMTS AMA", date_str, prev_shares, shares, px_today,
+                     prev_entry_prices, SLIPPAGE_RATE, reason=fill_reason)
 
     cash_dollars = nav_after - target_stock
 
@@ -177,6 +192,9 @@ def main():
             log_event("FMTS AMA", "rebalance",
                       f"Rotated {len(_dropped)} out / {len(_added)} in ({selection['as_of']})",
                       date=str(common_index[-1].date()), realized_pnl=_realized, tickers=_added)
+            _exit_prices = {t: _olp.get(t, last_px.get(t, 0.0)) for t in held_tickers}
+            record_fills("FMTS AMA", str(common_index[-1].date()), _osh, shares_new,
+                         {**_exit_prices, **entry_prices}, _oep, SLIPPAGE_RATE, reason="rebalance")
 
         last_date = pd.Timestamp(state["last_date"])
 
@@ -219,6 +237,8 @@ def main():
         pd.DataFrame(row0).to_csv(LEDGER_PATH, index=False)
         with open(STATE_PATH, "w") as f:
             json.dump(state, f, indent=2)
+        record_fills("FMTS AMA", str(seed_date.date()), {}, shares, entry_prices,
+                     {}, SLIPPAGE_RATE, reason="seed")
         print(f"Seeded FMTS AMA ledger at {seed_date.date()} "
               f"(NAV={nav0:.2f}, invested={TARGET_INVEST*100:.0f}%, "
               f"tickers={len(tickers)}, seed_cost={seed_cost:.2f})")
@@ -251,7 +271,7 @@ def main():
         px_today = {t: float(prices[t].iloc[i]) for t in tickers if t in prices.columns}
         prev_nav = state["nav"]
 
-        state = _step(state, px_today, mrow)
+        state = _step(state, px_today, mrow, date.date().isoformat())
 
         daily_log_ret = np.log(state["nav"] / prev_nav) if prev_nav > 0 else 0.0
         new_rows.append({

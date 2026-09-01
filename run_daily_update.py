@@ -67,7 +67,8 @@ ENGINES = [
 
 # Files the update touches — used to detect whether a commit is warranted.
 TRACKED_GLOBS = ["*_ledger*.csv", "*_state*.json", "*_selection*.json",
-                 "paper_*.csv", "paper_*.json", "gold_*.csv", "gold_*.json", "events.jsonl"]
+                 "paper_*.csv", "paper_*.json", "gold_*.csv", "gold_*.json", "events.jsonl",
+                 "trades.csv"]
 
 
 def _echo(text):

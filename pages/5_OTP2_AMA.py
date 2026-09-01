@@ -14,6 +14,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
+from blotter import render_blotter
+
 st.set_page_config(
     page_title="OTP2.0 AMA — AlphaMind Adjusted",
     page_icon="🧠",
@@ -360,3 +362,5 @@ st.caption(
     "plus two AlphaMind-recommended reload gates: VIX3M/VIX term structure filter (ratio >= 1.0) "
     "and 20-day post-trim dwell time."
 )
+
+render_blotter("OTP2.0 AMA")

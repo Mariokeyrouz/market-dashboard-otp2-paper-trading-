@@ -15,6 +15,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
+from blotter import render_blotter
+
 st.set_page_config(page_title="Four-Pillar Strategy - Paper Trading", page_icon="🧩", layout="wide")
 
 st.markdown("""
@@ -356,4 +358,10 @@ st.caption(
     "FMTS/OTP2.0 use the SAME construction as their backtests, not the live standalone Gold/OTP2.0 "
     "AMA/full-FMTS strategies elsewhere in this app, which differ. 10 bps slippage per trade. "
     "PAPER TRADING ONLY — not a recommendation to trade real money."
+)
+
+render_blotter(
+    "FourPillar",
+    note="Only the OTP2.0 sleeve logs fills today — Gold, SectorEW and FMTS rebalance through "
+         "separate, not-yet-instrumented code, so this undercounts the book's real turnover.",
 )

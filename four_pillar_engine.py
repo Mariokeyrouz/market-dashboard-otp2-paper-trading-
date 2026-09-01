@@ -393,7 +393,7 @@ def main():
                             if t in px.columns and pd.notna(px.loc[d, t]) and pd.notna(px.loc[prev_d, t])])
         px_otp2_today = {t: float(px_today[t]) for t in OTP2_TICKERS if t in px_today}
         sleeves["OTP2.0"] = pte._step(row, prev, sleeves["OTP2.0"], OTP2_CFG, blended, cash_ret,
-                                       px_otp2_today, cash_ret)
+                                       px_otp2_today, cash_ret, d.date().isoformat(), strategy="FourPillar")
 
         # ── top-level drift-band rebalance ──────────────────────────────────
         total = sum(sleeve_nav(n, s) for n, s in sleeves.items())

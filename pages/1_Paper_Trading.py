@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
+from blotter import render_blotter
+
 st.set_page_config(
     page_title="OTP2.0 v4 - Paper Trading",
     page_icon="📊",
@@ -325,3 +327,5 @@ st.caption("Strategy: OTP2.0 v4 (54-stock universe, 3yr cohorts, top-7 selection
            "5-factor composite + regime tertile + CAPE froth override, layered on "
            "the OTP1.0 daily timing engine). See OTP2.0_v4_investment_thesis.pdf for "
            "full backtest methodology and results.")
+
+render_blotter("OTP2.0")

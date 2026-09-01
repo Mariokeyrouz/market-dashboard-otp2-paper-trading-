@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
+from blotter import render_blotter
+
 st.set_page_config(
     page_title="Gold Strategy - Paper Trading",
     page_icon="🥇",
@@ -354,3 +356,5 @@ st.caption(
     "Instrument: GLD ETF (SPDR Gold Shares). 10 bps slippage/fee on each entry/exit.  "
     "Backtested on GC=F (gold futures) 2003–2026 — see dxy_gold_stopcheck_triggers.csv for full stop log."
 )
+
+render_blotter("Gold")

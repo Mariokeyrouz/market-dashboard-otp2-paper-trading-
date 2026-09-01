@@ -67,6 +67,8 @@ except Exception:
 
 import yfinance as yf
 
+from blotter import record_fills
+
 try:
     from curl_cffi import requests as cffi_requests
     SESSION = cffi_requests.Session(impersonate="chrome")
@@ -222,6 +224,7 @@ def seed():
         "sizing_multiplier": _sizing_multiplier(),
     }
     _write_state(state)
+    record_fills("RRG", today, {}, shares, entry, {}, SLIPPAGE_RATE, reason="seed")
     _append_ledger(today, START_NAV, 100.0, 0.0, START_NAV, list(shares))
     with open(SELECTION_PATH, "w") as f:
         json.dump({"as_of": today, "n_holdings": len(live),
@@ -290,6 +293,8 @@ def update(force_rebalance=False):
         if set(new_t) != set(tickers):
             log(f"Rebalance: {', '.join(sorted(set(tickers)-set(new_t))) or '—'} out / "
                 f"{', '.join(sorted(set(new_t)-set(tickers))) or '—'} in")
+            prev_shares = dict(state["shares"])
+            prev_entry_prices = dict(state.get("entry_prices", {}))
             npx = fetch_prices(new_t)
             shares, entry, target, invested, cost, live = build_positions(
                 picks, nav, npx)
@@ -315,6 +320,9 @@ def update(force_rebalance=False):
                           detail=f"rotated to {', '.join(new_t)}", tickers=new_t)
             except Exception:
                 pass
+            _exit_prices = {t: state["last_prices"].get(t, prev_entry_prices.get(t, 0.0)) for t in prev_shares}
+            record_fills("RRG", today, prev_shares, shares, {**_exit_prices, **entry},
+                         prev_entry_prices, SLIPPAGE_RATE, reason="rebalance")
         else:
             state["last_rebalance_date"] = today
 

@@ -27,6 +27,7 @@ import pandas as pd
 
 from strategy_deep_test import download_many, download_tbill, build_market_features
 from strategy_selection_v2 import DEFENSIVE_OT2_CONFIG
+from blotter import record_fills
 
 LIVE_TICKERS    = ["GE", "GS", "GOOGL", "AVGO", "IBM", "JPM", "JNJ"]
 CFG             = DEFENSIVE_OT2_CONFIG
@@ -60,7 +61,7 @@ def build_market_features_AMA(gspc, vix, vix3m):
     return df
 
 
-def _step(row, prev, state, cfg, lr, cash_ret, px_today, cash_ret_simple, today):
+def _step(row, prev, state, cfg, lr, cash_ret, px_today, cash_ret_simple, today, record=True):
     """
     One-day OTP2.0 AMA state advance.
 
@@ -186,6 +187,9 @@ def _step(row, prev, state, cfg, lr, cash_ret, px_today, cash_ret_simple, today)
     else:
         factor = 0.0
 
+    prev_shares = dict(shares)
+    prev_entry_prices = dict(entry_prices)
+
     for t in shares:
         old_sh = shares[t]
         new_sh = old_sh * factor
@@ -193,6 +197,16 @@ def _step(row, prev, state, cfg, lr, cash_ret, px_today, cash_ret_simple, today)
             bought = new_sh - old_sh
             entry_prices[t] = (old_sh * entry_prices[t] + bought * px_today[t]) / new_sh
         shares[t] = new_sh
+
+    if trim > 0:
+        fill_reason = "trim"
+    elif base_signal:
+        fill_reason = "reload"
+    else:
+        fill_reason = "vol-target"
+    if record:
+        record_fills("OTP2.0 AMA", str(today.date()), prev_shares, shares, px_today,
+                     prev_entry_prices, SLIPPAGE_FEE_RATE, reason=fill_reason)
 
     cash_dollars = total - target_stock
 
@@ -303,6 +317,8 @@ def main():
         pd.DataFrame(rows).to_csv(LEDGER_PATH, index=False)
         with open(STATE_PATH, "w") as f:
             json.dump(state, f, indent=2)
+        record_fills("OTP2.0 AMA", str(seed_date.date()), {}, shares, entry_prices,
+                     {}, SLIPPAGE_FEE_RATE, reason="seed")
         print(f"Seeded AMA ledger at {seed_date.date()} "
               f"(NAV={nav0:.2f}, invested={inv0*100:.1f}%, cost={seed_cost:.2f})")
         print(f"\nRuntime: {time.time()-t0:.1f}s")

@@ -150,7 +150,7 @@ def run_paired(market_df, prices, blended, cash_daily, common_index, cfg):
         state_base = pte._step(row, prev, state_base, cfg, blended.iloc[i], cash_daily.iloc[i],
                                 px_today, float(cash_daily.iloc[i]))
         state_ama = pte_ama._step(row, prev, state_ama, cfg, blended.iloc[i], cash_daily.iloc[i],
-                                   px_today, float(cash_daily.iloc[i]), today=date)
+                                   px_today, float(cash_daily.iloc[i]), today=date, record=False)
         nav_base[i] = state_base["nav"]
         nav_ama[i] = state_ama["nav"]
 

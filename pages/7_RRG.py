@@ -26,6 +26,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
+from blotter import render_blotter
+
 st.set_page_config(page_title="RRG — Relative Rotation", page_icon="🔄", layout="wide")
 
 st.markdown("""
@@ -728,3 +730,5 @@ st.caption(
     "(transform), rrg_null.py (500-run baseline), rrg_validate.py (validation), "
     "rrg_analysis.py (current state)."
 )
+
+render_blotter("RRG", note="Research book, not funded capital — see validation context above.")

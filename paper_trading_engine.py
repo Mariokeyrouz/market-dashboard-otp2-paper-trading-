@@ -27,6 +27,7 @@ import pandas as pd
 
 from strategy_deep_test import download_many, download_tbill, build_market_features
 from strategy_selection_v2 import DEFENSIVE_OT2_CONFIG
+from blotter import record_fills
 
 LIVE_TICKERS = ["GE", "GS", "GOOGL", "AVGO", "IBM", "JPM", "JNJ"]
 CFG = DEFENSIVE_OT2_CONFIG
@@ -38,7 +39,7 @@ START_NAV = 10000.0
 SLIPPAGE_FEE_RATE = 0.001
 
 
-def _step(row, prev, state, cfg, lr, cash_ret, px_today, cash_ret_simple):
+def _step(row, prev, state, cfg, lr, cash_ret, px_today, cash_ret_simple, date_str=None, strategy="OTP2.0"):
     """One-day OT2.0 state advance. Mutates and returns `state` dict.
 
     `px_today`        : dict {ticker: close price today} — used for real
@@ -149,6 +150,9 @@ def _step(row, prev, state, cfg, lr, cash_ret, px_today, cash_ret_simple):
     else:
         factor = 0.0
 
+    prev_shares = dict(shares)
+    prev_entry_prices = dict(entry_prices)
+
     for t in shares:
         old_sh = shares[t]
         new_sh = old_sh * factor
@@ -158,6 +162,16 @@ def _step(row, prev, state, cfg, lr, cash_ret, px_today, cash_ret_simple):
             entry_prices[t] = (old_sh * entry_prices[t] + bought * px_today[t]) / new_sh
         # Selling (factor < 1) leaves entry/cost basis per share unchanged.
         shares[t] = new_sh
+
+    if trim > 0:
+        fill_reason = "trim"
+    elif base_signal:
+        fill_reason = "reload"
+    else:
+        fill_reason = "vol-target"
+    if date_str is not None:
+        record_fills(strategy, date_str, prev_shares, shares, px_today,
+                     prev_entry_prices, SLIPPAGE_FEE_RATE, reason=fill_reason)
 
     cash_dollars = total - target_stock
 
@@ -272,6 +286,8 @@ def main():
         pd.DataFrame(rows).to_csv(LEDGER_PATH, index=False)
         with open(STATE_PATH, "w") as f:
             json.dump(state, f, indent=2)
+        record_fills("OTP2.0", str(seed_date.date()), {}, shares, entry_prices,
+                     {}, SLIPPAGE_FEE_RATE, reason="seed")
         print(f"Seeded paper ledger at {seed_date.date()} (NAV={nav0:.2f}, invested={inv0*100:.1f}%, "
               f"trading cost so far={seed_cost:.2f})")
         print(f"\nRuntime: {time.time() - t0:.1f} seconds")
@@ -301,10 +317,10 @@ def main():
         row, prev = market_df.iloc[i], market_df.iloc[i - 1]
         prev_nav = state["nav"]
         px_today = {t: float(prices[t].iloc[i]) for t in LIVE_TICKERS}
-        state = _step(row, prev, state, CFG, blended.iloc[i], cash_daily.iloc[i],
-                      px_today, float(cash_daily.iloc[i]))
-        daily_log_ret = np.log(state["nav"] / prev_nav)
         date = common_index[i]
+        state = _step(row, prev, state, CFG, blended.iloc[i], cash_daily.iloc[i],
+                      px_today, float(cash_daily.iloc[i]), date.date().isoformat())
+        daily_log_ret = np.log(state["nav"] / prev_nav)
         new_rows.append({
             "date": date.date().isoformat(),
             "nav": state["nav"],

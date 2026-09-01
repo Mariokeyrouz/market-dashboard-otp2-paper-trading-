@@ -28,6 +28,7 @@ import pandas as pd
 
 from strategy_deep_test import download_many, download_tbill
 from event_log import log_event
+from blotter import record_fills
 
 LEDGER_PATH    = "momentum_ledger.csv"
 STATE_PATH     = "momentum_state.json"
@@ -119,6 +120,8 @@ def main():
         }]).to_csv(LEDGER_PATH, index=False)
         with open(STATE_PATH, "w") as f:
             json.dump(state, f, indent=2)
+        record_fills("Momentum", str(seed_date.date()), {}, shares, entry,
+                     {}, SLIPPAGE_RATE, reason="seed")
         print(f"Seeded momentum ledger at {seed_date.date()} "
               f"(NAV={nav0:.2f}, {'invested' if risk_on else 'cash'}, "
               f"{len(tickers)} names, cost={cost:.2f})")
@@ -159,6 +162,9 @@ def main():
                   f"Rotated {len(dropped)} out / {len(added)} in ({as_of})",
                   date=str(common_index[-1].date()), realized_pnl=realized,
                   tickers=added or list(tickers))
+        _exit_prices = {t: old_px.get(t, last_px.get(t, 0.0)) for t in old}
+        record_fills("Momentum", str(common_index[-1].date()), old, shares,
+                     {**_exit_prices, **entry}, old_entry, SLIPPAGE_RATE, reason="rebalance")
 
     last_date = pd.Timestamp(state["last_date"])
     # searchsorted (not get_indexer) so a single day missing from the aligned index — e.g.

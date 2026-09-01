@@ -13,6 +13,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
+from blotter import render_blotter
+
 st.set_page_config(
     page_title="FMTS: Factor Model Trailing Stop",
     page_icon="🎯",
@@ -452,3 +454,5 @@ st.caption(
     "Risk control: 9% portfolio trailing stop → 50% invested; "
     "re-entry on realized vol collapse (rvol20 < 60-day SMA)."
 )
+
+render_blotter("FMTS")

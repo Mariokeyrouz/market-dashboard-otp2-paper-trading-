@@ -23,6 +23,7 @@ import pandas as pd
 import yfinance as yf
 
 from event_log import log_event
+from blotter import record_fills
 
 LEDGER_PATH    = "gold_ledger.csv"
 STATE_PATH     = "gold_state.json"
@@ -148,6 +149,8 @@ def _step(row, state):
             print(f"  -> ENTERED GLD @ {entry_price:.2f}  ({shares:.4f} shares)")
             log_event("Gold", "entry", f"Entered GLD @ ${entry_price:.2f}",
                       date=str(row.name.date()), tickers=["GLD"])
+            record_fills("Gold", str(row.name.date()), {}, {"GLD": shares},
+                         {"GLD": entry_price}, {}, SLIPPAGE_FEE, reason="entry")
 
         state["nav"] = state["cash_dollars"] + state.get("gld_shares", 0.0) * gld_price
 
@@ -174,6 +177,8 @@ def _step(row, state):
                   f"drop {(gld_price/hwm-1)*100:.2f}%)")
             log_event("Gold", "stop", f"5% trailing stop @ ${gld_price:.2f}",
                       date=str(row.name.date()), realized_pnl=proceeds - _sh * _ep, tickers=["GLD"])
+            record_fills("Gold", str(row.name.date()), {"GLD": _sh}, {"GLD": 0.0},
+                         {"GLD": gld_price}, {"GLD": _ep}, SLIPPAGE_FEE, reason="stop")
         elif not row["prev_regime_on"]:
             # Regime turned OFF — exit cleanly
             _sh = state["gld_shares"]; _ep = state.get("entry_price") or gld_price
@@ -189,6 +194,8 @@ def _step(row, state):
             print(f"  -> EXITED GLD (regime off) @ {gld_price:.2f}")
             log_event("Gold", "exit", f"Signal off — exited GLD @ ${gld_price:.2f}",
                       date=str(row.name.date()), realized_pnl=proceeds - _sh * _ep, tickers=["GLD"])
+            record_fills("Gold", str(row.name.date()), {"GLD": _sh}, {"GLD": 0.0},
+                         {"GLD": gld_price}, {"GLD": _ep}, SLIPPAGE_FEE, reason="exit")
 
         state["nav"] = state["cash_dollars"] + state.get("gld_shares", 0.0) * gld_price
 
@@ -260,6 +267,8 @@ def main():
             )
             print(f"Seeded IN GLD @ {entry_price:.2f}  ({shares:.4f} sh)  "
                   f"NAV={nav0:.2f}")
+            record_fills("Gold", str(seed_date.date()), {}, {"GLD": shares},
+                         {"GLD": entry_price}, {}, SLIPPAGE_FEE, reason="seed")
         else:
             state = dict(
                 in_position=False, stop_active=False,

@@ -14,6 +14,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
+from blotter import render_blotter
+
 st.set_page_config(
     page_title="Momentum: Cross-Sectional",
     page_icon="🚀",
@@ -414,3 +416,5 @@ st.caption(
     "10-month average. Backtest absolute returns were survivorship-inflated upper bounds; this "
     "live forward test is bias-free."
 )
+
+render_blotter("Momentum")

@@ -14,6 +14,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import yfinance as yf
 
+from blotter import render_blotter
+
 st.set_page_config(
     page_title="FMTS AMA — AlphaMind Adjusted",
     page_icon="🔬",
@@ -458,3 +460,5 @@ st.caption(
     "factor-score weighted, rebalanced monthly. "
     "Risk control: 9% portfolio trailing stop → 50% invested; re-entry on rvol20 < 60-day SMA."
 )
+
+render_blotter("FMTS AMA")
