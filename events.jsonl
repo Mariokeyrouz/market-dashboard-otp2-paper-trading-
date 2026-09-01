@@ -5,10 +5,14 @@
 {"date": "2026-08-06", "strategy": "RRG", "type": "rebalance", "detail": "rotated to TMUS, SPGI, AVB, TPR, CHD, ZBRA, NTRS, HPQ, HLT, GIS, WELL, PSKY", "source": "engine", "tickers": ["TMUS", "SPGI", "AVB", "TPR", "CHD", "ZBRA", "NTRS", "HPQ", "HLT", "GIS", "WELL", "PSKY"]}
 {"date": "2026-08-06", "strategy": "RRG", "type": "rebalance", "detail": "rotated to TMUS, AVB, ZBRA, SPGI, CHD, NTRS, HPQ, GIS, WELL, PSKY, BBY, NKE", "source": "engine", "tickers": ["TMUS", "AVB", "ZBRA", "SPGI", "CHD", "NTRS", "HPQ", "GIS", "WELL", "PSKY", "BBY", "NKE"]}
 {"date": "2026-08-06", "strategy": "FourPillar", "type": "seed", "detail": "Seeded at $9,998 - Gold 25% / SectorEW 25% / FMTS 25% / OTP2.0 25%", "source": "engine"}
+{"date": "2026-08-31", "strategy": "FMTS", "type": "rebalance", "detail": "Rotated 6 out / 6 in (2026-09-01)", "source": "engine", "realized_pnl": 206.44, "tickers": ["INCY", "NFG", "GILD", "EQT", "TGT", "PR"]}
+{"date": "2026-08-31", "strategy": "FMTS AMA", "type": "rebalance", "detail": "Rotated 10 out / 10 in (2026-09-01)", "source": "engine", "realized_pnl": -186.35, "tickers": ["GILD", "CSX", "JNJ", "EW", "AMGN", "INCY", "PAYX", "CTAS", "KRYS", "KMI"]}
+{"date": "2026-08-31", "strategy": "Momentum", "type": "rebalance", "detail": "Rotated 11 out / 11 in (2026-08-01)", "source": "engine", "realized_pnl": 546.83, "tickers": ["DELL", "HPE", "MPC", "CNC", "APA", "PSX", "STLD", "VTRS", "NUE", "UNH", "CVS"]}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "FMTS", "type": "seed", "detail": "Seeded at $9,990", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "FMTS AMA", "type": "seed", "detail": "Seeded at $9,990", "source": "backfill"}
+{"date": "2026-08-11", "strategy": "FMTS AMA", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
 {"date": "2026-06-24", "strategy": "Gold", "type": "seed", "detail": "Seeded at $10,000", "source": "backfill"}
 {"date": "2026-07-21", "strategy": "Momentum", "type": "seed", "detail": "Seeded at $9,990", "source": "backfill"}
 {"date": "2026-07-29", "strategy": "RRG", "type": "seed", "detail": "Seeded at $10,000", "source": "backfill"}
