@@ -8,6 +8,8 @@
 {"date": "2026-08-31", "strategy": "FMTS", "type": "rebalance", "detail": "Rotated 6 out / 6 in (2026-09-01)", "source": "engine", "realized_pnl": 206.44, "tickers": ["INCY", "NFG", "GILD", "EQT", "TGT", "PR"]}
 {"date": "2026-08-31", "strategy": "FMTS AMA", "type": "rebalance", "detail": "Rotated 10 out / 10 in (2026-09-01)", "source": "engine", "realized_pnl": -186.35, "tickers": ["GILD", "CSX", "JNJ", "EW", "AMGN", "INCY", "PAYX", "CTAS", "KRYS", "KMI"]}
 {"date": "2026-08-31", "strategy": "Momentum", "type": "rebalance", "detail": "Rotated 11 out / 11 in (2026-08-01)", "source": "engine", "realized_pnl": 546.83, "tickers": ["DELL", "HPE", "MPC", "CNC", "APA", "PSX", "STLD", "VTRS", "NUE", "UNH", "CVS"]}
+{"date": "2026-09-01", "strategy": "FourPillar", "type": "rebalance", "detail": "SectorEW rotated to XLE, XLK, XLV", "source": "engine"}
+{"date": "2026-09-01", "strategy": "FourPillar", "type": "rebalance", "detail": "FMTS rotated to 18 names", "source": "engine"}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "FMTS", "type": "seed", "detail": "Seeded at $9,990", "source": "backfill"}

@@ -1,0 +1,43 @@
+date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reason,source
+2026-09-01,OTP2.0,JNJ,buy,0.087747,271.19,23.8,0.02,252.7125,,vol-target,engine
+2026-09-01,OTP2.0,JPM,buy,0.065901,354.95,23.39,0.02,337.9024,,vol-target,engine
+2026-09-01,OTP2.0,IBM,buy,0.077636,231.4,17.96,0.02,250.8143,,vol-target,engine
+2026-09-01,OTP2.0,AVGO,buy,0.055319,369.68,20.45,0.02,381.3478,,vol-target,engine
+2026-09-01,OTP2.0,GOOGL,buy,0.058762,335.02,19.69,0.02,353.7053,,vol-target,engine
+2026-09-01,OTP2.0,GS,buy,0.019888,1002.56,19.94,0.02,1059.625,,vol-target,engine
+2026-09-01,OTP2.0,GE,buy,0.063035,331.09,20.87,0.02,344.2878,,vol-target,engine
+2026-08-25,OTP2.0 AMA,GE,sell,0.006273,349.54,2.19,0.0,366.2525,-0.1,vol-target,engine
+2026-08-25,OTP2.0 AMA,AVGO,sell,0.00657,356.74,2.34,0.0,371.996,-0.1,vol-target,engine
+2026-08-25,OTP2.0 AMA,GOOGL,sell,0.00658,346.96,2.28,0.0,357.6551,-0.07,vol-target,engine
+2026-08-25,OTP2.0 AMA,IBM,sell,0.00818,234.19,1.92,0.0,267.8203,-0.28,vol-target,engine
+2026-08-25,OTP2.0 AMA,JNJ,sell,0.009003,273.14,2.46,0.0,259.8954,0.12,vol-target,engine
+2026-08-25,OTP2.0 AMA,GS,sell,0.00232,1058.88,2.46,0.0,1046.7265,0.03,vol-target,engine
+2026-08-25,OTP2.0 AMA,JPM,sell,0.007081,356.69,2.53,0.0,338.2455,0.13,vol-target,engine
+2026-08-26,OTP2.0 AMA,GE,buy,0.117933,354.39,41.79,0.04,366.2525,,vol-target,engine
+2026-08-26,OTP2.0 AMA,AVGO,buy,0.123518,355.59,43.92,0.04,371.996,,vol-target,engine
+2026-08-26,OTP2.0 AMA,GOOGL,buy,0.123703,342.0,42.31,0.04,357.6551,,vol-target,engine
+2026-08-26,OTP2.0 AMA,IBM,buy,0.153779,229.87,35.35,0.04,267.8203,,vol-target,engine
+2026-08-26,OTP2.0 AMA,JNJ,buy,0.169259,270.0,45.7,0.05,259.8954,,vol-target,engine
+2026-08-26,OTP2.0 AMA,GS,buy,0.043606,1040.46,45.37,0.05,1046.7265,,vol-target,engine
+2026-08-26,OTP2.0 AMA,JPM,buy,0.133112,356.5,47.45,0.05,338.2455,,vol-target,engine
+2026-08-27,OTP2.0 AMA,GE,buy,0.113359,342.73,38.85,0.04,365.4772,,reload,engine
+2026-08-27,OTP2.0 AMA,AVGO,buy,0.118728,371.54,44.11,0.04,370.9238,,reload,engine
+2026-08-27,OTP2.0 AMA,GOOGL,buy,0.118906,340.65,40.51,0.04,356.6319,,reload,engine
+2026-08-27,OTP2.0 AMA,IBM,buy,0.147815,238.79,35.3,0.04,265.3399,,reload,engine
+2026-08-27,OTP2.0 AMA,JNJ,buy,0.162695,265.77,43.24,0.04,260.5559,,reload,engine
+2026-08-27,OTP2.0 AMA,GS,buy,0.041915,1040.87,43.63,0.04,1046.3169,,reload,engine
+2026-08-27,OTP2.0 AMA,JPM,buy,0.12795,354.22,45.32,0.05,339.4386,,reload,engine
+2026-09-01,OTP2.0 AMA,GE,buy,0.173896,331.09,57.58,0.06,364.1326,,vol-target,engine
+2026-09-01,OTP2.0 AMA,AVGO,buy,0.182131,369.68,67.33,0.07,370.9602,,vol-target,engine
+2026-09-01,OTP2.0 AMA,GOOGL,buy,0.182404,335.02,61.11,0.06,355.6872,,vol-target,engine
+2026-09-01,OTP2.0 AMA,IBM,buy,0.226752,231.4,52.47,0.05,263.7706,,vol-target,engine
+2026-09-01,OTP2.0 AMA,JNJ,buy,0.249578,271.19,67.68,0.07,260.8641,,vol-target,engine
+2026-09-01,OTP2.0 AMA,GS,buy,0.064299,1002.56,64.46,0.06,1045.995,,vol-target,engine
+2026-09-01,OTP2.0 AMA,JPM,buy,0.196278,354.95,69.67,0.07,340.3123,,vol-target,engine
+2026-09-01,FourPillar,GE,buy,0.014738,331.09,4.88,0.0,366.6134,,vol-target,engine
+2026-09-01,FourPillar,GOOGL,buy,0.01543,335.02,5.17,0.01,353.5598,,vol-target,engine
+2026-09-01,FourPillar,GS,buy,0.005346,1002.56,5.36,0.01,1033.6568,,vol-target,engine
+2026-09-01,FourPillar,JNJ,buy,0.02148,271.19,5.83,0.01,259.9794,,vol-target,engine
+2026-09-01,FourPillar,IBM,buy,0.023647,231.4,5.47,0.01,233.8654,,vol-target,engine
+2026-09-01,FourPillar,AVGO,buy,0.013125,369.68,4.85,0.0,406.1579,,vol-target,engine
+2026-09-01,FourPillar,JPM,buy,0.015492,354.95,5.5,0.01,356.6634,,vol-target,engine
