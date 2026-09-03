@@ -1,103 +1,103 @@
 {
-  "as_of": "2026-08-06",
+  "as_of": "2026-09-03",
   "n_holdings": 12,
   "strategy": "RRG top-N by score, equal weight, sector-capped",
   "holdings": {
-    "TMUS": {
-      "ticker": "TMUS",
-      "sector": "Communication Services",
-      "sector_etf": "XLC",
-      "rrg_score": 100.0,
-      "quadrant": "Improving",
-      "setup": "Improving -> potential leader"
-    },
-    "AVB": {
-      "ticker": "AVB",
+    "MAA": {
+      "ticker": "MAA",
       "sector": "Real Estate",
       "sector_etf": "XLRE",
       "rrg_score": 100.0,
       "quadrant": "Improving",
-      "setup": "Improving"
+      "setup": "Improving -> potential leader"
     },
-    "ZBRA": {
-      "ticker": "ZBRA",
-      "sector": "Information Technology",
-      "sector_etf": "XLK",
-      "rrg_score": 100.0,
-      "quadrant": "Improving",
-      "setup": "Improving"
-    },
-    "SPGI": {
-      "ticker": "SPGI",
+    "MCO": {
+      "ticker": "MCO",
       "sector": "Financials",
       "sector_etf": "XLF",
       "rrg_score": 100.0,
       "quadrant": "Improving",
-      "setup": "Improving -> potential leader"
+      "setup": "Improving"
     },
-    "CHD": {
-      "ticker": "CHD",
-      "sector": "Consumer Staples",
-      "sector_etf": "XLP",
+    "TTD": {
+      "ticker": "TTD",
+      "sector": "Communication Services",
+      "sector_etf": "XLC",
       "rrg_score": 100.0,
+      "quadrant": "Lagging",
+      "setup": "Lagging"
+    },
+    "CPRT": {
+      "ticker": "CPRT",
+      "sector": "Industrials",
+      "sector_etf": "XLI",
+      "rrg_score": 100.0,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "OKE": {
+      "ticker": "OKE",
+      "sector": "Energy",
+      "sector_etf": "XLE",
+      "rrg_score": 100.0,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "BX": {
+      "ticker": "BX",
+      "sector": "Financials",
+      "sector_etf": "XLF",
+      "rrg_score": 98.59154929577464,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "BLDR": {
+      "ticker": "BLDR",
+      "sector": "Industrials",
+      "sector_etf": "XLI",
+      "rrg_score": 98.59154929577464,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "RL": {
+      "ticker": "RL",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 97.67441860465117,
       "quadrant": "Leading",
       "setup": "Leading"
     },
-    "NTRS": {
-      "ticker": "NTRS",
-      "sector": "Financials",
-      "sector_etf": "XLF",
-      "rrg_score": 98.1818181818182,
-      "quadrant": "Weakening",
-      "setup": "Weakening"
-    },
-    "HPQ": {
-      "ticker": "HPQ",
-      "sector": "Information Technology",
-      "sector_etf": "XLK",
-      "rrg_score": 98.14814814814817,
+    "ARE": {
+      "ticker": "ARE",
+      "sector": "Real Estate",
+      "sector_etf": "XLRE",
+      "rrg_score": 96.55172413793105,
       "quadrant": "Improving",
       "setup": "Improving"
     },
-    "GIS": {
-      "ticker": "GIS",
-      "sector": "Consumer Staples",
-      "sector_etf": "XLP",
+    "TKO": {
+      "ticker": "TKO",
+      "sector": "Communication Services",
+      "sector_etf": "XLC",
       "rrg_score": 95.45454545454544,
       "quadrant": "Improving",
       "setup": "Improving"
     },
-    "WELL": {
-      "ticker": "WELL",
-      "sector": "Real Estate",
-      "sector_etf": "XLRE",
-      "rrg_score": 95.23809523809524,
+    "NVR": {
+      "ticker": "NVR",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 95.34883720930232,
+      "quadrant": "Improving",
+      "setup": "Improving -> potential leader"
+    },
+    "VLO": {
+      "ticker": "VLO",
+      "sector": "Energy",
+      "sector_etf": "XLE",
+      "rrg_score": 94.73684210526316,
       "quadrant": "Leading",
       "setup": "Leading"
-    },
-    "PSKY": {
-      "ticker": "PSKY",
-      "sector": "Communication Services",
-      "sector_etf": "XLC",
-      "rrg_score": 94.11764705882354,
-      "quadrant": "Improving",
-      "setup": "Improving"
-    },
-    "BBY": {
-      "ticker": "BBY",
-      "sector": "Consumer Discretionary",
-      "sector_etf": "XLY",
-      "rrg_score": 92.85714285714286,
-      "quadrant": "Leading",
-      "setup": "Established leader"
-    },
-    "NKE": {
-      "ticker": "NKE",
-      "sector": "Consumer Discretionary",
-      "sector_etf": "XLY",
-      "rrg_score": 82.14285714285714,
-      "quadrant": "Improving",
-      "setup": "Improving"
     }
   }
 }

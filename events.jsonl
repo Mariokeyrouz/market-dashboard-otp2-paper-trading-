@@ -10,6 +10,7 @@
 {"date": "2026-08-31", "strategy": "Momentum", "type": "rebalance", "detail": "Rotated 11 out / 11 in (2026-08-01)", "source": "engine", "realized_pnl": 546.83, "tickers": ["DELL", "HPE", "MPC", "CNC", "APA", "PSX", "STLD", "VTRS", "NUE", "UNH", "CVS"]}
 {"date": "2026-09-01", "strategy": "FourPillar", "type": "rebalance", "detail": "SectorEW rotated to XLE, XLK, XLV", "source": "engine"}
 {"date": "2026-09-01", "strategy": "FourPillar", "type": "rebalance", "detail": "FMTS rotated to 18 names", "source": "engine"}
+{"date": "2026-09-03", "strategy": "RRG", "type": "rebalance", "detail": "rotated to MAA, MCO, TTD, CPRT, OKE, BX, BLDR, RL, ARE, TKO, NVR, VLO", "source": "engine", "tickers": ["MAA", "MCO", "TTD", "CPRT", "OKE", "BX", "BLDR", "RL", "ARE", "TKO", "NVR", "VLO"]}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "FMTS", "type": "seed", "detail": "Seeded at $9,990", "source": "backfill"}
