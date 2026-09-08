@@ -210,7 +210,7 @@ export const useDashStore = create<DashState>()(
     }),
     {
       name: "mws_state_v1",
-      version: 6,
+      version: 7,
       // Pre-v1 browsers may have a persisted `theme` from a since-removed
       // third theme option — coerce anything that isn't a known theme to the
       // new default (Black) rather than letting it fall through to a dead
@@ -293,6 +293,17 @@ export const useDashStore = create<DashState>()(
           if (untouched && dashboards?.macro) {
             dashboards.macro.hidden = [...macroHidden!, "heatmap", "curve", "commods", "fx"];
           }
+        }
+        // v6 -> v7: Terminal shipped with a scrolling 54-row default layout,
+        // fixed one day later to a 25-row layout that fits one screen (like
+        // Koyfin itself) with Movers/Calendar moved to defaultHidden. Nobody
+        // has had time to meaningfully hand-customize the broken version, so
+        // unconditionally drop any persisted `terminal` slice rather than
+        // trying to detect "untouched" — a fresh one is reseeded from the
+        // current registry by `merge` below.
+        if (version < 7 && state) {
+          const dashboards = (state as { dashboards?: Record<string, unknown> }).dashboards;
+          if (dashboards) delete dashboards.terminal;
         }
         return state;
       },
