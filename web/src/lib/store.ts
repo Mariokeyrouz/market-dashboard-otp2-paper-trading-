@@ -14,6 +14,9 @@ export const THEME_LABELS: Record<Theme, string> = {
 
 export type DensityOverride = "auto" | "compact" | "comfortable";
 
+/** Terminal dashboard's starter watchlist — user-editable from there on. */
+export const DEFAULT_WATCHLIST: string[] = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA"];
+
 export interface SavedView {
   id: string;
   name: string;
@@ -79,6 +82,8 @@ interface DashState {
    * DensityContext regardless of the fitted row height.
    */
   densityOverride: DensityOverride;
+  /** Terminal dashboard's watchlist tickers — persisted, user-editable. */
+  watchlist: string[];
   setRegion: (r: Region) => void;
   setTheme: (t: Theme) => void;
   setDashboardType: (t: DashboardType) => void;
@@ -99,6 +104,8 @@ interface DashState {
   restoreView: (id: string) => void;
   deleteView: (id: string) => void;
   renameView: (id: string, name: string) => void;
+  addWatchlistTicker: (t: string) => void;
+  removeWatchlistTicker: (t: string) => void;
 }
 
 // Centralizes `dashboards[dashboardType]` indexing in one place instead of
@@ -132,6 +139,7 @@ export const useDashStore = create<DashState>()(
       libraryOpen: false,
       railCollapsed: false,
       densityOverride: "auto",
+      watchlist: [...DEFAULT_WATCHLIST],
       setRegion: (region) => set({ region }),
       setTheme: (theme) => set({ theme }),
       // Never carry a drag/resize gesture from one dashboard's grid into an
@@ -196,6 +204,9 @@ export const useDashStore = create<DashState>()(
         })),
       renameView: (id, name) =>
         setCurrent(set, (cur) => ({ savedViews: cur.savedViews.map((v) => (v.id === id ? { ...v, name } : v)) })),
+      addWatchlistTicker: (t) =>
+        set((s) => (s.watchlist.includes(t) ? s : { watchlist: [...s.watchlist, t] })),
+      removeWatchlistTicker: (t) => set((s) => ({ watchlist: s.watchlist.filter((x) => x !== t) })),
     }),
     {
       name: "mws_state_v1",
@@ -315,6 +326,7 @@ export const useDashStore = create<DashState>()(
         ),
         pins: s.pins, dockOpen: s.dockOpen, libraryDockOpen: s.libraryDockOpen,
         railCollapsed: s.railCollapsed, densityOverride: s.densityOverride,
+        watchlist: s.watchlist,
       }),
     },
   ),

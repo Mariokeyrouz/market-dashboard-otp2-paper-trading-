@@ -8,8 +8,9 @@
 import type { ElementDef } from "./elements/registry";
 import { DEFAULT_HIDDEN, ELEMENTS, ELEMENT_MAP } from "./elements/registry";
 import { EQUITY_DEFAULT_HIDDEN, EQUITY_ELEMENTS, EQUITY_ELEMENT_MAP } from "./elements/registry-equity";
+import { TERMINAL_DEFAULT_HIDDEN, TERMINAL_ELEMENTS, TERMINAL_ELEMENT_MAP } from "./elements/registry-terminal";
 
-export type DashboardType = "macro" | "equity";
+export type DashboardType = "macro" | "equity" | "terminal";
 
 export interface DashboardTypeDef {
   id: DashboardType;
@@ -76,6 +77,28 @@ export const DASHBOARD_TYPES: DashboardTypeDef[] = [
         "3 · Indices — how it's moving",
         "4 · Yield Curve — confirm / deny",
         "5 · Commodities & Calendar — what's next",
+      ],
+    },
+  },
+  {
+    id: "terminal",
+    label: "Terminal",
+    shortLabel: "Terminal",
+    elements: TERMINAL_ELEMENTS,
+    defaultHidden: TERMINAL_DEFAULT_HIDDEN,
+    elementMap: TERMINAL_ELEMENT_MAP,
+    hasRegionLens: false,
+    logicIntro: {
+      blurb:
+        "This dashboard isn't a narrative sweep like Macro or Equity — it's a scan surface: every " +
+        "panel is independently useful, and there's no single correct reading order. The five zones below " +
+        "group what's related, not what comes first.",
+      zSteps: [
+        "1 · Tape — markets, sectors, movers",
+        "2 · Trend — normalized performance",
+        "3 · Cross-Asset — FX, global markets, commodities",
+        "4 · Positioning — fixed income, equity factors",
+        "5 · Watchlist & Calendar — your names, what's next",
       ],
     },
   },

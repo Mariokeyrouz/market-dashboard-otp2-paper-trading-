@@ -16,6 +16,7 @@ import { useDashboardDef } from "@/lib/useDashboardDef";
 import { useEquityData } from "@/lib/useEquityData";
 import { useMacroData } from "@/lib/useMacroData";
 import { useShellMode } from "@/lib/useShellMode";
+import { useTerminalData } from "@/lib/useTerminalData";
 
 function timeAgoLabel(iso: string): string {
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -24,7 +25,7 @@ function timeAgoLabel(iso: string): string {
   return `${mins}m ago`;
 }
 
-/** Shared LIVE/PARTIAL/DEGRADED footer badge — same status shape for both the Equity and Macro live-data hooks. */
+/** Shared LIVE/PARTIAL/DEGRADED footer badge — same status shape across the Macro, Equity, and Terminal live-data hooks. */
 function LiveStatusBadge({
   status, fetchedAt, staleBuckets,
 }: {
@@ -68,9 +69,18 @@ export default function Page() {
   const setRailCollapsed = useDashStore((s) => s.setRailCollapsed);
   const mode = useShellMode();
   const dashDef = useDashboardDef();
-  const isEquity = dashDef.id === "equity";
-  const equity = useEquityData(isEquity);
-  const macro = useMacroData(!isEquity);
+  const activeType = dashDef.id;
+  const macro = useMacroData(activeType === "macro");
+  const equity = useEquityData(activeType === "equity");
+  const terminal = useTerminalData(activeType === "terminal");
+  // Picks the right hook's status/meta for the footer badge without a pile of
+  // inline ternaries at the call site below.
+  const statusFor = (type: typeof activeType) =>
+    type === "macro"
+      ? { status: macro.status, fetchedAt: macro.meta?.fetchedAt, staleBuckets: macro.meta?.stale }
+      : type === "equity"
+        ? { status: equity.status, fetchedAt: equity.meta?.fetchedAt, staleBuckets: equity.meta?.stale }
+        : { status: terminal.status, fetchedAt: terminal.meta?.fetchedAt, staleBuckets: terminal.meta?.stale };
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -112,18 +122,18 @@ export default function Page() {
           {/* In wide/mid the rail owns brand + controls + clock, so there is no
               header band — the grid starts at the top. Narrow keeps the header. */}
           {!rails && <Header />}
-          <DashboardGrid equityData={isEquity ? equity.derived : null} macroData={!isEquity ? macro.derived : null} />
+          <DashboardGrid
+            macroData={activeType === "macro" ? macro.derived : null}
+            equityData={activeType === "equity" ? equity.derived : null}
+            terminalData={activeType === "terminal" ? terminal.derived : null}
+          />
           <footer
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 16,
               flexWrap: "wrap", marginTop: 10,
             }}
           >
-            {isEquity ? (
-              <LiveStatusBadge status={equity.status} fetchedAt={equity.meta?.fetchedAt} staleBuckets={equity.meta?.stale} />
-            ) : (
-              <LiveStatusBadge status={macro.status} fetchedAt={macro.meta?.fetchedAt} staleBuckets={macro.meta?.stale} />
-            )}
+            <LiveStatusBadge {...statusFor(activeType)} />
             <span style={{ fontSize: 12, color: "var(--muted)" }}>
               Opinionated, style-dependent classification · directional reads, no validated hit-rates
             </span>

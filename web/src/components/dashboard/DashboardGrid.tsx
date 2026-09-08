@@ -8,8 +8,10 @@ import "react-resizable/css/styles.css";
 import { DataContext } from "@/components/DataContext";
 import { DensityContext } from "@/components/DensityContext";
 import { EquityDataContext } from "@/components/EquityDataContext";
+import { TerminalDataContext } from "@/components/TerminalDataContext";
 import type { Derived } from "@/lib/derive";
 import type { EquityDerived } from "@/lib/derive-equity";
+import type { TerminalDerived } from "@/lib/derive-terminal";
 import { GRID_COLS, GRID_MARGIN, GRID_ROW_HEIGHT } from "@/lib/layout/defaults";
 import { selectHidden, selectLayout, useDashStore } from "@/lib/store";
 import { useDashboardDef } from "@/lib/useDashboardDef";
@@ -26,10 +28,11 @@ const ROW_H_MIN = 20;
 const ROW_H_MAX = GRID_ROW_HEIGHT;
 
 export default function DashboardGrid({
-  equityData, macroData,
+  equityData, macroData, terminalData,
 }: {
   equityData: EquityDerived | null;
   macroData: Derived | null;
+  terminalData: TerminalDerived | null;
 }) {
   const { width, containerRef, mounted } = useContainerWidth();
   const dashDef = useDashboardDef();
@@ -132,12 +135,17 @@ export default function DashboardGrid({
                 <C />
               </ElementFrame>
             );
+            // Explicit branches, not a registry-driven lookup table — matches this
+            // file's existing style. A 4th dashboard type should extend this same
+            // switch rather than motivating a bigger abstraction prematurely.
             return (
               <div key={e.id} style={{ height: "100%" }}>
-                {dashDef.hasRegionLens ? (
+                {dashDef.id === "macro" ? (
                   <DataContext.Provider value={macroData}>{frame}</DataContext.Provider>
-                ) : (
+                ) : dashDef.id === "equity" ? (
                   <EquityDataContext.Provider value={equityData}>{frame}</EquityDataContext.Provider>
+                ) : (
+                  <TerminalDataContext.Provider value={terminalData}>{frame}</TerminalDataContext.Provider>
                 )}
               </div>
             );

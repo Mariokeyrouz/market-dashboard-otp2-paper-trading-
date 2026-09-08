@@ -60,13 +60,13 @@ export interface EquityDerived {
   events: { dateLabel: string; kind: "earnings" | "macro"; kindLabel: string; kindColor: string; label: string; detail: string }[];
 }
 
-const TIMEFRAMES: { key: IndicesTimeframe; points: number; label: string; axisLabels: [string, string, string] }[] = [
+export const TIMEFRAMES: { key: IndicesTimeframe; points: number; label: string; axisLabels: [string, string, string] }[] = [
   { key: "1M", points: 22, label: "1-month, rebased to 100", axisLabels: ["3wk ago", "1wk ago", "Today"] },
   { key: "3M", points: 64, label: "3-month, rebased to 100", axisLabels: ["12wk ago", "6wk ago", "Today"] },
   { key: "1Y", points: 252, label: "1-year, rebased to 100", axisLabels: ["11mo ago", "5mo ago", "Today"] },
 ];
 
-function buildIndicesTF(d: EquityCoreData, points: number, windowLabel: string, axisLabels: [string, string, string]): IndicesTF {
+export function buildIndicesTF(d: Pick<EquityCoreData, "indices">, points: number, windowLabel: string, axisLabels: [string, string, string]): IndicesTF {
   const IL = 44, IR = 20, IT = 18, IB = 26, IW = 700, IH = 220;
   const priceSlices = d.indices.map((s) => s.prices.slice(-points));
   const n = priceSlices[0]?.length ?? 0;

@@ -74,6 +74,77 @@ export function DivergingBar({
   );
 }
 
+/**
+ * Dense-table primitives shared across the Terminal dashboard's many
+ * small panels (Markets, Sectors, Currencies, Global, Fixed Income x2,
+ * Watchlist) — generic enough for a future 4th dashboard type, not
+ * Terminal-specific, so they live alongside DivergingBar/Sparkline rather
+ * than inside `elements-terminal/`.
+ */
+const TABLE_COLS_DEFAULT = "1fr 64px 60px";
+
+export function TableHeadRow({
+  labels,
+  columns = TABLE_COLS_DEFAULT,
+}: {
+  /** First label is left-aligned (the name column); the rest are right-aligned (numeric columns). */
+  labels: string[];
+  columns?: string;
+}) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: columns, gap: 8, marginBottom: 3 }}>
+      {labels.map((l, i) => (
+        <span
+          key={l}
+          style={{
+            fontSize: 9.5, letterSpacing: ".08em", textTransform: "uppercase",
+            color: "var(--faint)", fontWeight: 600, textAlign: i === 0 ? "left" : "right",
+          }}
+        >
+          {l}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+export function TableRow({
+  name,
+  ticker,
+  price,
+  chgPct,
+  chgColor,
+  compact = false,
+  columns = TABLE_COLS_DEFAULT,
+}: {
+  name: string;
+  /** When present, rendered bold+mono ahead of `name` (Watchlist/Movers style); omitted, `name` alone carries the row. */
+  ticker?: string;
+  price: string;
+  chgPct: string;
+  chgColor: string;
+  compact?: boolean;
+  columns?: string;
+}) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: columns, gap: 8, alignItems: "baseline" }}>
+      <div style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {ticker && <span style={{ fontFamily: MONO, fontSize: compact ? 11 : 12.5, fontWeight: 600 }}>{ticker}</span>}
+        <span style={{ fontSize: compact ? (ticker ? 9.5 : 11) : ticker ? 10.5 : 12.5, color: ticker ? "var(--muted)" : "var(--ink)", marginLeft: ticker ? 6 : 0 }}>
+          {name}
+        </span>
+      </div>
+      <span style={{ fontFamily: MONO, fontSize: compact ? 10.5 : 11.5, textAlign: "right", color: "var(--muted)" }}>{price}</span>
+      <span style={{ fontFamily: MONO, fontSize: compact ? 10.5 : 11.5, textAlign: "right", color: chgColor }}>{chgPct}</span>
+    </div>
+  );
+}
+
+/** Sub-header row inside a dense table (e.g. "Developed" / "Emerging" in Global Markets). */
+export function TableGroupLabel({ children }: { children: React.ReactNode }) {
+  return <div style={{ ...MICRO, marginTop: 6, marginBottom: 1 }}>{children}</div>;
+}
+
 /** Tiny inline sparkline from a precomputed SVG path. */
 export function Sparkline({
   d,

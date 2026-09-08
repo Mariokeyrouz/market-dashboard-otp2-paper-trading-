@@ -12,6 +12,8 @@ export interface SectorRow {
   chg1d: number;
   chg1w: number;
   chg1m: number;
+  /** Latest ETF proxy price — optional because the pre-existing mock data was authored without it. */
+  price?: number;
 }
 
 export interface MoverRow {

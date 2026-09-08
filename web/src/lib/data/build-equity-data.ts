@@ -49,7 +49,7 @@ const INDEX_TICKERS: { symbol: string; name: string; color: string }[] = [
   { symbol: "^RUT", name: "Russell 2000", color: "var(--green)" },
 ];
 
-async function fetchIndicesBucket(): Promise<EquityCoreData["indices"]> {
+export async function fetchIndicesBucket(): Promise<EquityCoreData["indices"]> {
   const series = await Promise.all(
     INDEX_TICKERS.map(async (t) => {
       const s = await fetchYahooChart(t.symbol, "1y", "1d");
@@ -60,7 +60,7 @@ async function fetchIndicesBucket(): Promise<EquityCoreData["indices"]> {
   return series;
 }
 
-async function fetchVixBucket(): Promise<EquityCoreData["vix"]> {
+export async function fetchVixBucket(): Promise<EquityCoreData["vix"]> {
   const [vix, vix3m, vix9d] = await Promise.all([
     fetchYahooChart("^VIX", "3mo", "1d"),
     fetchYahooChart("^VIX3M", "5d", "1d"),
@@ -83,7 +83,7 @@ const COMMOD_TICKERS: [string, string][] = [
   ["NG=F", "Nat Gas"],
 ];
 
-async function fetchCommodsBucket(): Promise<EquityCoreData["commods"]> {
+export async function fetchCommodsBucket(): Promise<EquityCoreData["commods"]> {
   const { quotes, failedChunks, totalChunks } = await fetchYahooSparkBatch(COMMOD_TICKERS.map(([sym]) => sym));
   if (failedChunks === totalChunks) throw new Error("commods: batch fetch failed");
   const rows = COMMOD_TICKERS.map(([symbol, name]) => {
@@ -96,7 +96,7 @@ async function fetchCommodsBucket(): Promise<EquityCoreData["commods"]> {
   return rows;
 }
 
-async function fetchSectorsBucket(): Promise<SectorRow[]> {
+export async function fetchSectorsBucket(): Promise<SectorRow[]> {
   const rows = await Promise.all(
     SECTOR_ETFS.map(async ({ name, ticker }) => {
       const s = await fetchYahooChart(ticker, "3mo", "1d");
@@ -104,7 +104,7 @@ async function fetchSectorsBucket(): Promise<SectorRow[]> {
       if (c.length < 23) throw new Error(`sectors: ${ticker} too few points`);
       const last = c[c.length - 1];
       const pct = (from: number) => ((last - from) / from) * 100;
-      return { name, chg1d: pct(c[c.length - 2]), chg1w: pct(c[c.length - 6]), chg1m: pct(c[c.length - 22]) };
+      return { name, chg1d: pct(c[c.length - 2]), chg1w: pct(c[c.length - 6]), chg1m: pct(c[c.length - 22]), price: last };
     }),
   );
   return rows;
@@ -117,7 +117,7 @@ async function fetchCurveBucket(): Promise<Pick<EquityCoreData, "curve" | "curve
   return { curve: now.curve, curveDate: now.date, curvePrev: prev.curve, curvePrevDate: prev.date };
 }
 
-async function fetchMoversBucket(): Promise<EquityCoreData["movers"]> {
+export async function fetchMoversBucket(): Promise<EquityCoreData["movers"]> {
   const { quotes, failedChunks, totalChunks } = await fetchYahooSparkBatch(SP500_CONSTITUENTS);
   if (failedChunks / totalChunks > 1 - MOVERS_MIN_SUCCESS_RATIO) {
     throw new Error(`movers: too many failed chunks (${failedChunks}/${totalChunks})`);
