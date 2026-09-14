@@ -8,6 +8,7 @@ import LeftRail from "@/components/chrome/LeftRail";
 import LogicPanel from "@/components/chrome/LogicPanel";
 import RightRail from "@/components/chrome/RightRail";
 import DashboardGrid from "@/components/dashboard/DashboardGrid";
+import OpenTerminalShell from "@/components/openterminal/OpenTerminalShell";
 import { DataContext } from "@/components/DataContext";
 import { MONO } from "@/components/ui";
 import { AMBER, GREEN } from "@/lib/derive";
@@ -97,6 +98,13 @@ export default function Page() {
     () => false,
   );
   if (!ready) return <div style={{ minHeight: "100vh" }} />;
+
+  // Full takeover: OpenTerminal renders its own Sidebar/TopBar/Workspace and
+  // skips this app's Header/LeftRail/DashboardGrid/RightRail/LogicPanel/
+  // ElementLibraryPanel entirely. The three use*Data hooks above stay
+  // mounted regardless — each is already gated by `activeType === "..."`,
+  // so they're cheap no-ops while this mode is active.
+  if (activeType === "openterminal") return <OpenTerminalShell />;
 
   const rails = mode !== "narrow";
   const docked = mode === "wide";

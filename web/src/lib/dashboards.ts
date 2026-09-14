@@ -10,7 +10,7 @@ import { DEFAULT_HIDDEN, ELEMENTS, ELEMENT_MAP } from "./elements/registry";
 import { EQUITY_DEFAULT_HIDDEN, EQUITY_ELEMENTS, EQUITY_ELEMENT_MAP } from "./elements/registry-equity";
 import { TERMINAL_DEFAULT_HIDDEN, TERMINAL_ELEMENTS, TERMINAL_ELEMENT_MAP } from "./elements/registry-terminal";
 
-export type DashboardType = "macro" | "equity" | "terminal";
+export type DashboardType = "macro" | "equity" | "terminal" | "openterminal";
 
 export interface DashboardTypeDef {
   id: DashboardType;
@@ -100,6 +100,23 @@ export const DASHBOARD_TYPES: DashboardTypeDef[] = [
         "4 · Positioning — fixed income, equity factors",
         "5 · Watchlist & Calendar — your names, what's next",
       ],
+    },
+  },
+  {
+    // Full takeover, not the tile system: page.tsx renders <OpenTerminalShell />
+    // for this type instead of Header/LeftRail/DashboardGrid/etc, so elements/
+    // defaultHidden/elementMap/hasRegionLens below are unused placeholders —
+    // still required because every DashboardType needs a registry entry.
+    id: "openterminal",
+    label: "OpenTerminal",
+    shortLabel: "OT",
+    elements: [],
+    defaultHidden: [],
+    elementMap: new Map(),
+    hasRegionLens: false,
+    logicIntro: {
+      blurb: "OpenTerminal is a full-screen takeover with its own widget system — the Logic panel doesn't apply here.",
+      zSteps: ["", "", "", "", ""],
     },
   },
 ];

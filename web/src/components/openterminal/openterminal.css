@@ -1,0 +1,161 @@
+/*
+ * Rewritten (not copied) from OpenTerminal's web/app/globals.css. The
+ * original set global `:root` CSS vars and bare-element rules (`body`,
+ * `input`, `select`, `table.data-table`) that would clobber this app's own
+ * Macro/Equity/Terminal theme and scrolling if imported as-is. Every
+ * selector below is scoped under `.ot-root` (the wrapper div rendered by
+ * OpenTerminalShell) so none of it leaks into the rest of the app, and none
+ * of the other dashboards' CSS leaks into this one either. Tailwind's own
+ * utility classes (already loaded globally via src/app/globals.css) are
+ * still used unscoped inside the ported components, same as upstream.
+ */
+
+.ot-root {
+  --bg: #000000;
+  --panel: #0a0a0a;
+  --panel-2: #111111;
+  --border: #262626;
+  --amber: #ff9900;
+  --amber-dim: #b36b00;
+  --up: #00c853;
+  --down: #ff3d3d;
+  --text: #d9d9d9;
+  --text-dim: #808080;
+
+  background: var(--bg);
+  color: var(--text);
+  font-family: "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace;
+  font-size: 12px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.ot-root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.ot-root ::-webkit-scrollbar-track {
+  background: var(--panel);
+}
+.ot-root ::-webkit-scrollbar-thumb {
+  background: #333;
+}
+.ot-root ::-webkit-scrollbar-thumb:hover {
+  background: var(--amber-dim);
+}
+
+.ot-root .terminal-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ot-root .panel-title {
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--border);
+  color: var(--amber);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: move;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.ot-root .up {
+  color: var(--up);
+}
+.ot-root .down {
+  color: var(--down);
+}
+.ot-root .amber {
+  color: var(--amber);
+}
+.ot-root .dim {
+  color: var(--text-dim);
+}
+
+.ot-root table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.ot-root table.data-table th {
+  color: var(--text-dim);
+  text-align: right;
+  padding: 2px 6px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ot-root table.data-table th:first-child,
+.ot-root table.data-table td:first-child {
+  text-align: left;
+}
+.ot-root table.data-table td {
+  text-align: right;
+  padding: 2px 6px;
+  border-bottom: 1px solid #161616;
+  white-space: nowrap;
+}
+.ot-root table.data-table tbody tr:hover {
+  background: #1a1a1a;
+  cursor: pointer;
+}
+
+.ot-root .flash-white {
+  border-radius: 2px;
+  animation: ot-flash-white-anim 450ms ease-out;
+}
+@keyframes ot-flash-white-anim {
+  0% { background-color: rgba(255, 255, 255, 0.85); }
+  100% { background-color: transparent; }
+}
+
+.ot-root input,
+.ot-root select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+}
+.ot-root input:focus,
+.ot-root select:focus {
+  border-color: var(--amber);
+}
+.ot-root button.term-btn {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 2px 8px;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ot-root button.term-btn:hover,
+.ot-root button.term-btn.active {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.ot-root .react-grid-item.react-grid-placeholder {
+  background: var(--amber-dim) !important;
+  opacity: 0.2;
+}
+.ot-root .react-grid-item > .react-resizable-handle::after {
+  border-color: var(--amber-dim) !important;
+}
