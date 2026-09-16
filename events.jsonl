@@ -11,6 +11,7 @@
 {"date": "2026-09-01", "strategy": "FourPillar", "type": "rebalance", "detail": "SectorEW rotated to XLE, XLK, XLV", "source": "engine"}
 {"date": "2026-09-01", "strategy": "FourPillar", "type": "rebalance", "detail": "FMTS rotated to 18 names", "source": "engine"}
 {"date": "2026-09-03", "strategy": "RRG", "type": "rebalance", "detail": "rotated to MAA, MCO, TTD, CPRT, OKE, BX, BLDR, RL, ARE, TKO, NVR, VLO", "source": "engine", "tickers": ["MAA", "MCO", "TTD", "CPRT", "OKE", "BX", "BLDR", "RL", "ARE", "TKO", "NVR", "VLO"]}
+{"date": "2026-09-14", "strategy": "FourPillar", "type": "rebalance", "detail": "Band breach (25.0% drift) - reset to Gold 33% / SectorEW 33% / FMTS 0% / OTP2.0 33%", "source": "engine"}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-09-02", "strategy": "OTP2.0", "type": "reload", "detail": "Reloaded to 66% invested", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}
