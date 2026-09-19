@@ -257,3 +257,55 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-09-16,FourPillar,IBM,buy,0.004375,237.49,1.04,0.0,233.6848,,vol-target,engine
 2026-09-16,FourPillar,JNJ,buy,0.003974,267.28,1.06,0.0,262.8605,,vol-target,engine
 2026-09-16,FourPillar,JPM,buy,0.002867,348.92,1.0,0.0,356.6885,,vol-target,engine
+2026-09-17,OTP2.0,JPM,sell,0.148636,349.31,51.92,0.05,341.6214,1.14,vol-target,engine
+2026-09-17,OTP2.0,AVGO,sell,0.124769,347.3,43.33,0.04,377.9055,-3.82,vol-target,engine
+2026-09-17,OTP2.0,GS,sell,0.044856,951.47,42.68,0.04,1049.9003,-4.42,vol-target,engine
+2026-09-17,OTP2.0,GOOGL,sell,0.132536,347.33,46.03,0.05,350.5718,-0.43,vol-target,engine
+2026-09-17,OTP2.0,IBM,sell,0.175105,237.75,41.63,0.04,247.295,-1.67,vol-target,engine
+2026-09-17,OTP2.0,JNJ,sell,0.19791,270.22,53.48,0.05,257.0397,2.61,vol-target,engine
+2026-09-17,OTP2.0,GE,sell,0.142173,313.47,44.57,0.04,341.482,-3.98,vol-target,engine
+2026-09-14,OTP2.0 AMA,GOOGL,buy,0.009194,349.39,3.21,0.0,350.4786,,vol-target,engine
+2026-09-14,OTP2.0 AMA,GS,buy,0.003241,988.45,3.2,0.0,1036.4921,,vol-target,engine
+2026-09-14,OTP2.0 AMA,IBM,buy,0.011429,249.09,2.85,0.0,254.8564,,vol-target,engine
+2026-09-14,OTP2.0 AMA,JNJ,buy,0.01258,266.32,3.35,0.0,264.7593,,vol-target,engine
+2026-09-14,OTP2.0 AMA,AVGO,buy,0.00918,344.72,3.16,0.0,369.3724,,vol-target,engine
+2026-09-14,OTP2.0 AMA,GE,buy,0.008765,317.56,2.78,0.0,354.7602,,vol-target,engine
+2026-09-14,OTP2.0 AMA,JPM,buy,0.009893,350.13,3.46,0.0,345.0342,,vol-target,engine
+2026-09-15,OTP2.0 AMA,GOOGL,buy,0.007944,344.98,2.74,0.0,350.4751,,vol-target,engine
+2026-09-15,OTP2.0 AMA,GS,buy,0.0028,976.67,2.73,0.0,1036.335,,vol-target,engine
+2026-09-15,OTP2.0 AMA,IBM,buy,0.009875,248.37,2.45,0.0,254.8375,,vol-target,engine
+2026-09-15,OTP2.0 AMA,JNJ,buy,0.010869,267.2,2.9,0.0,264.7644,,vol-target,engine
+2026-09-15,OTP2.0 AMA,AVGO,buy,0.007932,339.27,2.69,0.0,369.2918,,vol-target,engine
+2026-09-15,OTP2.0 AMA,GE,buy,0.007573,307.05,2.33,0.0,354.6386,,vol-target,engine
+2026-09-15,OTP2.0 AMA,JPM,buy,0.008548,352.49,3.01,0.0,345.0509,,vol-target,engine
+2026-09-16,OTP2.0 AMA,GOOGL,buy,0.010306,342.87,3.53,0.0,350.4596,,vol-target,engine
+2026-09-16,OTP2.0 AMA,GS,buy,0.003633,937.98,3.41,0.0,1036.167,,vol-target,engine
+2026-09-16,OTP2.0 AMA,IBM,buy,0.012812,237.49,3.04,0.0,254.8193,,vol-target,engine
+2026-09-16,OTP2.0 AMA,JNJ,buy,0.014102,267.28,3.77,0.0,264.7713,,vol-target,engine
+2026-09-16,OTP2.0 AMA,AVGO,buy,0.010291,339.51,3.49,0.0,369.2072,,vol-target,engine
+2026-09-16,OTP2.0 AMA,GE,buy,0.009826,312.9,3.07,0.0,354.5046,,vol-target,engine
+2026-09-16,OTP2.0 AMA,JPM,buy,0.01109,348.92,3.87,0.0,345.0718,,vol-target,engine
+2026-09-17,OTP2.0 AMA,GOOGL,sell,0.140377,347.33,48.76,0.05,350.432,-0.44,vol-target,engine
+2026-09-17,OTP2.0 AMA,GS,sell,0.049484,951.47,47.08,0.05,1035.8096,-4.17,vol-target,engine
+2026-09-17,OTP2.0 AMA,IBM,sell,0.174506,237.75,41.49,0.04,254.7562,-2.97,vol-target,engine
+2026-09-17,OTP2.0 AMA,JNJ,sell,0.192074,270.22,51.9,0.05,264.7804,1.04,vol-target,engine
+2026-09-17,OTP2.0 AMA,AVGO,sell,0.140167,347.3,48.68,0.05,369.0991,-3.06,vol-target,engine
+2026-09-17,OTP2.0 AMA,GE,sell,0.133829,313.47,41.95,0.04,354.3532,-5.47,vol-target,engine
+2026-09-17,OTP2.0 AMA,JPM,sell,0.151054,349.31,52.76,0.05,345.0858,0.64,vol-target,engine
+2026-09-11,FourPillar,JPM,sell,0.014919,356.23,5.31,0.01,356.7178,-0.01,vol-target,engine
+2026-09-11,FourPillar,JNJ,sell,0.020685,265.58,5.49,0.01,262.8392,0.06,vol-target,engine
+2026-09-11,FourPillar,GS,sell,0.005148,1029.1801,5.3,0.01,1029.6556,-0.0,vol-target,engine
+2026-09-11,FourPillar,GE,sell,0.014192,323.66,4.59,0.0,359.7872,-0.51,vol-target,engine
+2026-09-11,FourPillar,IBM,sell,0.022772,243.29,5.54,0.01,233.6025,0.22,vol-target,engine
+2026-09-11,FourPillar,GOOGL,sell,0.014858,338.5,5.03,0.01,350.4549,-0.18,vol-target,engine
+2026-09-11,FourPillar,AVGO,sell,0.012639,361.99,4.58,0.0,398.293,-0.46,vol-target,engine
+2026-09-16,FourPillar,JPM,buy,0.002867,348.92,1.0,0.0,356.6885,,vol-target,engine
+2026-09-16,FourPillar,JNJ,buy,0.003974,267.28,1.06,0.0,262.8605,,vol-target,engine
+2026-09-16,FourPillar,IBM,buy,0.004375,237.49,1.04,0.0,233.6848,,vol-target,engine
+2026-09-17,FourPillar,JPM,sell,0.03384,349.31,11.82,0.01,356.6571,-0.25,vol-target,engine
+2026-09-17,FourPillar,JNJ,sell,0.046919,270.22,12.68,0.01,262.8784,0.34,vol-target,engine
+2026-09-17,FourPillar,GS,sell,0.011677,951.47,11.11,0.01,1029.0289,-0.91,vol-target,engine
+2026-09-17,FourPillar,GE,sell,0.032191,313.47,10.09,0.01,359.3396,-1.48,vol-target,engine
+2026-09-17,FourPillar,IBM,sell,0.051652,237.75,12.28,0.01,233.7002,0.21,vol-target,engine
+2026-09-17,FourPillar,GOOGL,sell,0.033703,347.33,11.71,0.01,350.4062,-0.1,vol-target,engine
+2026-09-17,FourPillar,AVGO,sell,0.028669,347.3,9.96,0.01,397.7499,-1.45,vol-target,engine
