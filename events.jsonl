@@ -27,3 +27,5 @@
 {"date": "2026-08-24", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
 {"date": "2026-08-25", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
 {"date": "2026-08-26", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
+{"date": "2026-09-09", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
+{"date": "2026-09-22", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
