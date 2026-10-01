@@ -13,6 +13,9 @@
 {"date": "2026-09-03", "strategy": "RRG", "type": "rebalance", "detail": "rotated to MAA, MCO, TTD, CPRT, OKE, BX, BLDR, RL, ARE, TKO, NVR, VLO", "source": "engine", "tickers": ["MAA", "MCO", "TTD", "CPRT", "OKE", "BX", "BLDR", "RL", "ARE", "TKO", "NVR", "VLO"]}
 {"date": "2026-09-14", "strategy": "FourPillar", "type": "rebalance", "detail": "Band breach (25.0% drift) - reset to Gold 33% / SectorEW 33% / FMTS 0% / OTP2.0 33%", "source": "engine"}
 {"date": "2026-09-21", "strategy": "FourPillar", "type": "rebalance", "detail": "Band breach (25.0% drift) - reset to Gold 33% / SectorEW 33% / FMTS 0% / OTP2.0 33%", "source": "engine"}
+{"date": "2026-09-30", "strategy": "FMTS", "type": "rebalance", "detail": "Rotated 10 out / 10 in (2026-10-01)", "source": "engine", "realized_pnl": -738.17, "tickers": ["GHC", "OVV", "GNTX", "SNA", "CRUS", "GGG", "XOM", "DOV", "SIRI", "CHRD"]}
+{"date": "2026-09-30", "strategy": "Momentum", "type": "rebalance", "detail": "Rotated 7 out / 7 in (2026-09-01)", "source": "engine", "realized_pnl": 611.0, "tickers": ["MRNA", "AMD", "ILMN", "CRL", "BE", "STT", "TGT"]}
+{"date": "2026-10-01", "strategy": "RRG", "type": "rebalance", "detail": "rotated to NVR, COO, CLX, BKR, SHW, JPM, JNJ, BRO, PKG, VLO, DPZ, MKC", "source": "engine", "tickers": ["NVR", "COO", "CLX", "BKR", "SHW", "JPM", "JNJ", "BRO", "PKG", "VLO", "DPZ", "MKC"]}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-09-02", "strategy": "OTP2.0", "type": "reload", "detail": "Reloaded to 66% invested", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}
