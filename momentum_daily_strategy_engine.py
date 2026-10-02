@@ -30,7 +30,7 @@ in this repo):
     has to pay as often, so this is the fair, cost-loaded comparison.
 
 Ledger / state schema matches momentum_strategy_engine.py so
-pages/11_Portfolio_Analytics.py reads it unchanged (same field names).
+pages/12_Portfolio_Analytics.py reads it unchanged (same field names).
 
 Usage:
   py momentum_daily_strategy_engine.py       # seeds on first run, else appends days

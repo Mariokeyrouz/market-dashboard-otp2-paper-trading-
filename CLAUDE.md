@@ -67,12 +67,14 @@ must stay disabled (see Environment traps).
 Adding a strategy means touching four registries:
 1. `run_daily_update.py` → `ENGINES`
 2. `event_log.py` → `STRATS`
-3. `pages/11_Portfolio_Analytics.py` → `PORTFOLIOS`
-4. a page in `pages/`, numbered BELOW Portfolio Analytics / Activity Log — those
-   two are system-wide summaries and should stay pinned at the bottom of the
-   sidebar; a new strategy page goes in the gap before them, and the two
-   summary pages get renumbered up to make room (e.g. adding a 9th strategy
-   page bumps Portfolio Analytics 9→10 and Activity Log 10→11).
+3. `pages/12_Portfolio_Analytics.py` → `PORTFOLIOS`
+4. a page in `pages/`, numbered BELOW the last strategy page and ABOVE the
+   system-wide summary pages (currently EAD, Portfolio Analytics, Activity
+   Log, Trade Blotter, in that order) — those stay pinned at the bottom of
+   the sidebar; a new strategy page goes in the gap before them, and the
+   summary pages get renumbered up to make room (e.g. adding the 9th
+   strategy, Momentum Daily, took slot 10 and bumped EAD 10→11, Portfolio
+   Analytics 11→12, Activity Log 12→13, Trade Blotter 13→14).
 
 **RRG is registered in 2–4 but deliberately NOT in `ENGINES`** — see below.
 
