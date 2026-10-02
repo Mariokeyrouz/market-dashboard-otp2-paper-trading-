@@ -1,0 +1,167 @@
+{
+  "as_of": "2026-08-01",
+  "strategy": "single-stock momentum (blended 6&12m, top20), unconditional \u2014 exposure timing handled daily by momentum_daily_strategy_engine.py",
+  "n_holdings": 20,
+  "holdings": {
+    "SNDK": {
+      "target_weight": 0.05,
+      "score_composite": 99.5,
+      "score_momentum": 99.5,
+      "ret_6m": 110.82,
+      "ret_12m": 2730.45,
+      "sector": "Information Technology"
+    },
+    "WDC": {
+      "target_weight": 0.05,
+      "score_composite": 99.4,
+      "score_momentum": 99.4,
+      "ret_6m": 117.9,
+      "ret_12m": 594.26,
+      "sector": "Information Technology"
+    },
+    "DELL": {
+      "target_weight": 0.05,
+      "score_composite": 99.0,
+      "score_momentum": 99.0,
+      "ret_6m": 255.9,
+      "ret_12m": 209.39,
+      "sector": "Information Technology"
+    },
+    "MU": {
+      "target_weight": 0.05,
+      "score_composite": 99.0,
+      "score_momentum": 99.0,
+      "ret_6m": 98.49,
+      "ret_12m": 655.32,
+      "sector": "Information Technology"
+    },
+    "STX": {
+      "target_weight": 0.05,
+      "score_composite": 98.9,
+      "score_momentum": 98.9,
+      "ret_6m": 110.51,
+      "ret_12m": 449.77,
+      "sector": "Information Technology"
+    },
+    "INTC": {
+      "target_weight": 0.05,
+      "score_composite": 98.4,
+      "score_momentum": 98.4,
+      "ret_6m": 94.1,
+      "ret_12m": 355.56,
+      "sector": "Information Technology"
+    },
+    "LITE": {
+      "target_weight": 0.05,
+      "score_composite": 98.3,
+      "score_momentum": 98.3,
+      "ret_6m": 82.2,
+      "ret_12m": 548.56,
+      "sector": "Information Technology"
+    },
+    "HPE": {
+      "target_weight": 0.05,
+      "score_composite": 98.2,
+      "score_momentum": 98.2,
+      "ret_6m": 124.67,
+      "ret_12m": 136.34,
+      "sector": "Information Technology"
+    },
+    "FIX": {
+      "target_weight": 0.05,
+      "score_composite": 96.6,
+      "score_momentum": 96.6,
+      "ret_6m": 51.59,
+      "ret_12m": 146.49,
+      "sector": "Industrials"
+    },
+    "VLO": {
+      "target_weight": 0.05,
+      "score_composite": 96.5,
+      "score_momentum": 96.5,
+      "ret_6m": 75.02,
+      "ret_12m": 132.71,
+      "sector": "Energy"
+    },
+    "MPC": {
+      "target_weight": 0.05,
+      "score_composite": 95.3,
+      "score_momentum": 95.3,
+      "ret_6m": 81.21,
+      "ret_12m": 89.59,
+      "sector": "Energy"
+    },
+    "CNC": {
+      "target_weight": 0.05,
+      "score_composite": 95.2,
+      "score_momentum": 95.2,
+      "ret_6m": 43.63,
+      "ret_12m": 138.67,
+      "sector": "Health Care"
+    },
+    "DVA": {
+      "target_weight": 0.05,
+      "score_composite": 94.9,
+      "score_momentum": 94.9,
+      "ret_6m": 119.58,
+      "ret_12m": 71.04,
+      "sector": "Health Care"
+    },
+    "BE": {
+      "target_weight": 0.05,
+      "score_composite": 94.9,
+      "score_momentum": 94.9,
+      "ret_6m": 35.96,
+      "ret_12m": 450.44,
+      "sector": "Industrials"
+    },
+    "APA": {
+      "target_weight": 0.05,
+      "score_composite": 94.2,
+      "score_momentum": 94.2,
+      "ret_6m": 43.26,
+      "ret_12m": 100.22,
+      "sector": "Energy"
+    },
+    "PSX": {
+      "target_weight": 0.05,
+      "score_composite": 93.9,
+      "score_momentum": 93.9,
+      "ret_6m": 49.74,
+      "ret_12m": 77.16,
+      "sector": "Energy"
+    },
+    "ILMN": {
+      "target_weight": 0.05,
+      "score_composite": 93.6,
+      "score_momentum": 93.6,
+      "ret_6m": 41.63,
+      "ret_12m": 99.69,
+      "sector": "Health Care"
+    },
+    "STLD": {
+      "target_weight": 0.05,
+      "score_composite": 93.4,
+      "score_momentum": 93.4,
+      "ret_6m": 40.67,
+      "ret_12m": 99.33,
+      "sector": "Materials"
+    },
+    "VTRS": {
+      "target_weight": 0.05,
+      "score_composite": 93.3,
+      "score_momentum": 93.3,
+      "ret_6m": 36.29,
+      "ret_12m": 108.83,
+      "sector": "Health Care"
+    },
+    "NUE": {
+      "target_weight": 0.05,
+      "score_composite": 93.2,
+      "score_momentum": 93.2,
+      "ret_6m": 45.62,
+      "ret_12m": 82.24,
+      "sector": "Materials"
+    }
+  }
+}

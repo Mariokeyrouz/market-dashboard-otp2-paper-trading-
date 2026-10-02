@@ -33,6 +33,7 @@ STRATS = [
     ("FMTS AMA",   "factor_ledger_AMA.csv", "🔬"),
     ("Gold",       "gold_ledger.csv",       "🥇"),
     ("Momentum",   "momentum_ledger.csv",   "🚀"),
+    ("Momentum Daily", "momentum_daily_ledger.csv", "⏱️"),
     ("RRG",        "rrg_ledger.csv",        "🔄"),
     ("FourPillar", "four_pillar_ledger.csv", "🧩"),
 ]

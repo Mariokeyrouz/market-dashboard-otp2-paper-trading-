@@ -53,6 +53,7 @@ ENGINES = [
     "factor_strategy_engine_AMA.py",   # FMTS AMA
     "gold_strategy_engine.py",         # Gold timer
     "momentum_strategy_engine.py",     # Momentum (new)
+    "momentum_daily_strategy_engine.py",  # Momentum Daily (daily exposure gate, no VIX)
     "rrg_analysis.py",                 # RRG rankings — must run BEFORE its engine
     "rrg_portfolio_engine.py",         # RRG — research book, NOT funded (see below)
     "four_pillar_engine.py",           # Four-Pillar combo (Gold + SectorEW + FMTS 2-factor + OTP2.0)
@@ -151,6 +152,19 @@ def main():
         (ok if run("momentum_screener.py") else failed).append("momentum_screener.py")
     else:
         print(f"Momentum: current for {_latest_completed_month()[:7]} — no re-screen.")
+
+    # Momentum Daily: same idea, unconditional (no trend gate baked into the
+    # selection — the engine applies its own daily exposure check). Shares
+    # momentum_stocks_prices.csv with Momentum above, so if that block already
+    # deleted the cache this run, this re-screen picks up the same fresh prices.
+    if monthly or _needs_monthly_rescreen("momentum_daily_selection.json", _latest_completed_month()):
+        cache = os.path.join(REPO, "momentum_stocks_prices.csv")
+        if os.path.exists(cache):
+            os.remove(cache)
+        print("Momentum Daily: month-turn/forced — re-screening with fresh prices to rotate.")
+        (ok if run("momentum_daily_screener.py") else failed).append("momentum_daily_screener.py")
+    else:
+        print(f"Momentum Daily: current for {_latest_completed_month()[:7]} — no re-screen.")
 
     # FMTS / FMTS AMA: slow factor screeners (~500 fundamentals each). Fire once
     # per calendar month — only when they have not screened yet this month.

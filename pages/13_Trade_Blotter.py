@@ -20,7 +20,7 @@ ICON = {name: icon for name, _, icon in STRATS}
 REASON_LABEL = {
     "seed": "🌱 Seed", "rebalance": "🔄 Rebalance", "stop": "⛔ Stop",
     "reentry": "↩️ Re-entry", "vol-target": "⚖️ Vol-target", "entry": "🟢 Entry",
-    "exit": "🚪 Exit",
+    "exit": "🚪 Exit", "risk-on": "🟢 Risk-on", "risk-off": "🔴 Risk-off",
 }
 
 st.title("💵 Trade Blotter")

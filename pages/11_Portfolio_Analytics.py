@@ -74,6 +74,13 @@ PORTFOLIOS = {
         "color":     "#6a1b9a",
         "icon":      "🚀",
     },
+    "Momentum Daily": {
+        "ledger":    "momentum_daily_ledger.csv",
+        "state":     "momentum_daily_state.json",
+        "selection": "momentum_daily_selection.json",
+        "color":     "#ad1457",
+        "icon":      "⏱️",
+    },
     # Research book. The RRG signal FAILED its pre-registered validation
     # (1/9 criteria; walk-forward turned $1 into $0.98 with a 50% drawdown, and
     # it added nothing over plain 12-1 relative momentum). It is tracked here
