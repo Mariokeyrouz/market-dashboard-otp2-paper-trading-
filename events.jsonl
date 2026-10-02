@@ -16,6 +16,9 @@
 {"date": "2026-09-30", "strategy": "FMTS", "type": "rebalance", "detail": "Rotated 10 out / 10 in (2026-10-01)", "source": "engine", "realized_pnl": -738.17, "tickers": ["GHC", "OVV", "GNTX", "SNA", "CRUS", "GGG", "XOM", "DOV", "SIRI", "CHRD"]}
 {"date": "2026-09-30", "strategy": "Momentum", "type": "rebalance", "detail": "Rotated 7 out / 7 in (2026-09-01)", "source": "engine", "realized_pnl": 611.0, "tickers": ["MRNA", "AMD", "ILMN", "CRL", "BE", "STT", "TGT"]}
 {"date": "2026-10-01", "strategy": "RRG", "type": "rebalance", "detail": "rotated to NVR, COO, CLX, BKR, SHW, JPM, JNJ, BRO, PKG, VLO, DPZ, MKC", "source": "engine", "tickers": ["NVR", "COO", "CLX", "BKR", "SHW", "JPM", "JNJ", "BRO", "PKG", "VLO", "DPZ", "MKC"]}
+{"date": "2026-10-01", "strategy": "FMTS AMA", "type": "rebalance", "detail": "Rotated 14 out / 14 in (2026-10-02)", "source": "engine", "realized_pnl": -465.41, "tickers": ["AME", "WTS", "GGG", "FFIV", "EXPD", "AIT", "TTC", "PG", "CVX", "EOG", "SNA", "ADI", "LIN", "RBC"]}
+{"date": "2026-10-01", "strategy": "FourPillar", "type": "rebalance", "detail": "SectorEW rotated to XLE, XLK, XLV", "source": "engine"}
+{"date": "2026-10-01", "strategy": "FourPillar", "type": "rebalance", "detail": "FMTS rotated to 18 names", "source": "engine"}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-09-02", "strategy": "OTP2.0", "type": "reload", "detail": "Reloaded to 66% invested", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}
