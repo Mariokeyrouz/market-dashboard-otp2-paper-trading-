@@ -1,166 +1,166 @@
 {
-  "as_of": "2026-08-01",
+  "as_of": "2026-09-01",
   "strategy": "single-stock momentum (blended 6&12m, top20), unconditional \u2014 exposure timing handled daily by momentum_daily_strategy_engine.py",
   "n_holdings": 20,
   "holdings": {
+    "MRNA": {
+      "target_weight": 0.05,
+      "score_composite": 99.6,
+      "score_momentum": 99.6,
+      "ret_6m": 161.97,
+      "ret_12m": 482.57,
+      "sector": "Health Care"
+    },
     "SNDK": {
       "target_weight": 0.05,
       "score_composite": 99.5,
       "score_momentum": 99.5,
-      "ret_6m": 110.82,
-      "ret_12m": 2730.45,
-      "sector": "Information Technology"
-    },
-    "WDC": {
-      "target_weight": 0.05,
-      "score_composite": 99.4,
-      "score_momentum": 99.4,
-      "ret_6m": 117.9,
-      "ret_12m": 594.26,
+      "ret_6m": 146.58,
+      "ret_12m": 2885.9,
       "sector": "Information Technology"
     },
     "DELL": {
       "target_weight": 0.05,
-      "score_composite": 99.0,
-      "score_momentum": 99.0,
-      "ret_6m": 255.9,
-      "ret_12m": 209.39,
+      "score_composite": 99.2,
+      "score_momentum": 99.2,
+      "ret_6m": 209.41,
+      "ret_12m": 278.08,
       "sector": "Information Technology"
     },
     "MU": {
       "target_weight": 0.05,
-      "score_composite": 99.0,
-      "score_momentum": 99.0,
-      "ret_6m": 98.49,
-      "ret_12m": 655.32,
+      "score_composite": 99.1,
+      "score_momentum": 99.1,
+      "ret_6m": 132.63,
+      "ret_12m": 706.88,
+      "sector": "Information Technology"
+    },
+    "MRVL": {
+      "target_weight": 0.05,
+      "score_composite": 98.8,
+      "score_momentum": 98.8,
+      "ret_6m": 159.3,
+      "ret_12m": 237.38,
       "sector": "Information Technology"
     },
     "STX": {
       "target_weight": 0.05,
-      "score_composite": 98.9,
-      "score_momentum": 98.9,
-      "ret_6m": 110.51,
-      "ret_12m": 449.77,
+      "score_composite": 98.4,
+      "score_momentum": 98.4,
+      "ret_6m": 103.61,
+      "ret_12m": 398.94,
+      "sector": "Information Technology"
+    },
+    "AMD": {
+      "target_weight": 0.05,
+      "score_composite": 97.9,
+      "score_momentum": 97.9,
+      "ret_6m": 135.11,
+      "ret_12m": 189.44,
       "sector": "Information Technology"
     },
     "INTC": {
       "target_weight": 0.05,
-      "score_composite": 98.4,
-      "score_momentum": 98.4,
-      "ret_6m": 94.1,
-      "ret_12m": 355.56,
-      "sector": "Information Technology"
-    },
-    "LITE": {
-      "target_weight": 0.05,
-      "score_composite": 98.3,
-      "score_momentum": 98.3,
-      "ret_6m": 82.2,
-      "ret_12m": 548.56,
+      "score_composite": 97.8,
+      "score_momentum": 97.8,
+      "ret_6m": 96.25,
+      "ret_12m": 267.6,
       "sector": "Information Technology"
     },
     "HPE": {
       "target_weight": 0.05,
-      "score_composite": 98.2,
-      "score_momentum": 98.2,
-      "ret_6m": 124.67,
-      "ret_12m": 136.34,
+      "score_composite": 97.6,
+      "score_momentum": 97.6,
+      "ret_6m": 145.6,
+      "ret_12m": 136.28,
       "sector": "Information Technology"
-    },
-    "FIX": {
-      "target_weight": 0.05,
-      "score_composite": 96.6,
-      "score_momentum": 96.6,
-      "ret_6m": 51.59,
-      "ret_12m": 146.49,
-      "sector": "Industrials"
     },
     "VLO": {
       "target_weight": 0.05,
-      "score_composite": 96.5,
-      "score_momentum": 96.5,
-      "ret_6m": 75.02,
-      "ret_12m": 132.71,
+      "score_composite": 96.7,
+      "score_momentum": 96.7,
+      "ret_6m": 76.91,
+      "ret_12m": 141.12,
       "sector": "Energy"
     },
     "MPC": {
       "target_weight": 0.05,
-      "score_composite": 95.3,
-      "score_momentum": 95.3,
-      "ret_6m": 81.21,
-      "ret_12m": 89.59,
-      "sector": "Energy"
-    },
-    "CNC": {
-      "target_weight": 0.05,
-      "score_composite": 95.2,
-      "score_momentum": 95.2,
-      "ret_6m": 43.63,
-      "ret_12m": 138.67,
-      "sector": "Health Care"
-    },
-    "DVA": {
-      "target_weight": 0.05,
-      "score_composite": 94.9,
-      "score_momentum": 94.9,
-      "ret_6m": 119.58,
-      "ret_12m": 71.04,
-      "sector": "Health Care"
-    },
-    "BE": {
-      "target_weight": 0.05,
-      "score_composite": 94.9,
-      "score_momentum": 94.9,
-      "ret_6m": 35.96,
-      "ret_12m": 450.44,
-      "sector": "Industrials"
-    },
-    "APA": {
-      "target_weight": 0.05,
-      "score_composite": 94.2,
-      "score_momentum": 94.2,
-      "ret_6m": 43.26,
-      "ret_12m": 100.22,
-      "sector": "Energy"
-    },
-    "PSX": {
-      "target_weight": 0.05,
-      "score_composite": 93.9,
-      "score_momentum": 93.9,
-      "ret_6m": 49.74,
-      "ret_12m": 77.16,
+      "score_composite": 96.1,
+      "score_momentum": 96.1,
+      "ret_6m": 89.58,
+      "ret_12m": 111.2,
       "sector": "Energy"
     },
     "ILMN": {
       "target_weight": 0.05,
+      "score_composite": 95.4,
+      "score_momentum": 95.4,
+      "ret_6m": 58.88,
+      "ret_12m": 113.72,
+      "sector": "Health Care"
+    },
+    "PSX": {
+      "target_weight": 0.05,
+      "score_composite": 94.8,
+      "score_momentum": 94.8,
+      "ret_6m": 61.79,
+      "ret_12m": 90.06,
+      "sector": "Energy"
+    },
+    "CNC": {
+      "target_weight": 0.05,
+      "score_composite": 94.5,
+      "score_momentum": 94.5,
+      "ret_6m": 43.36,
+      "ret_12m": 121.56,
+      "sector": "Health Care"
+    },
+    "CRL": {
+      "target_weight": 0.05,
+      "score_composite": 94.1,
+      "score_momentum": 94.1,
+      "ret_6m": 61.49,
+      "ret_12m": 76.5,
+      "sector": "Health Care"
+    },
+    "BE": {
+      "target_weight": 0.05,
+      "score_composite": 94.1,
+      "score_momentum": 94.1,
+      "ret_6m": 32.52,
+      "ret_12m": 289.69,
+      "sector": "Industrials"
+    },
+    "APA": {
+      "target_weight": 0.05,
       "score_composite": 93.6,
       "score_momentum": 93.6,
-      "ret_6m": 41.63,
-      "ret_12m": 99.69,
-      "sector": "Health Care"
+      "ret_6m": 44.04,
+      "ret_12m": 92.31,
+      "sector": "Energy"
     },
-    "STLD": {
+    "STT": {
       "target_weight": 0.05,
-      "score_composite": 93.4,
-      "score_momentum": 93.4,
-      "ret_6m": 40.67,
-      "ret_12m": 99.33,
-      "sector": "Materials"
+      "score_composite": 93.1,
+      "score_momentum": 93.1,
+      "ret_6m": 50.53,
+      "ret_12m": 70.75,
+      "sector": "Financials"
     },
-    "VTRS": {
+    "TGT": {
       "target_weight": 0.05,
-      "score_composite": 93.3,
-      "score_momentum": 93.3,
-      "ret_6m": 36.29,
-      "ret_12m": 108.83,
-      "sector": "Health Care"
+      "score_composite": 92.6,
+      "score_momentum": 92.6,
+      "ret_6m": 43.81,
+      "ret_12m": 74.41,
+      "sector": "Consumer Staples"
     },
     "NUE": {
       "target_weight": 0.05,
-      "score_composite": 93.2,
-      "score_momentum": 93.2,
-      "ret_6m": 45.62,
-      "ret_12m": 82.24,
+      "score_composite": 91.9,
+      "score_momentum": 91.9,
+      "ret_6m": 41.96,
+      "ret_12m": 70.1,
       "sector": "Materials"
     }
   }

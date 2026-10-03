@@ -19,6 +19,7 @@
 {"date": "2026-10-01", "strategy": "FMTS AMA", "type": "rebalance", "detail": "Rotated 14 out / 14 in (2026-10-02)", "source": "engine", "realized_pnl": -465.41, "tickers": ["AME", "WTS", "GGG", "FFIV", "EXPD", "AIT", "TTC", "PG", "CVX", "EOG", "SNA", "ADI", "LIN", "RBC"]}
 {"date": "2026-10-01", "strategy": "FourPillar", "type": "rebalance", "detail": "SectorEW rotated to XLE, XLK, XLV", "source": "engine"}
 {"date": "2026-10-01", "strategy": "FourPillar", "type": "rebalance", "detail": "FMTS rotated to 18 names", "source": "engine"}
+{"date": "2026-10-01", "strategy": "Momentum Daily", "type": "rebalance", "detail": "Stock rotation while invested (2026-09-01)", "source": "engine", "realized_pnl": 102.21, "tickers": ["MRNA", "MRVL", "AMD", "CRL", "STT", "TGT"]}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-09-02", "strategy": "OTP2.0", "type": "reload", "detail": "Reloaded to 66% invested", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}
