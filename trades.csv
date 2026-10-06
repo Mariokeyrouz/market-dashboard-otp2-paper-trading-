@@ -755,3 +755,8 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-10-01,Momentum Daily,MRVL,buy,1.878553,268.3481,504.11,0.5,,,rebalance,engine
 2026-10-01,Momentum Daily,STX,sell,0.008768,946.5156,8.3,0.01,922.6768,0.21,rebalance,engine
 2026-10-01,Momentum Daily,NUE,buy,0.025174,236.216,5.95,0.01,236.8516,,rebalance,engine
+2026-10-02,OTP2.0 AMA,GS,sell,0.001124,902.56,1.01,0.0,1034.0921,-0.15,vol-target,engine
+2026-10-02,OTP2.0 AMA,JPM,sell,0.003431,332.38,1.14,0.0,344.94,-0.04,vol-target,engine
+2026-10-02,OTP2.0 AMA,JNJ,sell,0.004362,256.03,1.12,0.0,264.81,-0.04,vol-target,engine
+2026-10-02,OTP2.0 AMA,GOOGL,sell,0.003188,343.5,1.1,0.0,350.3207,-0.02,vol-target,engine
+2026-10-02,OTP2.0 AMA,AVGO,sell,0.003183,355.14,1.13,0.0,368.8338,-0.04,vol-target,engine
