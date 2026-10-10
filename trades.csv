@@ -788,3 +788,24 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-10-08,OTP2.0 AMA,IBM,buy,0.00649,226.61,1.47,0.0,254.2758,,vol-target,engine
 2026-10-08,OTP2.0 AMA,GS,buy,0.00184,882.59,1.62,0.0,1033.9535,,vol-target,engine
 2026-10-08,OTP2.0 AMA,GE,buy,0.004977,305.62,1.52,0.0,353.7816,,vol-target,engine
+2026-10-09,OTP2.0,IBM,buy,0.077536,227.13,17.61,0.02,246.9967,,vol-target,engine
+2026-10-09,OTP2.0,GOOGL,buy,0.058687,351.66,20.64,0.02,350.4854,,vol-target,engine
+2026-10-09,OTP2.0,JPM,buy,0.065816,332.99,21.92,0.02,341.5153,,vol-target,engine
+2026-10-09,OTP2.0,GS,buy,0.019862,895.32,17.78,0.02,1048.0541,,vol-target,engine
+2026-10-09,OTP2.0,GE,buy,0.062954,308.2,19.4,0.02,341.1172,,vol-target,engine
+2026-10-09,OTP2.0,AVGO,buy,0.055247,361.54,19.97,0.02,377.6009,,vol-target,engine
+2026-10-09,OTP2.0,JNJ,buy,0.087634,261.44,22.91,0.02,257.108,,vol-target,engine
+2026-10-09,OTP2.0 AMA,GS,buy,0.018995,895.32,17.01,0.02,1033.6171,,vol-target,engine
+2026-10-09,OTP2.0 AMA,JNJ,buy,0.073729,261.44,19.28,0.02,264.7839,,vol-target,engine
+2026-10-09,OTP2.0 AMA,GE,buy,0.051372,308.2,15.83,0.02,353.6745,,vol-target,engine
+2026-10-09,OTP2.0 AMA,GOOGL,buy,0.053885,351.66,18.95,0.02,350.3153,,vol-target,engine
+2026-10-09,OTP2.0 AMA,AVGO,buy,0.053804,361.54,19.45,0.02,368.818,,vol-target,engine
+2026-10-09,OTP2.0 AMA,IBM,buy,0.066986,227.13,15.21,0.02,254.2143,,vol-target,engine
+2026-10-09,OTP2.0 AMA,JPM,buy,0.057984,332.99,19.31,0.02,344.896,,vol-target,engine
+2026-10-09,FourPillar,GS,buy,0.005188,895.32,4.64,0.0,1027.4923,,vol-target,engine
+2026-10-09,FourPillar,JPM,buy,0.015034,332.99,5.01,0.01,356.3772,,vol-target,engine
+2026-10-09,FourPillar,GOOGL,buy,0.014973,351.66,5.27,0.01,350.3239,,vol-target,engine
+2026-10-09,FourPillar,IBM,buy,0.022947,227.13,5.21,0.01,233.5736,,vol-target,engine
+2026-10-09,FourPillar,JNJ,buy,0.020844,261.44,5.45,0.01,262.883,,vol-target,engine
+2026-10-09,FourPillar,GE,buy,0.014301,308.2,4.41,0.0,358.7638,,vol-target,engine
+2026-10-09,FourPillar,AVGO,buy,0.012736,361.54,4.6,0.0,397.1961,,vol-target,engine
