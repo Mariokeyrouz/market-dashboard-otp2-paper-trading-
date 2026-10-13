@@ -809,3 +809,24 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-10-09,FourPillar,JNJ,buy,0.020844,261.44,5.45,0.01,262.883,,vol-target,engine
 2026-10-09,FourPillar,GE,buy,0.014301,308.2,4.41,0.0,358.7638,,vol-target,engine
 2026-10-09,FourPillar,AVGO,buy,0.012736,361.54,4.6,0.0,397.1961,,vol-target,engine
+2026-10-12,OTP2.0,GS,buy,0.0214,893.95,19.13,0.02,1044.2491,,vol-target,engine
+2026-10-12,OTP2.0,GE,buy,0.067828,308.64,20.93,0.02,340.2972,,vol-target,engine
+2026-10-12,OTP2.0,AVGO,buy,0.059525,354.73,21.12,0.02,377.2008,,vol-target,engine
+2026-10-12,OTP2.0,JNJ,buy,0.09442,263.73,24.9,0.02,257.2159,,vol-target,engine
+2026-10-12,OTP2.0,GOOGL,buy,0.063231,352.72,22.3,0.02,350.5146,,vol-target,engine
+2026-10-12,OTP2.0,JPM,buy,0.070912,334.3,23.71,0.02,341.3029,,vol-target,engine
+2026-10-12,OTP2.0,IBM,buy,0.08354,227.02,18.97,0.02,246.5017,,vol-target,engine
+2026-10-12,OTP2.0 AMA,GE,buy,0.058265,308.64,17.98,0.02,352.6547,,vol-target,engine
+2026-10-12,OTP2.0 AMA,IBM,buy,0.075974,227.02,17.25,0.02,253.6069,,vol-target,engine
+2026-10-12,OTP2.0 AMA,JNJ,buy,0.083622,263.73,22.05,0.02,264.7089,,vol-target,engine
+2026-10-12,OTP2.0 AMA,JPM,buy,0.065764,334.3,21.98,0.02,344.629,,vol-target,engine
+2026-10-12,OTP2.0 AMA,AVGO,buy,0.061024,354.73,21.65,0.02,368.6548,,vol-target,engine
+2026-10-12,OTP2.0 AMA,GOOGL,buy,0.061115,352.72,21.56,0.02,350.3455,,vol-target,engine
+2026-10-12,OTP2.0 AMA,GS,buy,0.021544,893.95,19.26,0.02,1030.5155,,vol-target,engine
+2026-10-12,FourPillar,AVGO,buy,0.013691,354.73,4.86,0.0,396.3065,,vol-target,engine
+2026-10-12,FourPillar,JPM,buy,0.01616,334.3,5.4,0.01,355.7937,,vol-target,engine
+2026-10-12,FourPillar,IBM,buy,0.024666,227.02,5.6,0.01,233.4128,,vol-target,engine
+2026-10-12,FourPillar,GOOGL,buy,0.016095,352.72,5.68,0.01,350.3572,,vol-target,engine
+2026-10-12,FourPillar,GS,buy,0.005576,893.95,4.98,0.0,1024.1945,,vol-target,engine
+2026-10-12,FourPillar,JNJ,buy,0.022406,263.73,5.91,0.01,262.847,,vol-target,engine
+2026-10-12,FourPillar,GE,buy,0.015373,308.64,4.74,0.0,357.5022,,vol-target,engine
