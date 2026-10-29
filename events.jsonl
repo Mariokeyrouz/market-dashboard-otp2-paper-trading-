@@ -21,6 +21,7 @@
 {"date": "2026-10-01", "strategy": "FourPillar", "type": "rebalance", "detail": "FMTS rotated to 18 names", "source": "engine"}
 {"date": "2026-10-01", "strategy": "Momentum Daily", "type": "rebalance", "detail": "Stock rotation while invested (2026-09-01)", "source": "engine", "realized_pnl": 102.21, "tickers": ["MRNA", "MRVL", "AMD", "CRL", "STT", "TGT"]}
 {"date": "2026-10-19", "strategy": "FourPillar", "type": "rebalance", "detail": "Band breach (25.0% drift) - reset to Gold 33% / SectorEW 33% / FMTS 0% / OTP2.0 33%", "source": "engine"}
+{"date": "2026-10-29", "strategy": "RRG", "type": "rebalance", "detail": "rotated to CRM, NVR, SKYD, ZTS, ADBE, AMGN, MKC, MAR, PEG, CMCSA, PG, AEP", "source": "engine", "tickers": ["CRM", "NVR", "SKYD", "ZTS", "ADBE", "AMGN", "MKC", "MAR", "PEG", "CMCSA", "PG", "AEP"]}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-09-02", "strategy": "OTP2.0", "type": "reload", "detail": "Reloaded to 66% invested", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}

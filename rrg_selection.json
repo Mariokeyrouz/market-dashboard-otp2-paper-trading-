@@ -1,8 +1,16 @@
 {
-  "as_of": "2026-10-01",
+  "as_of": "2026-10-29",
   "n_holdings": 12,
   "strategy": "RRG top-N by score, equal weight, sector-capped",
   "holdings": {
+    "CRM": {
+      "ticker": "CRM",
+      "sector": "Information Technology",
+      "sector_etf": "XLK",
+      "rrg_score": 100.0,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
     "NVR": {
       "ticker": "NVR",
       "sector": "Consumer Discretionary",
@@ -11,93 +19,85 @@
       "quadrant": "Improving",
       "setup": "Improving"
     },
-    "COO": {
-      "ticker": "COO",
-      "sector": "Health Care",
-      "sector_etf": "XLV",
+    "SKYD": {
+      "ticker": "SKYD",
+      "sector": "Communication Services",
+      "sector_etf": "XLC",
       "rrg_score": 100.0,
       "quadrant": "Improving",
       "setup": "Improving -> potential leader"
     },
-    "CLX": {
-      "ticker": "CLX",
-      "sector": "Consumer Staples",
-      "sector_etf": "XLP",
-      "rrg_score": 100.0,
-      "quadrant": "Improving",
-      "setup": "Improving -> potential leader"
-    },
-    "BKR": {
-      "ticker": "BKR",
-      "sector": "Energy",
-      "sector_etf": "XLE",
-      "rrg_score": 100.0,
-      "quadrant": "Lagging",
-      "setup": "Lagging"
-    },
-    "SHW": {
-      "ticker": "SHW",
-      "sector": "Materials",
-      "sector_etf": "XLB",
-      "rrg_score": 100.0,
-      "quadrant": "Improving",
-      "setup": "Improving -> potential leader"
-    },
-    "JPM": {
-      "ticker": "JPM",
-      "sector": "Financials",
-      "sector_etf": "XLF",
-      "rrg_score": 98.59154929577464,
-      "quadrant": "Leading",
-      "setup": "Leading"
-    },
-    "JNJ": {
-      "ticker": "JNJ",
+    "ZTS": {
+      "ticker": "ZTS",
       "sector": "Health Care",
       "sector_etf": "XLV",
       "rrg_score": 98.21428571428572,
-      "quadrant": "Leading",
-      "setup": "Established leader"
-    },
-    "BRO": {
-      "ticker": "BRO",
-      "sector": "Financials",
-      "sector_etf": "XLF",
-      "rrg_score": 97.1830985915493,
       "quadrant": "Improving",
       "setup": "Improving -> potential leader"
     },
-    "PKG": {
-      "ticker": "PKG",
-      "sector": "Materials",
-      "sector_etf": "XLB",
-      "rrg_score": 95.45454545454544,
-      "quadrant": "Leading",
-      "setup": "Leading"
-    },
-    "VLO": {
-      "ticker": "VLO",
-      "sector": "Energy",
-      "sector_etf": "XLE",
-      "rrg_score": 94.73684210526316,
-      "quadrant": "Leading",
-      "setup": "Leading"
-    },
-    "DPZ": {
-      "ticker": "DPZ",
-      "sector": "Consumer Discretionary",
-      "sector_etf": "XLY",
-      "rrg_score": 93.02325581395348,
+    "ADBE": {
+      "ticker": "ADBE",
+      "sector": "Information Technology",
+      "sector_etf": "XLK",
+      "rrg_score": 96.875,
       "quadrant": "Improving",
-      "setup": "Improving -> potential leader"
+      "setup": "Improving"
+    },
+    "AMGN": {
+      "ticker": "AMGN",
+      "sector": "Health Care",
+      "sector_etf": "XLV",
+      "rrg_score": 94.64285714285714,
+      "quadrant": "Leading",
+      "setup": "Leading"
     },
     "MKC": {
       "ticker": "MKC",
       "sector": "Consumer Staples",
       "sector_etf": "XLP",
+      "rrg_score": 93.33333333333331,
+      "quadrant": "Improving",
+      "setup": "Improving"
+    },
+    "MAR": {
+      "ticker": "MAR",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 93.02325581395348,
+      "quadrant": "Weakening",
+      "setup": "Weakening"
+    },
+    "PEG": {
+      "ticker": "PEG",
+      "sector": "Utilities",
+      "sector_etf": "XLU",
+      "rrg_score": 92.85714285714286,
+      "quadrant": "Lagging",
+      "setup": "Lagging"
+    },
+    "CMCSA": {
+      "ticker": "CMCSA",
+      "sector": "Communication Services",
+      "sector_etf": "XLC",
+      "rrg_score": 90.0,
+      "quadrant": "Improving",
+      "setup": "Improving -> potential leader"
+    },
+    "PG": {
+      "ticker": "PG",
+      "sector": "Consumer Staples",
+      "sector_etf": "XLP",
       "rrg_score": 90.0,
       "quadrant": "Improving",
       "setup": "Improving"
+    },
+    "AEP": {
+      "ticker": "AEP",
+      "sector": "Utilities",
+      "sector_etf": "XLU",
+      "rrg_score": 85.71428571428571,
+      "quadrant": "Weakening",
+      "setup": "Weakening"
     }
   }
 }
