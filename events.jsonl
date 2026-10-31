@@ -24,8 +24,10 @@
 {"date": "2026-10-29", "strategy": "RRG", "type": "rebalance", "detail": "rotated to CRM, NVR, SKYD, ZTS, ADBE, AMGN, MKC, MAR, PEG, CMCSA, PG, AEP", "source": "engine", "tickers": ["CRM", "NVR", "SKYD", "ZTS", "ADBE", "AMGN", "MKC", "MAR", "PEG", "CMCSA", "PG", "AEP"]}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-09-02", "strategy": "OTP2.0", "type": "reload", "detail": "Reloaded to 66% invested", "source": "backfill"}
+{"date": "2026-10-30", "strategy": "OTP2.0", "type": "trim", "detail": "Trimmed to 51% invested", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "OTP2.0 AMA", "type": "seed", "detail": "Seeded at $9,997", "source": "backfill"}
 {"date": "2026-09-02", "strategy": "OTP2.0 AMA", "type": "reload", "detail": "Reloaded to 64% invested", "source": "backfill"}
+{"date": "2026-10-30", "strategy": "OTP2.0 AMA", "type": "trim", "detail": "Trimmed to 51% invested", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "FMTS", "type": "seed", "detail": "Seeded at $9,990", "source": "backfill"}
 {"date": "2026-07-02", "strategy": "FMTS AMA", "type": "seed", "detail": "Seeded at $9,990", "source": "backfill"}
 {"date": "2026-08-11", "strategy": "FMTS AMA", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
@@ -51,3 +53,4 @@
 {"date": "2026-10-21", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
 {"date": "2026-10-22", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
 {"date": "2026-10-23", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
+{"date": "2026-10-30", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
