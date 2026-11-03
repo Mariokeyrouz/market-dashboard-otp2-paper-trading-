@@ -1195,3 +1195,51 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-10-30,FourPillar,IBM,sell,0.1558,257.81,40.17,0.04,234.0044,3.71,trim,engine
 2026-10-30,FourPillar,GS,sell,0.035221,894.55,31.51,0.03,1005.0304,-3.89,trim,engine
 2026-10-30,FourPillar,AVGO,sell,0.086474,326.08,28.2,0.03,388.7049,-5.42,trim,engine
+2026-11-02,Momentum,MU,buy,0.093386,834.4236,77.92,0.08,1066.1751,,rebalance,engine
+2026-11-02,Momentum,STX,buy,0.253284,594.3538,150.54,0.15,923.2624,,rebalance,engine
+2026-11-02,Momentum,BE,buy,0.593891,196.4462,116.67,0.12,277.257,,rebalance,engine
+2026-11-02,Momentum,SNDK,buy,0.152448,1076.155,164.06,0.16,1741.6299,,rebalance,engine
+2026-11-02,Momentum,HUM,buy,1.185783,410.8204,487.14,0.49,,,rebalance,engine
+2026-11-02,Momentum,VLO,sell,0.071853,381.8415,27.44,0.03,387.9976,-0.44,rebalance,engine
+2026-11-02,Momentum,MRVL,buy,0.8621,171.5814,147.92,0.15,264.4742,,rebalance,engine
+2026-11-02,Momentum,ILMN,buy,0.239208,226.8066,54.25,0.05,273.9537,,rebalance,engine
+2026-11-02,Momentum,PSX,sell,0.276555,275.315,76.14,0.08,255.5653,5.46,rebalance,engine
+2026-11-02,Momentum,TWLO,buy,2.344206,207.8076,487.14,0.49,,,rebalance,engine
+2026-11-02,Momentum,VTRS,buy,26.06627,18.6887,487.14,0.49,,,rebalance,engine
+2026-11-02,Momentum,CNC,sell,1.093936,66.5965,72.85,0.07,62.1821,4.83,rebalance,engine
+2026-11-02,Momentum,NUE,sell,0.481897,277.9276,133.93,0.13,233.9837,21.18,rebalance,engine
+2026-11-02,Momentum,MRNA,sell,0.508777,221.0508,112.47,0.11,192.7626,14.39,rebalance,engine
+2026-11-02,Momentum,MPC,sell,0.190275,430.8204,81.97,0.08,395.8154,6.66,rebalance,engine
+2026-11-02,Momentum,HPE,sell,8.175834,55.09,450.41,0.45,63.9539,-72.47,rebalance,engine
+2026-11-02,Momentum,STT,sell,2.99189,169.77,507.93,0.51,174.7646,-14.94,rebalance,engine
+2026-11-02,Momentum,RVTY,buy,3.21014,151.7516,487.14,0.49,,,rebalance,engine
+2026-11-02,Momentum,DELL,buy,0.267999,393.1728,105.37,0.11,538.488,,rebalance,engine
+2026-11-02,Momentum,AMD,buy,0.188595,467.3068,88.13,0.09,612.3718,,rebalance,engine
+2026-11-02,Momentum,TGT,sell,3.333678,154.38,514.65,0.51,156.8467,-8.22,rebalance,engine
+2026-11-02,Momentum,APA,sell,12.574724,52.82,664.2,0.66,41.5815,141.32,rebalance,engine
+2026-11-02,Momentum,CRL,sell,0.333114,338.8785,112.89,0.11,295.305,14.51,rebalance,engine
+2026-11-02,Momentum,INTC,buy,3.770389,60.03,226.34,0.23,120.3502,,rebalance,engine
+2026-11-02,Momentum Daily,INTC,buy,3.540004,60.03,212.51,0.21,120.12,,rebalance,engine
+2026-11-02,Momentum Daily,DELL,buy,0.251643,393.1728,98.94,0.1,542.2817,,rebalance,engine
+2026-11-02,Momentum Daily,TGT,sell,3.213799,154.38,496.15,0.5,156.8567,-7.96,rebalance,engine
+2026-11-02,Momentum Daily,SNDK,buy,0.149862,1076.155,161.27,0.16,1789.4776,,rebalance,engine
+2026-11-02,Momentum Daily,HUM,buy,1.130502,410.8204,464.43,0.46,,,rebalance,engine
+2026-11-02,Momentum Daily,MU,buy,0.097683,834.4236,81.51,0.08,1098.4874,,rebalance,engine
+2026-11-02,Momentum Daily,RVTY,buy,3.060483,151.7516,464.43,0.46,,,rebalance,engine
+2026-11-02,Momentum Daily,PSX,sell,0.219008,275.315,60.3,0.06,264.4942,2.37,rebalance,engine
+2026-11-02,Momentum Daily,VLO,sell,0.016631,381.8415,6.35,0.01,408.8685,-0.45,rebalance,engine
+2026-11-02,Momentum Daily,STT,sell,2.88399,169.77,489.62,0.49,174.7946,-14.49,rebalance,engine
+2026-11-02,Momentum Daily,STX,buy,0.248818,594.3538,147.89,0.15,946.5156,,rebalance,engine
+2026-11-02,Momentum Daily,ILMN,buy,0.152469,226.8066,34.58,0.03,265.9857,,rebalance,engine
+2026-11-02,Momentum Daily,AMD,buy,0.175956,467.3068,82.23,0.08,616.3457,,rebalance,engine
+2026-11-02,Momentum Daily,TWLO,buy,2.234919,207.8076,464.43,0.46,,,rebalance,engine
+2026-11-02,Momentum Daily,APA,sell,11.619805,52.82,613.76,0.61,43.3833,109.65,rebalance,engine
+2026-11-02,Momentum Daily,BE,buy,0.549914,196.4462,108.03,0.11,277.8576,,rebalance,engine
+2026-11-02,Momentum Daily,HPE,sell,7.798116,55.09,429.6,0.43,64.6446,-74.51,rebalance,engine
+2026-11-02,Momentum Daily,MPC,sell,0.120605,430.8204,51.96,0.05,420.5701,1.24,rebalance,engine
+2026-11-02,Momentum Daily,MRNA,sell,0.564384,221.0508,124.76,0.12,189.1289,18.02,rebalance,engine
+2026-11-02,Momentum Daily,CNC,sell,1.283294,66.5965,85.46,0.09,61.051,7.12,rebalance,engine
+2026-11-02,Momentum Daily,MRVL,buy,0.828228,171.5814,142.11,0.14,268.3481,,rebalance,engine
+2026-11-02,Momentum Daily,NUE,sell,0.463031,277.9276,128.69,0.13,236.216,19.31,rebalance,engine
+2026-11-02,Momentum Daily,CRL,sell,0.385251,338.8785,130.55,0.13,287.1168,19.94,rebalance,engine
+2026-11-02,Momentum Daily,VTRS,buy,24.85106,18.6887,464.43,0.46,,,rebalance,engine
