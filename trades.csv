@@ -1243,3 +1243,31 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-11-02,Momentum Daily,NUE,sell,0.463031,277.9276,128.69,0.13,236.216,19.31,rebalance,engine
 2026-11-02,Momentum Daily,CRL,sell,0.385251,338.8785,130.55,0.13,287.1168,19.94,rebalance,engine
 2026-11-02,Momentum Daily,VTRS,buy,24.85106,18.6887,464.43,0.46,,,rebalance,engine
+2026-11-03,FMTS,PR,sell,25.270157,24.56,620.64,0.62,21.1411,86.4,rebalance,engine
+2026-11-03,FMTS,CRUS,sell,4.447121,111.48,495.77,0.5,120.09,-38.29,rebalance,engine
+2026-11-03,FMTS,BMY,buy,8.964218,61.7717,553.74,0.55,,,rebalance,engine
+2026-11-03,FMTS,GHC,sell,0.491083,1202.87,590.71,0.59,1135.8047,32.93,rebalance,engine
+2026-11-03,FMTS,CHRD,sell,3.871911,147.39,570.68,0.57,134.2041,51.05,rebalance,engine
+2026-11-03,FMTS,NFG,buy,7.207282,78.7086,567.28,0.57,,,rebalance,engine
+2026-11-03,FMTS,TDY,buy,0.867572,664.2936,576.32,0.58,,,rebalance,engine
+2026-11-03,FMTS,INGR,buy,0.532233,96.8768,51.56,0.05,95.9058,,rebalance,engine
+2026-11-03,FMTS,XOM,sell,3.232836,179.67,580.84,0.58,162.9127,54.17,rebalance,engine
+2026-11-03,FMTS,GNTX,buy,2.751431,20.1101,55.33,0.06,21.7617,,rebalance,engine
+2026-11-03,FMTS,VZ,buy,0.725808,45.2852,32.87,0.03,45.9159,,rebalance,engine
+2026-11-03,FMTS,OVV,sell,9.481441,67.78,642.65,0.64,57.8778,93.89,rebalance,engine
+2026-11-03,FMTS,SNA,buy,0.106652,362.402,38.65,0.04,363.7134,,rebalance,engine
+2026-11-03,FMTS,BYD,buy,7.625568,76.8368,585.92,0.59,,,rebalance,engine
+2026-11-03,FMTS,ROP,buy,1.156422,474.0536,548.21,0.55,,,rebalance,engine
+2026-11-03,FMTS,ZBH,buy,5.624103,97.1571,546.42,0.55,,,rebalance,engine
+2026-11-03,FMTS,AOS,buy,8.733029,63.9038,558.07,0.56,,,rebalance,engine
+2026-11-03,FMTS,DOV,sell,2.781883,215.91,600.64,0.6,187.2371,79.76,rebalance,engine
+2026-11-03,FMTS,KMI,sell,0.514877,32.9029,16.94,0.02,30.1801,1.4,rebalance,engine
+2026-11-03,FMTS,GGG,sell,6.887997,69.0,475.27,0.48,76.9168,-54.53,rebalance,engine
+2026-11-03,FMTS,T,sell,22.614495,21.44,484.85,0.48,24.4244,-67.49,rebalance,engine
+2026-11-03,FMTS,UGI,sell,15.174851,38.73,587.72,0.59,35.7057,45.89,rebalance,engine
+2026-11-03,FMTS,CMCSA,buy,24.799269,23.6937,587.59,0.59,,,rebalance,engine
+2026-11-03,FMTS,RS,buy,1.241829,444.2838,551.72,0.55,,,rebalance,engine
+2026-11-03,FMTS,CVX,sell,0.141221,225.4953,31.84,0.03,204.4142,2.98,rebalance,engine
+2026-11-03,FMTS,EOG,sell,0.470785,155.3252,73.12,0.07,137.8978,8.2,rebalance,engine
+2026-11-03,FMTS,SSD,buy,2.828494,197.0469,557.35,0.56,,,rebalance,engine
+2026-11-03,FMTS,SIRI,sell,0.87899,30.8308,27.1,0.03,25.9059,4.33,rebalance,engine
