@@ -27,6 +27,7 @@
 {"date": "2026-11-02", "strategy": "FourPillar", "type": "rebalance", "detail": "SectorEW rotated to XLE, XLK, XLV", "source": "engine"}
 {"date": "2026-11-02", "strategy": "FourPillar", "type": "rebalance", "detail": "FMTS rotated to 18 names", "source": "engine"}
 {"date": "2026-11-03", "strategy": "FMTS", "type": "rebalance", "detail": "Rotated 10 out / 10 in (2026-11-04)", "source": "engine", "realized_pnl": 528.56, "tickers": ["CMCSA", "BYD", "TDY", "NFG", "AOS", "SSD", "BMY", "RS", "ROP", "ZBH"]}
+{"date": "2026-11-04", "strategy": "FMTS AMA", "type": "rebalance", "detail": "Rotated 11 out / 11 in (2026-11-05)", "source": "engine", "realized_pnl": 198.25, "tickers": ["CHD", "MSI", "MNST", "GILD", "VLTO", "TDY", "UNP", "KO", "CSX", "ECL", "ITW"]}
 {"date": "2026-06-12", "strategy": "OTP2.0", "type": "seed", "detail": "Seeded at $9,996", "source": "backfill"}
 {"date": "2026-09-02", "strategy": "OTP2.0", "type": "reload", "detail": "Reloaded to 66% invested", "source": "backfill"}
 {"date": "2026-10-30", "strategy": "OTP2.0", "type": "trim", "detail": "Trimmed to 51% invested", "source": "backfill"}
@@ -59,3 +60,4 @@
 {"date": "2026-10-22", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
 {"date": "2026-10-23", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
 {"date": "2026-10-30", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}
+{"date": "2026-11-04", "strategy": "FourPillar", "type": "rebalance", "detail": "Rebalanced holdings", "source": "backfill"}

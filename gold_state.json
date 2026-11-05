@@ -5,12 +5,12 @@
   "gld_shares": 0.0,
   "entry_price": null,
   "entry_date": null,
-  "cash_dollars": 10144.69967956482,
-  "nav": 10144.69967956482,
+  "cash_dollars": 10146.359919341456,
+  "nav": 10146.359919341456,
   "trading_cost": 0.0,
-  "last_date": "2026-11-03",
-  "last_gld_price": 359.260009765625,
-  "signal_tips_falling": true,
+  "last_date": "2026-11-04",
+  "last_gld_price": 372.489990234375,
+  "signal_tips_falling": false,
   "signal_dxy_weak": false,
   "signal_regime_on": false
 }
