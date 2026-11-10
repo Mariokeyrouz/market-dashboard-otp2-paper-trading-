@@ -1,8 +1,8 @@
 {
-  "last_date": "2026-11-06",
-  "nav": 9818.129278470455,
+  "last_date": "2026-11-09",
+  "nav": 9917.00925921291,
   "invested": 1.0,
-  "invested_dollars": 9818.129278470455,
+  "invested_dollars": 9917.00925921291,
   "n_rebalances": 0,
   "trading_cost": 0.0,
   "last_fmts_month": "2026-11",
@@ -10,17 +10,19 @@
   "sleeves": {
     "Gold": {
       "shares": {
-        "GLD": 0.0
+        "GLD": 3.3968322276414193
       },
-      "entry_prices": {},
-      "cash_dollars": 2579.2788742055104,
-      "nav": 2579.2788742055104,
-      "invested": 0.0,
-      "hwm": null,
+      "entry_prices": {
+        "GLD": 379.5299987792969
+      },
+      "cash_dollars": 1289.1997312102242,
+      "nav": 2578.3994624204483,
+      "invested": 0.5,
+      "hwm": 379.5299987792969,
       "stop_active": false,
       "prev_tips_fall": true,
       "prev_dxy_scalar": 0.5,
-      "trading_cost": 2.58040010156261
+      "trading_cost": 3.870244755099603
     },
     "SectorEW": {
       "shares": {
@@ -33,12 +35,12 @@
         "RSPT": 61.551491680145254,
         "RSPH": 39.93990152740478
       },
-      "cash_dollars": 2.5820899650632847,
-      "nav": 2465.1650718105348,
+      "cash_dollars": 2.58250084525217,
+      "nav": 2520.955178032103,
       "trading_cost": 2.5075953803231634
     },
     "FMTS": {
-      "nav": 2414.082437230695,
+      "nav": 2436.125197965064,
       "peak_nav": 2500.0,
       "invested": 1.0,
       "stopped_out": false,
@@ -87,21 +89,21 @@
     },
     "OTP2.0": {
       "invested": 0.3,
-      "cooldown": 1,
-      "consec_vix_fall": 1,
-      "consec_rvol_fall": 1,
-      "invested_dollars": 707.8808685671146,
-      "cash_dollars": 1651.7220266566005,
-      "nav": 2359.602895223715,
-      "trading_cost": 2.238654723633655,
+      "cooldown": 0,
+      "consec_vix_fall": 2,
+      "consec_rvol_fall": 0,
+      "invested_dollars": 714.458826238588,
+      "cash_dollars": 1667.0705945567054,
+      "nav": 2381.5294207952934,
+      "trading_cost": 2.2537510254002786,
       "shares": {
-        "GE": 0.30195347474312173,
-        "GS": 0.10952824487432812,
-        "GOOGL": 0.3161332502559912,
-        "AVGO": 0.2689128285648153,
-        "IBM": 0.4844993095474431,
-        "JPM": 0.31741979835485307,
-        "JNJ": 0.44009909504244576
+        "GE": 0.29570347414983705,
+        "GS": 0.10726116847777946,
+        "GOOGL": 0.30958974879988826,
+        "AVGO": 0.2633467216024703,
+        "IBM": 0.474470873959167,
+        "JPM": 0.3108496672122131,
+        "JNJ": 0.43098967973447705
       },
       "entry_prices": {
         "GE": 350.18560582520513,
