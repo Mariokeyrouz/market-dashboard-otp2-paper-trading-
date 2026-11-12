@@ -1,8 +1,8 @@
 {
-  "last_date": "2026-11-10",
-  "nav": 9888.424256857546,
+  "last_date": "2026-11-11",
+  "nav": 9963.511270258321,
   "invested": 1.0,
-  "invested_dollars": 9888.424256857546,
+  "invested_dollars": 9963.511270258321,
   "n_rebalances": 0,
   "trading_cost": 0.0,
   "last_fmts_month": "2026-11",
@@ -10,19 +10,17 @@
   "sleeves": {
     "Gold": {
       "shares": {
-        "GLD": 3.443854317714424
+        "GLD": 0.0
       },
-      "entry_prices": {
-        "GLD": 369.3599853515625
-      },
-      "cash_dollars": 1272.021980343915,
-      "nav": 2544.04396068783,
-      "invested": 0.5,
-      "hwm": 379.5299987792969,
+      "entry_prices": {},
+      "cash_dollars": 2528.56165233402,
+      "nav": 2528.56165233402,
+      "invested": 0.0,
+      "hwm": null,
       "stop_active": false,
       "prev_tips_fall": false,
       "prev_dxy_scalar": 0.5,
-      "trading_cost": 3.88762152198361
+      "trading_cost": 5.145213849426547
     },
     "SectorEW": {
       "shares": {
@@ -35,12 +33,12 @@
         "RSPT": 61.551491680145254,
         "RSPH": 39.93990152740478
       },
-      "cash_dollars": 2.582916914832794,
-      "nav": 2523.604889158547,
+      "cash_dollars": 2.58333305144685,
+      "nav": 2566.929154329593,
       "trading_cost": 2.5075953803231634
     },
     "FMTS": {
-      "nav": 2436.125197965065,
+      "nav": 2472.555454941285,
       "peak_nav": 2500.0,
       "invested": 1.0,
       "stopped_out": false,
@@ -90,20 +88,20 @@
     "OTP2.0": {
       "invested": 0.3,
       "cooldown": 0,
-      "consec_vix_fall": 3,
+      "consec_vix_fall": 4,
       "consec_rvol_fall": 0,
-      "invested_dollars": 715.3950627138312,
-      "cash_dollars": 1669.255146332273,
-      "nav": 2384.650209046104,
-      "trading_cost": 2.255668335697264,
+      "invested_dollars": 718.6395025960269,
+      "cash_dollars": 1676.825506057396,
+      "nav": 2395.465008653423,
+      "trading_cost": 2.2629748744481595,
       "shares": {
-        "GE": 0.294912849355099,
-        "GS": 0.1069743834152944,
-        "GOOGL": 0.30876199615916716,
-        "AVGO": 0.26264260932137345,
-        "IBM": 0.47320227730702524,
-        "JPM": 0.3100185459173394,
-        "JNJ": 0.4298373391065762
+        "GE": 0.29194371395301244,
+        "GS": 0.10589738243141293,
+        "GOOGL": 0.3056534297619423,
+        "AVGO": 0.25999836553498795,
+        "IBM": 0.4684381524580312,
+        "JPM": 0.3068973287781085,
+        "JNJ": 0.42550980552005785
       },
       "entry_prices": {
         "GE": 350.18560582520513,

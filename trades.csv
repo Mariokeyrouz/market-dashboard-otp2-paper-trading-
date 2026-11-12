@@ -1427,3 +1427,21 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-11-10,OTP2.0 AMA,JPM,sell,0.004504,342.07,1.54,0.0,343.1433,-0.0,vol-target,engine
 2026-11-10,OTP2.0 AMA,AVGO,sell,0.004179,331.98,1.39,0.0,364.9497,-0.14,vol-target,engine
 2026-11-10,OTP2.0 AMA,IBM,sell,0.005203,244.53,1.27,0.0,251.405,-0.04,vol-target,engine
+2026-11-11,OTP2.0,JNJ,sell,0.018108,280.41,5.08,0.01,257.1313,0.42,vol-target,engine
+2026-11-11,OTP2.0,GE,sell,0.013008,342.75,4.46,0.0,335.3546,0.1,vol-target,engine
+2026-11-11,OTP2.0,GS,sell,0.004104,926.81,3.8,0.0,1022.0894,-0.39,vol-target,engine
+2026-11-11,OTP2.0,AVGO,sell,0.011416,345.22,3.94,0.0,372.243,-0.31,vol-target,engine
+2026-11-11,OTP2.0,GOOGL,sell,0.012127,293.45,3.56,0.0,349.5216,-0.68,vol-target,engine
+2026-11-11,OTP2.0,IBM,sell,0.016022,248.22,3.98,0.0,245.2479,0.05,vol-target,engine
+2026-11-11,OTP2.0,JPM,sell,0.0136,343.39,4.67,0.0,340.2571,0.04,vol-target,engine
+2026-11-11,OTP2.0 AMA,GE,sell,0.012199,342.75,4.18,0.0,346.0677,-0.04,vol-target,engine
+2026-11-11,OTP2.0 AMA,AVGO,sell,0.012776,345.22,4.41,0.0,364.9497,-0.25,vol-target,engine
+2026-11-11,OTP2.0 AMA,GS,sell,0.004511,926.81,4.18,0.0,1010.6396,-0.38,vol-target,engine
+2026-11-11,OTP2.0 AMA,JPM,sell,0.013769,343.39,4.73,0.0,343.1433,0.0,vol-target,engine
+2026-11-11,OTP2.0 AMA,IBM,sell,0.015907,248.22,3.95,0.0,251.405,-0.05,vol-target,engine
+2026-11-11,OTP2.0 AMA,JNJ,sell,0.017508,280.41,4.91,0.0,263.5892,0.29,vol-target,engine
+2026-11-11,OTP2.0 AMA,GOOGL,sell,0.012796,293.45,3.75,0.0,349.3428,-0.72,vol-target,engine
+2026-11-11,FourPillar,GE,sell,0.002969,342.75,1.02,0.0,350.1856,-0.02,vol-target,engine
+2026-11-11,FourPillar,JNJ,sell,0.004328,280.41,1.21,0.0,261.9733,0.08,vol-target,engine
+2026-11-11,FourPillar,IBM,sell,0.004764,248.22,1.18,0.0,234.0044,0.07,vol-target,engine
+2026-11-11,FourPillar,JPM,sell,0.003121,343.39,1.07,0.0,352.7185,-0.03,vol-target,engine
