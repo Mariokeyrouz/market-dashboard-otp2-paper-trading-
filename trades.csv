@@ -1445,3 +1445,4 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-11-11,FourPillar,JNJ,sell,0.004328,280.41,1.21,0.0,261.9733,0.08,vol-target,engine
 2026-11-11,FourPillar,IBM,sell,0.004764,248.22,1.18,0.0,234.0044,0.07,vol-target,engine
 2026-11-11,FourPillar,JPM,sell,0.003121,343.39,1.07,0.0,352.7185,-0.03,vol-target,engine
+2026-11-12,OTP2.0 AMA,JNJ,sell,0.00357,283.52,1.01,0.0,263.5892,0.07,vol-target,engine
