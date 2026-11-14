@@ -1446,3 +1446,9 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-11-11,FourPillar,IBM,sell,0.004764,248.22,1.18,0.0,234.0044,0.07,vol-target,engine
 2026-11-11,FourPillar,JPM,sell,0.003121,343.39,1.07,0.0,352.7185,-0.03,vol-target,engine
 2026-11-12,OTP2.0 AMA,JNJ,sell,0.00357,283.52,1.01,0.0,263.5892,0.07,vol-target,engine
+2026-11-13,OTP2.0,JNJ,buy,0.00375,285.75,1.07,0.0,257.1313,,vol-target,engine
+2026-11-13,OTP2.0 AMA,GS,buy,0.001143,916.56,1.05,0.0,1010.6396,,vol-target,engine
+2026-11-13,OTP2.0 AMA,AVGO,buy,0.003238,347.01,1.12,0.0,364.9497,,vol-target,engine
+2026-11-13,OTP2.0 AMA,JPM,buy,0.00349,346.19,1.21,0.0,343.1433,,vol-target,engine
+2026-11-13,OTP2.0 AMA,GE,buy,0.003092,331.81,1.03,0.0,346.0677,,vol-target,engine
+2026-11-13,OTP2.0 AMA,JNJ,buy,0.004438,285.75,1.27,0.0,263.5892,,vol-target,engine
