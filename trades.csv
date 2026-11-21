@@ -1529,3 +1529,62 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-11-19,FourPillar,JPM,buy,0.005317,320.22,1.7,0.0,352.1848,,trim,engine
 2026-11-19,FourPillar,JNJ,buy,0.007372,267.14,1.97,0.0,262.5522,,trim,engine
 2026-11-19,FourPillar,GE,buy,0.005058,318.88,1.61,0.0,349.4507,,trim,engine
+2026-11-20,OTP2.0,GS,buy,0.011053,790.69,8.74,0.01,1015.3026,,vol-target,engine
+2026-11-20,OTP2.0,GE,buy,0.035032,309.62,10.85,0.01,334.8143,,vol-target,engine
+2026-11-20,OTP2.0,JPM,buy,0.036624,310.53,11.37,0.01,339.7917,,vol-target,engine
+2026-11-20,OTP2.0,AVGO,buy,0.030744,304.41,9.36,0.01,370.8145,,vol-target,engine
+2026-11-20,OTP2.0,IBM,buy,0.043146,224.44,9.68,0.01,244.7065,,vol-target,engine
+2026-11-20,OTP2.0,JNJ,buy,0.048766,270.47,13.19,0.01,257.998,,vol-target,engine
+2026-11-20,OTP2.0,GOOGL,buy,0.032657,265.29,8.66,0.01,346.325,,vol-target,engine
+2026-11-20,OTP2.0 AMA,AVGO,buy,0.035193,304.41,10.71,0.01,363.8443,,vol-target,engine
+2026-11-20,OTP2.0 AMA,GS,buy,0.012424,790.69,9.82,0.01,1004.3762,,vol-target,engine
+2026-11-20,OTP2.0 AMA,JPM,buy,0.037926,310.53,11.78,0.01,342.5573,,vol-target,engine
+2026-11-20,OTP2.0 AMA,GOOGL,buy,0.035245,265.29,9.35,0.01,346.1489,,vol-target,engine
+2026-11-20,OTP2.0 AMA,GE,buy,0.033601,309.62,10.4,0.01,345.0353,,vol-target,engine
+2026-11-20,OTP2.0 AMA,JNJ,buy,0.048225,270.47,13.04,0.01,264.1713,,vol-target,engine
+2026-11-20,OTP2.0 AMA,IBM,buy,0.043814,224.44,9.83,0.01,250.5917,,vol-target,engine
+2026-11-19,FMTS AMA,WTS,buy,0.005953,356.67,2.12,0.0,353.6785,,vol-target,engine
+2026-11-19,FMTS AMA,TTC,buy,0.019657,102.56,2.02,0.0,107.5762,,vol-target,engine
+2026-11-19,FMTS AMA,VLTO,buy,0.018539,116.08,2.15,0.0,117.1462,,vol-target,engine
+2026-11-19,FMTS AMA,MNST,buy,0.04534,43.94,1.99,0.0,48.7656,,vol-target,engine
+2026-11-19,FMTS AMA,PG,buy,0.012662,167.85,2.13,0.0,167.5157,,vol-target,engine
+2026-11-19,FMTS AMA,MSI,buy,0.00447,521.92,2.33,0.0,497.7313,,vol-target,engine
+2026-11-19,FMTS AMA,UNP,buy,0.006836,290.63,1.99,0.0,308.7569,,vol-target,engine
+2026-11-19,FMTS AMA,CL,buy,0.022207,96.88,2.15,0.0,98.8622,,vol-target,engine
+2026-11-19,FMTS AMA,KO,buy,0.021943,96.09,2.11,0.0,95.9172,,vol-target,engine
+2026-11-19,FMTS AMA,NDSN,buy,0.00629,316.81,1.99,0.0,330.9514,,vol-target,engine
+2026-11-19,FMTS AMA,GILD,buy,0.012634,166.53,2.1,0.0,174.6136,,vol-target,engine
+2026-11-19,FMTS AMA,ECL,buy,0.006619,297.32,1.97,0.0,315.2259,,vol-target,engine
+2026-11-19,FMTS AMA,CSX,buy,0.040241,49.98,2.01,0.0,52.0967,,vol-target,engine
+2026-11-19,FMTS AMA,LIN,buy,0.004082,510.21,2.08,0.0,525.1975,,vol-target,engine
+2026-11-19,FMTS AMA,ITW,buy,0.007093,276.89,1.96,0.0,293.6548,,vol-target,engine
+2026-11-19,FMTS AMA,CTAS,buy,0.009324,218.92,2.04,0.0,229.2115,,vol-target,engine
+2026-11-19,FMTS AMA,CHD,buy,0.01994,109.68,2.19,0.0,112.1441,,vol-target,engine
+2026-11-19,FMTS AMA,TDY,buy,0.003384,621.83,2.1,0.0,632.5868,,vol-target,engine
+2026-11-19,Momentum Daily,MRNA,sell,2.101025,199.33,418.8,0.42,221.0508,-45.64,risk-off,engine
+2026-11-19,Momentum Daily,AMD,sell,0.993851,489.19,486.18,0.49,467.3068,21.75,risk-off,engine
+2026-11-19,Momentum Daily,SNDK,sell,0.431567,94.395,40.74,0.04,1076.155,-423.7,risk-off,engine
+2026-11-19,Momentum Daily,ILMN,sell,2.047706,200.66,410.89,0.41,226.8066,-53.54,risk-off,engine
+2026-11-19,Momentum Daily,MPC,sell,1.078021,367.93,396.64,0.4,430.8204,-67.8,risk-off,engine
+2026-11-19,Momentum Daily,INTC,sell,7.73669,55.72,431.09,0.43,60.03,-33.34,risk-off,engine
+2026-11-19,Momentum Daily,BE,sell,2.364175,168.11,397.44,0.4,196.4462,-66.99,risk-off,engine
+2026-11-19,Momentum Daily,CNC,sell,6.973836,65.58,457.34,0.46,66.5965,-7.09,risk-off,engine
+2026-11-19,Momentum Daily,HUM,sell,1.130502,380.0,429.59,0.43,410.8204,-34.84,risk-off,engine
+2026-11-19,Momentum Daily,STX,sell,0.781409,521.39,407.42,0.41,594.3538,-57.01,risk-off,engine
+2026-11-19,Momentum Daily,VTRS,sell,24.85106,19.88,494.04,0.49,18.6887,29.61,risk-off,engine
+2026-11-19,Momentum Daily,VLO,sell,1.216299,338.46,411.67,0.41,381.8415,-52.76,risk-off,engine
+2026-11-19,Momentum Daily,MRVL,sell,2.706781,138.47,374.81,0.37,171.5814,-89.63,risk-off,engine
+2026-11-19,Momentum Daily,TWLO,sell,2.234919,178.78,399.56,0.4,207.8076,-64.87,risk-off,engine
+2026-11-19,Momentum Daily,RVTY,sell,3.060483,151.59,463.94,0.46,151.7516,-0.49,risk-off,engine
+2026-11-19,Momentum Daily,PSX,sell,1.686916,242.71,409.43,0.41,275.315,-55.0,risk-off,engine
+2026-11-19,Momentum Daily,CRL,sell,1.370501,327.93,449.43,0.45,338.8785,-15.01,risk-off,engine
+2026-11-19,Momentum Daily,NUE,sell,1.671058,247.43,413.47,0.41,277.9276,-50.96,risk-off,engine
+2026-11-19,Momentum Daily,DELL,sell,1.181245,312.54,369.19,0.37,393.1728,-95.25,risk-off,engine
+2026-11-19,Momentum Daily,MU,sell,0.556592,690.44,384.29,0.38,834.4236,-80.14,risk-off,engine
+2026-11-20,FourPillar,GS,buy,0.002791,790.69,2.21,0.0,998.8967,,vol-target,engine
+2026-11-20,FourPillar,GE,buy,0.007695,309.62,2.38,0.0,348.9452,,vol-target,engine
+2026-11-20,FourPillar,IBM,buy,0.012347,224.44,2.77,0.0,233.967,,vol-target,engine
+2026-11-20,FourPillar,JPM,buy,0.008089,310.53,2.51,0.0,351.6562,,vol-target,engine
+2026-11-20,FourPillar,GOOGL,buy,0.008056,265.29,2.14,0.0,346.1355,,vol-target,engine
+2026-11-20,FourPillar,AVGO,buy,0.006853,304.41,2.09,0.0,386.4859,,vol-target,engine
+2026-11-20,FourPillar,JNJ,buy,0.011216,270.47,3.03,0.0,262.6281,,vol-target,engine
