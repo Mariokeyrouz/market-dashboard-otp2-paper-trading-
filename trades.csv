@@ -1641,3 +1641,42 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-11-24,OTP2.0 AMA,JPM,buy,0.00561,317.1,1.78,0.0,341.6963,,vol-target,engine
 2026-11-24,OTP2.0 AMA,GE,buy,0.00497,318.03,1.58,0.0,344.0831,,vol-target,engine
 2026-11-24,OTP2.0 AMA,IBM,buy,0.006481,235.62,1.53,0.0,249.8886,,vol-target,engine
+2026-11-25,FMTS AMA,ECL,sell,0.003493,308.89,1.08,0.0,315.0054,-0.02,vol-target,engine
+2026-11-25,FMTS AMA,CSX,sell,0.021237,51.16,1.09,0.0,52.0686,-0.02,vol-target,engine
+2026-11-25,FMTS AMA,KO,sell,0.01158,97.59,1.13,0.0,95.9225,0.02,vol-target,engine
+2026-11-25,FMTS AMA,MNST,sell,0.023927,42.6,1.02,0.0,48.7077,-0.15,vol-target,engine
+2026-11-25,FMTS AMA,CTAS,sell,0.004921,227.65,1.12,0.0,229.0939,-0.01,vol-target,engine
+2026-11-25,FMTS AMA,TDY,sell,0.001786,629.12,1.12,0.0,632.3774,-0.01,vol-target,engine
+2026-11-25,FMTS AMA,GILD,sell,0.006667,176.74,1.18,0.0,174.5179,0.01,vol-target,engine
+2026-11-25,FMTS AMA,NDSN,sell,0.003319,321.02,1.07,0.0,330.7506,-0.03,vol-target,engine
+2026-11-25,FMTS AMA,CL,sell,0.011719,99.66,1.17,0.0,98.8453,0.01,vol-target,engine
+2026-11-25,FMTS AMA,VLTO,sell,0.009783,120.19,1.18,0.0,117.1355,0.03,vol-target,engine
+2026-11-25,FMTS AMA,PG,sell,0.006682,173.23,1.16,0.0,167.525,0.04,vol-target,engine
+2026-11-25,FMTS AMA,ITW,sell,0.003743,285.08,1.07,0.0,293.4453,-0.03,vol-target,engine
+2026-11-25,FMTS AMA,MSI,sell,0.002359,541.0,1.28,0.0,498.0106,0.1,vol-target,engine
+2026-11-25,FMTS AMA,UNP,sell,0.003608,298.38,1.08,0.0,308.5312,-0.04,vol-target,engine
+2026-11-25,FMTS AMA,CHD,sell,0.010523,113.31,1.19,0.0,112.1192,0.01,vol-target,engine
+2026-11-25,FMTS AMA,WTS,sell,0.003141,357.19,1.12,0.0,353.6752,0.01,vol-target,engine
+2026-11-25,FMTS AMA,TTC,sell,0.010373,105.92,1.1,0.0,107.5109,-0.02,vol-target,engine
+2026-11-25,FMTS AMA,LIN,sell,0.002154,524.61,1.13,0.0,524.9945,-0.0,vol-target,engine
+2026-11-26,RRG,CDNS,buy,2.819011,295.1849,832.13,0.83,,,rebalance,engine
+2026-11-26,RRG,MCD,buy,2.932268,283.7835,832.13,0.83,,,rebalance,engine
+2026-11-26,RRG,NVR,sell,0.141781,5798.4225,822.11,0.82,5798.4225,0.0,rebalance,engine
+2026-11-26,RRG,MAR,sell,2.082364,394.7944,822.11,0.82,394.7944,0.0,rebalance,engine
+2026-11-26,RRG,AEP,sell,6.406275,128.3282,822.11,0.82,128.3282,0.0,rebalance,engine
+2026-11-26,RRG,DUK,buy,6.302488,132.0319,832.13,0.83,,,rebalance,engine
+2026-11-26,RRG,KDP,buy,23.331408,35.6656,832.13,0.83,,,rebalance,engine
+2026-11-26,RRG,ROP,buy,1.720793,483.5731,832.13,0.83,,,rebalance,engine
+2026-11-26,RRG,SPG,buy,3.55286,234.214,832.13,0.83,,,rebalance,engine
+2026-11-26,RRG,CRM,sell,3.392195,242.3521,822.11,0.82,242.3521,0.0,rebalance,engine
+2026-11-26,RRG,PG,sell,0.390651,173.4032,67.74,0.07,158.4183,5.85,rebalance,engine
+2026-11-26,RRG,ZTS,sell,0.492212,82.6826,40.7,0.04,77.8778,2.36,rebalance,engine
+2026-11-26,RRG,UDR,buy,22.669707,36.7067,832.13,0.83,,,rebalance,engine
+2026-11-26,RRG,SKYD,sell,105.699406,7.7778,822.11,0.82,7.7778,0.0,rebalance,engine
+2026-11-26,RRG,MKC,sell,17.83075,46.1061,822.11,0.82,46.1061,0.0,rebalance,engine
+2026-11-26,RRG,PEG,sell,0.276784,75.2652,20.83,0.02,72.5425,0.75,rebalance,engine
+2026-11-26,RRG,ADBE,sell,3.288294,250.0098,822.11,0.82,250.0098,0.0,rebalance,engine
+2026-11-26,RRG,IDXX,buy,1.171734,710.1695,832.13,0.83,,,rebalance,engine
+2026-11-26,RRG,CMCSA,sell,38.075308,21.5916,822.11,0.82,21.5916,0.0,rebalance,engine
+2026-11-26,RRG,DPZ,buy,2.299389,361.8915,832.13,0.83,,,rebalance,engine
+2026-11-26,RRG,AMGN,sell,1.817685,452.2818,822.11,0.82,452.2818,0.0,rebalance,engine

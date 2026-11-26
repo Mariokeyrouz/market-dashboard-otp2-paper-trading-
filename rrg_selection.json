@@ -1,85 +1,37 @@
 {
-  "as_of": "2026-10-29",
+  "as_of": "2026-11-26",
   "n_holdings": 12,
   "strategy": "RRG top-N by score, equal weight, sector-capped",
   "holdings": {
-    "CRM": {
-      "ticker": "CRM",
+    "SPG": {
+      "ticker": "SPG",
+      "sector": "Real Estate",
+      "sector_etf": "XLRE",
+      "rrg_score": 100.0,
+      "quadrant": "Weakening",
+      "setup": "Weakening"
+    },
+    "ROP": {
+      "ticker": "ROP",
       "sector": "Information Technology",
       "sector_etf": "XLK",
-      "rrg_score": 100.0,
-      "quadrant": "Improving",
-      "setup": "Improving"
+      "rrg_score": 98.4375,
+      "quadrant": "Leading",
+      "setup": "Leading"
     },
-    "NVR": {
-      "ticker": "NVR",
-      "sector": "Consumer Discretionary",
-      "sector_etf": "XLY",
-      "rrg_score": 100.0,
-      "quadrant": "Improving",
-      "setup": "Improving"
-    },
-    "SKYD": {
-      "ticker": "SKYD",
-      "sector": "Communication Services",
-      "sector_etf": "XLC",
-      "rrg_score": 100.0,
-      "quadrant": "Improving",
-      "setup": "Improving -> potential leader"
-    },
-    "ZTS": {
-      "ticker": "ZTS",
+    "IDXX": {
+      "ticker": "IDXX",
       "sector": "Health Care",
       "sector_etf": "XLV",
       "rrg_score": 98.21428571428572,
       "quadrant": "Improving",
       "setup": "Improving -> potential leader"
     },
-    "ADBE": {
-      "ticker": "ADBE",
+    "CDNS": {
+      "ticker": "CDNS",
       "sector": "Information Technology",
       "sector_etf": "XLK",
       "rrg_score": 96.875,
-      "quadrant": "Improving",
-      "setup": "Improving"
-    },
-    "AMGN": {
-      "ticker": "AMGN",
-      "sector": "Health Care",
-      "sector_etf": "XLV",
-      "rrg_score": 94.64285714285714,
-      "quadrant": "Leading",
-      "setup": "Leading"
-    },
-    "MKC": {
-      "ticker": "MKC",
-      "sector": "Consumer Staples",
-      "sector_etf": "XLP",
-      "rrg_score": 93.33333333333331,
-      "quadrant": "Improving",
-      "setup": "Improving"
-    },
-    "MAR": {
-      "ticker": "MAR",
-      "sector": "Consumer Discretionary",
-      "sector_etf": "XLY",
-      "rrg_score": 93.02325581395348,
-      "quadrant": "Weakening",
-      "setup": "Weakening"
-    },
-    "PEG": {
-      "ticker": "PEG",
-      "sector": "Utilities",
-      "sector_etf": "XLU",
-      "rrg_score": 92.85714285714286,
-      "quadrant": "Lagging",
-      "setup": "Lagging"
-    },
-    "CMCSA": {
-      "ticker": "CMCSA",
-      "sector": "Communication Services",
-      "sector_etf": "XLC",
-      "rrg_score": 90.0,
       "quadrant": "Improving",
       "setup": "Improving -> potential leader"
     },
@@ -87,17 +39,65 @@
       "ticker": "PG",
       "sector": "Consumer Staples",
       "sector_etf": "XLP",
-      "rrg_score": 90.0,
+      "rrg_score": 96.66666666666669,
+      "quadrant": "Leading",
+      "setup": "Established leader"
+    },
+    "UDR": {
+      "ticker": "UDR",
+      "sector": "Real Estate",
+      "sector_etf": "XLRE",
+      "rrg_score": 96.55172413793105,
+      "quadrant": "Lagging",
+      "setup": "Lagging"
+    },
+    "DUK": {
+      "ticker": "DUK",
+      "sector": "Utilities",
+      "sector_etf": "XLU",
+      "rrg_score": 96.42857142857144,
+      "quadrant": "Leading",
+      "setup": "Leading"
+    },
+    "DPZ": {
+      "ticker": "DPZ",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 95.34883720930232,
       "quadrant": "Improving",
       "setup": "Improving"
     },
-    "AEP": {
-      "ticker": "AEP",
+    "ZTS": {
+      "ticker": "ZTS",
+      "sector": "Health Care",
+      "sector_etf": "XLV",
+      "rrg_score": 94.64285714285714,
+      "quadrant": "Improving",
+      "setup": "Improving -> potential leader"
+    },
+    "KDP": {
+      "ticker": "KDP",
+      "sector": "Consumer Staples",
+      "sector_etf": "XLP",
+      "rrg_score": 93.33333333333331,
+      "quadrant": "Leading",
+      "setup": "Leading"
+    },
+    "PEG": {
+      "ticker": "PEG",
       "sector": "Utilities",
       "sector_etf": "XLU",
-      "rrg_score": 85.71428571428571,
-      "quadrant": "Weakening",
-      "setup": "Weakening"
+      "rrg_score": 92.85714285714286,
+      "quadrant": "Improving",
+      "setup": "Improving -> potential leader"
+    },
+    "MCD": {
+      "ticker": "MCD",
+      "sector": "Consumer Discretionary",
+      "sector_etf": "XLY",
+      "rrg_score": 90.69767441860463,
+      "quadrant": "Improving",
+      "setup": "Improving"
     }
   }
 }
