@@ -1680,3 +1680,24 @@ date,strategy,ticker,side,shares,price,gross,slippage,avg_cost,realized_pnl,reas
 2026-11-26,RRG,CMCSA,sell,38.075308,21.5916,822.11,0.82,21.5916,0.0,rebalance,engine
 2026-11-26,RRG,DPZ,buy,2.299389,361.8915,832.13,0.83,,,rebalance,engine
 2026-11-26,RRG,AMGN,sell,1.817685,452.2818,822.11,0.82,452.2818,0.0,rebalance,engine
+2026-11-27,OTP2.0,JNJ,sell,0.022628,275.51,6.23,0.01,258.3916,0.39,vol-target,engine
+2026-11-27,OTP2.0,IBM,sell,0.020021,248.08,4.97,0.0,244.1624,0.08,vol-target,engine
+2026-11-27,OTP2.0,JPM,sell,0.016994,322.96,5.49,0.01,338.9527,-0.27,vol-target,engine
+2026-11-27,OTP2.0,AVGO,sell,0.014266,312.34,4.46,0.0,368.831,-0.81,vol-target,engine
+2026-11-27,OTP2.0,GS,sell,0.005129,812.87,4.17,0.0,1008.7061,-1.0,vol-target,engine
+2026-11-27,OTP2.0,GE,sell,0.016256,323.94,5.27,0.01,334.1032,-0.17,vol-target,engine
+2026-11-27,OTP2.0,GOOGL,sell,0.015154,274.96,4.17,0.0,343.9772,-1.05,vol-target,engine
+2026-11-27,OTP2.0 AMA,AVGO,sell,0.015617,312.34,4.88,0.0,361.9329,-0.77,vol-target,engine
+2026-11-27,OTP2.0 AMA,JPM,sell,0.01683,322.96,5.44,0.01,341.5699,-0.31,vol-target,engine
+2026-11-27,OTP2.0 AMA,GS,sell,0.005513,812.87,4.48,0.0,997.6393,-1.02,vol-target,engine
+2026-11-27,OTP2.0 AMA,IBM,sell,0.019443,248.08,4.82,0.0,249.824,-0.03,vol-target,engine
+2026-11-27,OTP2.0 AMA,JNJ,sell,0.0214,275.51,5.9,0.01,264.4,0.24,vol-target,engine
+2026-11-27,OTP2.0 AMA,GE,sell,0.014911,323.94,4.83,0.0,343.9485,-0.3,vol-target,engine
+2026-11-27,OTP2.0 AMA,GOOGL,sell,0.01564,274.96,4.3,0.0,343.636,-1.07,vol-target,engine
+2026-11-27,FourPillar,GE,sell,0.003646,323.94,1.18,0.0,347.8755,-0.09,vol-target,engine
+2026-11-27,FourPillar,JPM,sell,0.003832,322.96,1.24,0.0,350.5301,-0.11,vol-target,engine
+2026-11-27,FourPillar,AVGO,sell,0.003247,312.34,1.01,0.0,384.1813,-0.23,vol-target,engine
+2026-11-27,FourPillar,JNJ,sell,0.005313,275.51,1.46,0.0,262.8672,0.07,vol-target,engine
+2026-11-27,FourPillar,GS,sell,0.001322,812.87,1.07,0.0,993.1318,-0.24,vol-target,engine
+2026-11-27,FourPillar,GOOGL,sell,0.003817,274.96,1.05,0.0,343.9228,-0.26,vol-target,engine
+2026-11-27,FourPillar,IBM,sell,0.005849,248.08,1.45,0.0,233.7425,0.08,vol-target,engine
